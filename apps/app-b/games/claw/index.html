@@ -1004,37 +1004,71 @@
     var tipX = claw.x + claw.swingX, tipZ = claw.z + claw.swingZ;
     var headY = claw.y;
 
-    /* 케이블 */
+    /* 케이블 — 캐리지(claw.x, claw.z)에서 흔들리는 머리까지 실제로 잇습니다.
+       흔들림이 작으므로 소각 근사로 기울입니다. */
     var cableLen = RAIL_Y - headY + 0.06;
-    drawPrim(R.meshes.cyl, trs(m, (claw.x + tipX) / 2, RAIL_Y - cableLen / 2,
-             (claw.z + tipZ) / 2, 0, 0, 0, 0.022, cableLen, 0.022), MAT.cable);
+    AX.mat4.identity(m);
+    AX.mat4.translate(m, m, [(claw.x + tipX) / 2, RAIL_Y - cableLen / 2, (claw.z + tipZ) / 2]);
+    AX.mat4.rotateX(m, m, -claw.swingZ / cableLen);
+    AX.mat4.rotateZ(m, m, claw.swingX / cableLen);
+    AX.mat4.scale(m, m, [0.022, cableLen, 0.022]);
+    drawPrim(R.meshes.cyl, m, MAT.cable);
 
     /* 집게 머리 */
     drawPrim(R.meshes.sphere, trs(m, tipX, headY, tipZ, 0, 0, 0, 0.19, 0.16, 0.19), MAT.clawMetal);
-    drawPrim(R.meshes.cyl, trs(m, tipX, headY - 0.1, tipZ, 0, 0, 0, 0.1, 0.1, 0.1), MAT.clawJoint);
+    drawPrim(R.meshes.cyl, trs(m, tipX, headY - 0.09, tipZ, 0, 0, 0, 0.085, 0.09, 0.085), MAT.clawJoint);
 
-    /* 프롱 3개 — 벌림 각 claw.prong */
+    /* 프롱 3개 — 힌지가 머리 가장자리에 있고, 벌리면 팔 끝이 바깥으로
+       벌어졌다가 닫으면 세 발끝이 중앙 아래에서 모입니다. */
+    var HINGE = 0.085;                                 // 힌지 반경
+    var open = claw.prong;                             // 0.06(닫힘) ~ 0.62(벌림)
+    var swingOut = open * 0.95;                        // 상완이 바깥으로 벌어지는 각
+    var bend = 0.5 + (0.62 - open);                    // 하완 훅 — 닫힐수록 깊게 굽음
+
     for (var i = 0; i < 3; i++) {
-      var a = i * Math.PI * 2 / 3 + time * 0;
-      var open = claw.prong;
-      /* 상완 */
+      var a = i * Math.PI * 2 / 3;
+
+      /* 힌지 너클 */
       AX.mat4.identity(m);
-      AX.mat4.translate(m, m, [tipX, headY - 0.12, tipZ]);
+      AX.mat4.translate(m, m, [tipX, headY - 0.1, tipZ]);
       AX.mat4.rotateY(m, m, a);
-      AX.mat4.rotateZ(m, m, -open);
-      AX.mat4.translate(m, m, [0.1, -0.13, 0]);
-      AX.mat4.scale(m, m, [0.045, 0.28, 0.06]);
-      drawPrim(R.meshes.box, m, MAT.clawMetal);
-      /* 하완 (안쪽으로 굽음) */
+      AX.mat4.translate(m, m, [HINGE, 0, 0]);
+      AX.mat4.scale(m, m, [0.055, 0.055, 0.055]);
+      drawPrim(R.meshes.sphere, m, MAT.clawJoint);
+
+      /* 상완 — 힌지에서 아래로 뻗으며 open만큼 바깥으로 */
       AX.mat4.identity(m);
-      AX.mat4.translate(m, m, [tipX, headY - 0.12, tipZ]);
+      AX.mat4.translate(m, m, [tipX, headY - 0.1, tipZ]);
       AX.mat4.rotateY(m, m, a);
-      AX.mat4.rotateZ(m, m, -open);
-      AX.mat4.translate(m, m, [0.1, -0.26, 0]);
-      AX.mat4.rotateZ(m, m, open * 1.7 + 0.5);
-      AX.mat4.translate(m, m, [0.02, -0.1, 0]);
-      AX.mat4.scale(m, m, [0.04, 0.2, 0.05]);
+      AX.mat4.translate(m, m, [HINGE, 0, 0]);
+      AX.mat4.rotateZ(m, m, swingOut);
+      AX.mat4.translate(m, m, [0, -0.115, 0]);
+      AX.mat4.scale(m, m, [0.042, 0.23, 0.055]);
       drawPrim(R.meshes.box, m, MAT.clawMetal);
+
+      /* 하완(훅) — 상완 끝에서 안쪽으로 굽습니다 */
+      AX.mat4.identity(m);
+      AX.mat4.translate(m, m, [tipX, headY - 0.1, tipZ]);
+      AX.mat4.rotateY(m, m, a);
+      AX.mat4.translate(m, m, [HINGE, 0, 0]);
+      AX.mat4.rotateZ(m, m, swingOut);
+      AX.mat4.translate(m, m, [0, -0.23, 0]);
+      AX.mat4.rotateZ(m, m, -bend);
+      AX.mat4.translate(m, m, [0, -0.095, 0]);
+      AX.mat4.scale(m, m, [0.036, 0.19, 0.05]);
+      drawPrim(R.meshes.box, m, MAT.clawMetal);
+
+      /* 발끝 */
+      AX.mat4.identity(m);
+      AX.mat4.translate(m, m, [tipX, headY - 0.1, tipZ]);
+      AX.mat4.rotateY(m, m, a);
+      AX.mat4.translate(m, m, [HINGE, 0, 0]);
+      AX.mat4.rotateZ(m, m, swingOut);
+      AX.mat4.translate(m, m, [0, -0.23, 0]);
+      AX.mat4.rotateZ(m, m, -bend);
+      AX.mat4.translate(m, m, [0, -0.19, 0]);
+      AX.mat4.scale(m, m, [0.05, 0.05, 0.05]);
+      drawPrim(R.meshes.sphere, m, MAT.clawMetal);
     }
   }
 
