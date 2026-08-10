@@ -437,6 +437,7 @@
   /* 분석기 — 배경 반응용 */
   var analyser = null, freqData = null;
   var bassEnergy = 0, beatPulse = 0;
+  var eqBands = new Float32Array(8);   // EQ 타워 높이 밴드
 
   function initAnalyser() {
     var A = AX.Audio;
@@ -464,6 +465,21 @@
     var st2 = songTime();
     var beatPhase = ((st2 - LEAD_IN) % BEAT + BEAT) % BEAT;
     beatPulse = Math.max(0, 1 - beatPhase / BEAT * 3.2);
+
+    /* EQ 타워 밴드 — 분석기가 있으면 스펙트럼, 없으면 박자에서 합성 */
+    for (var bi = 0; bi < 8; bi++) {
+      var target;
+      if (AX.reduceMotion) {
+        target = 0.45;
+      } else if (analyser) {
+        var fi = 2 + bi * 7;
+        target = (freqData[fi] + freqData[fi + 1]) / 480;
+      } else {
+        target = 0.14 + 0.56 * Math.max(0, Math.sin(st2 * (1.7 + bi * 0.43) + bi * 1.9)) +
+                 beatPulse * 0.28;
+      }
+      eqBands[bi] = AX.damp(eqBands[bi], AX.clamp(target, 0, 1.1), 9, dt);
+    }
   }
 
   /* ══════════════════════════════════════════════════════════
@@ -607,6 +623,33 @@
   ];
   var BOMB_COLOR = { main: [0.16, 0.1, 0.05], emiss: [1.8, 0.7, 0.1] };
 
+  /* EQ 타워 배치 — 도로 양옆, 깊이로 갈수록 레인 색 → 보라 그라디언트 */
+  var TOWER_ALBEDO = [0.015, 0.015, 0.035];
+  var TOWER_VIOLET = [0.45, 0.18, 1.0];
+  var TOWERS = [];
+  (function () {
+    for (var s = 0; s < 2; s++) {
+      var side = s === 0 ? -1 : 1;
+      var lane = COLORS[s].main;
+      for (var i = 0; i < 4; i++) {
+        var t = i / 3;
+        TOWERS.push({
+          x: side * (i % 2 === 0 ? 2.6 : 3.3),
+          z: -4.5 - i * 5.1,
+          band: s * 4 + i,
+          em: [
+            AX.lerp(lane[0], TOWER_VIOLET[0], t * 0.65),
+            AX.lerp(lane[1], TOWER_VIOLET[1], t * 0.65),
+            AX.lerp(lane[2], TOWER_VIOLET[2], t * 0.65)
+          ]
+        });
+      }
+    }
+  })();
+
+  /* 핫루프 재사용 스크래치 — 프레임당 배열 할당 방지 */
+  var emScratch = [0, 0, 0];
+
   function initRenderer(canvas) {
     var gl = R.gl = AX.GL.create(canvas);
     gl.enable(gl.DEPTH_TEST);
@@ -694,6 +737,10 @@
   };
   var BLADE_Z = 0.3;     // 판정 평면
 
+  /* 스파크 스폰 옵션 — 프레임당 객체 할당을 피하려고 재사용합니다 */
+  var sparkOpts = { x: 0, y: 0, z: BLADE_Z, vx: 0, vy: 0, vz: 0.5,
+                    size: 0.034, life: 0.24, r: 1, g: 1, b: 1, gravity: -3, drag: 0.05 };
+
   function updateBlade(dt, now) {
     /* 마우스 스크린 좌표 → z=BLADE_Z 평면 */
     var mx = AX.Input.mouse.x * 2 - 1;
@@ -713,6 +760,16 @@
     var mdx = blade.x - blade.px, mdy = blade.y - blade.py;
     var frameDist = Math.hypot(mdx, mdy);
     blade.speed = AX.damp(blade.speed, frameDist / Math.max(dt, 0.001), 18, dt);
+
+    /* 블레이드 스파크 — 빠른 스윙 중 팁에서 프레임당 1개 */
+    if (blade.speed > 8) {
+      var se = COLORS[blade.color].emiss;
+      sparkOpts.x = blade.x; sparkOpts.y = blade.y;
+      sparkOpts.vx = (Math.random() - 0.5) * 2.6 - mdx * 10;
+      sparkOpts.vy = (Math.random() - 0.5) * 2.6 - mdy * 10;
+      sparkOpts.r = se[0]; sparkOpts.g = se[1]; sparkOpts.b = se[2];
+      R.particles.spawn(sparkOpts);
+    }
 
     /* 색 전환 */
     if (AX.Input.mouseClicked(0) && blade.color !== 0) setBladeColor(0);
@@ -869,8 +926,13 @@
         judge(kind);
         spawnHalves(nt, sdir);
         explode(nt.x, nt.y, nt.z, COLORS[nt.color].emiss, 10);
+        ringBurst(nt.x, nt.y, nt.z, COLORS[nt.color].emiss);
         AX.Audio.sfx.hit();
-        if (kind === 'PERFECT') AX.Audio.sfx.pickup();
+        if (kind === 'PERFECT') {
+          AX.Audio.sfx.pickup();
+          /* PERFECT 펀치 — fov를 살짝 튕겼다가 0.2초에 감쇠 */
+          if (!AX.reduceMotion) fovPunch = 1.5;
+        }
       }
     }
 
@@ -906,6 +968,22 @@
         side: s,
         cutAngle: Math.atan2(cutDir[1], cutDir[0]),
         life: 0.55
+      });
+    }
+  }
+
+  /* 컷 임팩트 — 절단점에서 원주 방향으로 퍼지는 파티클 링 */
+  function ringBurst(x, y, z, col) {
+    for (var i = 0; i < 14; i++) {
+      var a = i / 14 * Math.PI * 2;
+      var ca = Math.cos(a), sa = Math.sin(a);
+      R.particles.spawn({
+        x: x + ca * 0.14, y: y + sa * 0.14, z: z,
+        vx: ca * 5.6, vy: sa * 5.6, vz: 1.4,
+        size: 0.042 + (i % 2) * 0.022,
+        life: 0.3 + (i % 3) * 0.07,
+        r: col[0] * 0.9 + 0.35, g: col[1] * 0.9 + 0.35, b: col[2] * 0.9 + 0.35,
+        gravity: 0, drag: 0.1
       });
     }
   }
@@ -962,6 +1040,7 @@
      ══════════════════════════════════════════════════════════ */
 
   var shake = 0;
+  var fovPunch = 0;    // PERFECT 순간 fov 튕김 (도 단위)
 
   function renderScene(time) {
     var gl = R.gl;
@@ -1001,6 +1080,23 @@
              [0.02, 0.02, 0.03], [0.3 * gatePulse, 0.16 * gatePulse, 0.55 * gatePulse]);
     drawPrim(R.meshes.box, trs(m, 3.6, 0.95, BLADE_Z - 0.05, 0, 0, 0, 0.03, 1.7, 0.03),
              [0.02, 0.02, 0.03], [0.3 * gatePulse, 0.16 * gatePulse, 0.55 * gatePulse]);
+
+    /* 게이트 코너 브래킷 — L자 발광, 비트에 맞춰 밝기 펄스 */
+    var brPulse = 0.55 + beatPulse * 0.85;
+    for (var bc = 0; bc < 4; bc++) {
+      var bx = bc % 2 === 0 ? -1 : 1;
+      var by = bc < 2 ? 1 : -1;
+      var bcCol = COLORS[bx < 0 ? 0 : 1].main;
+      emScratch[0] = bcCol[0] * brPulse;
+      emScratch[1] = bcCol[1] * brPulse;
+      emScratch[2] = bcCol[2] * brPulse;
+      var cx0 = bx * 3.78;
+      var cy0 = by > 0 ? 1.93 : -0.06;
+      drawPrim(R.meshes.box, trs(m, cx0 - bx * 0.16, cy0, BLADE_Z - 0.05, 0, 0, 0, 0.34, 0.05, 0.05),
+               [0.02, 0.02, 0.03], emScratch);
+      drawPrim(R.meshes.box, trs(m, cx0, cy0 - by * 0.16, BLADE_Z - 0.05, 0, 0, 0, 0.05, 0.34, 0.05),
+               [0.02, 0.02, 0.03], emScratch);
+    }
     }
 
     /* 레인 유도선 */
@@ -1010,6 +1106,26 @@
       var lc = COLORS[l].main;
       drawPrim(R.meshes.box, trs(m, lx, 0.06, -14, 0, 0, 0, 0.05, 0.01, 30),
                [0.01, 0.01, 0.02], [lc[0] * 0.14, lc[1] * 0.14, lc[2] * 0.14]);
+    }
+
+    /* EQ 타워 — 도로 양옆 발광 기둥, 높이가 스펙트럼에 출렁입니다 */
+    if (!SKIP.towers)
+    for (var tw = 0; tw < TOWERS.length; tw++) {
+      var T = TOWERS[tw];
+      var band = eqBands[T.band];
+      var hgt = 0.7 + band * 3.2;
+      var eqGain = 0.36 + band * 0.75;
+      emScratch[0] = T.em[0] * eqGain;
+      emScratch[1] = T.em[1] * eqGain;
+      emScratch[2] = T.em[2] * eqGain;
+      drawPrim(R.meshes.box, trs(m, T.x, hgt * 0.5, T.z, 0, 0, 0, 0.32, hgt, 0.32),
+               TOWER_ALBEDO, emScratch);
+      /* 꼭대기 캡 — 살짝 더 밝은 얇은 판 */
+      emScratch[0] = T.em[0] * (0.9 + band * 1.1);
+      emScratch[1] = T.em[1] * (0.9 + band * 1.1);
+      emScratch[2] = T.em[2] * (0.9 + band * 1.1);
+      drawPrim(R.meshes.box, trs(m, T.x, hgt + 0.035, T.z, 0, 0, 0, 0.38, 0.06, 0.38),
+               TOWER_ALBEDO, emScratch);
     }
 
     /* 노트 */
@@ -1037,23 +1153,29 @@
       }
 
       var C = COLORS[n.color];
+      /* 스폰 직후 z-roll이 잦아들며 정착 + 판정선 접근 시 발광 상승 */
+      var roll = AX.reduceMotion ? 0 : (1 - appear) * 0.55 * (n.color === 0 ? -1 : 1);
+      var nearGain = 0.22 * (1 + AX.smoothstep(3.0, 0.7, Math.abs(n.z)) * 0.3);
+      emScratch[0] = C.emiss[0] * nearGain;
+      emScratch[1] = C.emiss[1] * nearGain;
+      emScratch[2] = C.emiss[2] * nearGain;
       /* 본체 */
-      drawPrim(R.meshes.box, trs(m, n.x, n.y, n.z, 0, 0, 0, sc, sc, sc * 0.55),
-               C.main, [C.emiss[0] * 0.22, C.emiss[1] * 0.22, C.emiss[2] * 0.22]);
+      drawPrim(R.meshes.box, trs(m, n.x, n.y, n.z, 0, 0, roll, sc, sc, sc * 0.55),
+               C.main, emScratch);
       /* 방향 셰브론 — 앞면 위에 흰 발광 */
       var av = DIR_VEC[n.dir];
       var aAng = Math.atan2(av[0], av[1]);      // 0=위
       var chevY = 0.06;
       AX.mat4.identity(m);
       AX.mat4.translate(m, m, [n.x, n.y, n.z + sc * 0.3]);
-      AX.mat4.rotateZ(m, m, -aAng);
+      AX.mat4.rotateZ(m, m, roll - aAng);
       AX.mat4.translate(m, m, [0, chevY, 0]);
       AX.mat4.rotateZ(m, m, Math.PI / 4);
       AX.mat4.scale(m, m, [0.19 * appear, 0.045, 0.02]);
       drawPrim(R.meshes.box, m, [0.9, 0.9, 0.95], [1.6, 1.6, 1.9]);
       AX.mat4.identity(m);
       AX.mat4.translate(m, m, [n.x, n.y, n.z + sc * 0.3]);
-      AX.mat4.rotateZ(m, m, -aAng);
+      AX.mat4.rotateZ(m, m, roll - aAng);
       AX.mat4.translate(m, m, [0, chevY, 0]);
       AX.mat4.rotateZ(m, m, -Math.PI / 4);
       AX.mat4.scale(m, m, [0.19 * appear, 0.045, 0.02]);
@@ -1093,9 +1215,12 @@
       gl.disable(gl.BLEND);
     }
 
-    /* 블레이드 팁 */
+    /* 블레이드 팁 — 파티클·리본 패스가 프로그램을 바꿨으므로 프림 셰이더를 재바인딩합니다 */
     if (!SKIP.tip) {
       var tipC = COLORS[blade.color];
+      R.sh.prim.use()
+        .set('uViewProj', cam.viewProj)
+        .set('uCamPos', cam.position);
       drawPrim(R.meshes.sphere, trs(R.tmpM, blade.x, blade.y, BLADE_Z, 0, 0, 0, 0.075),
                [0.1, 0.1, 0.12], [tipC.emiss[0] * 1.3, tipC.emiss[1] * 1.3, tipC.emiss[2] * 1.3]);
     }
@@ -1272,6 +1397,7 @@
         updateAnalysis(dt);
         R.particles.update(dt, null);
         shake = Math.max(0, shake - dt * 2.4);
+        fovPunch = Math.max(0, fovPunch - dt * 7.5);   // 0.2초 감쇠
 
         /* 카메라 — 베이스에 살짝 반응. 블레이드 언프로젝트가 이 행렬을 쓰므로
            반드시 블레이드 갱신보다 먼저 계산합니다. */
@@ -1283,7 +1409,7 @@
           5.0 + (Math.random() - 0.5) * shakeAmt);
         AX.mat4.lookAt(cam2.view, cam2.position, [0, 1.55, -2], [0, 1, 0]);
         var aspect = gl.axCanvas.width / gl.axCanvas.height;
-        AX.mat4.perspective(cam2.proj, (66 + bassEnergy * 2.4) * Math.PI / 180, aspect, 0.1, 90);
+        AX.mat4.perspective(cam2.proj, (66 + bassEnergy * 2.4 + fovPunch) * Math.PI / 180, aspect, 0.1, 90);
         AX.mat4.multiply(cam2.viewProj, cam2.proj, cam2.view);
         AX.vec3.set(cam2.right, cam2.view[0], cam2.view[4], cam2.view[8]);
         AX.vec3.set(cam2.up, cam2.view[1], cam2.view[5], cam2.view[9]);

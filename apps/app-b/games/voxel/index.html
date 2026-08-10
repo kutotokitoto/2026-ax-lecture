@@ -872,7 +872,7 @@
     'in vec2 vUV;',
     'uniform mat4 uInvViewProj;',
     'uniform vec3 uCamPos, uSunDir, uSunColor, uSkyTop, uSkyHorizon, uGroundCol;',
-    'uniform float uTime, uNight;',
+    'uniform float uTime, uNight, uGold;',
     'out vec4 fragColor;',
     AX.chunk.hash,
     'float vnoise(vec2 p) {',
@@ -902,17 +902,23 @@
     '    float tw = 0.65 + 0.35 * sin(uTime * 2.3 + hash12(cell) * 40.0);',
     '    col += vec3(0.85, 0.9, 1.0) * star * tw * uNight * smoothstep(0.0, 0.25, dir.y);',
     '  }',
-    '  /* 태양(또는 달) */',
+    '  /* 태양(또는 달) — 코어 + 이중 halo. 노을에는 halo가 풍성해집니다. */',
     '  float sd = max(dot(dir, uSunDir), 0.0);',
+    '  float halo = 1.0 + uGold * 1.7;',
     '  col += uSunColor * pow(sd, 1400.0) * 26.0;',
-    '  col += uSunColor * pow(sd, 14.0) * 0.34;',
-    '  col += uSunColor * pow(sd, 2.6) * 0.09;',
+    '  col += uSunColor * pow(sd, 80.0) * 0.85 * halo;',
+    '  col += uSunColor * pow(sd, 14.0) * 0.34 * halo;',
+    '  col += uSunColor * pow(sd, 2.6) * (0.09 + uGold * 0.11);',
+    '  /* 수평선 부근 대기 산란 — 태양 쪽 하늘이 물듭니다. */',
+    '  float hz = pow(1.0 - h, 5.0);',
+    '  col += uSunColor * hz * (0.05 + sd * sd * 0.30) * (0.55 + uGold * 0.9);',
     '  /* 구름 — 시선을 하늘 평면에 투영해서 흐르게 합니다. */',
     '  if (dir.y > 0.005) {',
     '    vec2 cp = dir.xz / dir.y * 0.06 + vec2(uTime * 0.0045, uTime * 0.0022);',
     '    float c = clouds(cp);',
     '    float cover = smoothstep(0.52, 0.78, c) * smoothstep(0.0, 0.22, dir.y);',
     '    vec3 lit = mix(uSkyHorizon * 1.1, uSunColor * 0.55 + vec3(0.7), 0.55);',
+    '    lit *= 1.0 - uNight * 0.85;         /* 밤 구름은 별을 가리는 어두운 실루엣으로 */',
     '    col = mix(col, lit, cover * 0.72);',
     '  }',
     '  col = mix(uGroundCol * 0.5, col, smoothstep(-0.16, 0.015, dir.y));',
@@ -1164,6 +1170,7 @@
     ground: AX.vec3.create(0, 0, 0),
     fog: AX.vec3.create(0, 0, 0),
     night: 0,
+    gold: 0,
     label: ''
   };
 
@@ -1202,6 +1209,8 @@
     lerp3(sky.ground, gnd, PAL.night.gnd, nightMix);
     lerp3(sky.fog, sky.skyHorizon, sky.skyTop, 0.22);
     sky.night = nightMix;
+    /* 노을 강도 — 밤이 깊어지면 0으로 빠집니다. 색보정·태양 halo에 씁니다. */
+    sky.gold = goldMix * (1 - nightMix);
 
     /* 밤에는 달을 반대편에 띄웁니다. */
     if (elev < -0.02) {
@@ -1422,6 +1431,11 @@
 
   var visibleChunks = [];
 
+  /* 눈(카메라)이 물속일 때 쓰는 청록 안개색 — 선형 공간 */
+  var UW_FOG = AX.vec3.create(0.015, 0.135, 0.165);
+  var eyeInWater = false;
+  var uwMix = 0;                 // 물속 색보정을 부드럽게 잇는 보간값
+
   function collectVisible() {
     visibleChunks.length = 0;
     var pcx = player.pos[0], pcz = player.pos[2];
@@ -1468,6 +1482,14 @@
     var q = AX.Quality.get();
     var fogEnd = q.viewDist * CX - 10;
     var fogStart = fogEnd * 0.5;
+    var fogCol = sky.fog;
+
+    /* 물속 — 청록 안개로 감싸고 시야를 짧게 줄입니다. 이 프레임의 유니폼만 덮어씁니다. */
+    if (eyeInWater) {
+      fogCol = UW_FOG;
+      fogStart = 1.5;
+      fogEnd = 22;
+    }
 
     /* 1) 하늘 — 깊이 기록 없이 배경으로 깝니다. */
     gl.depthMask(false);
@@ -1482,7 +1504,8 @@
       .set('uSkyHorizon', sky.skyHorizon)
       .set('uGroundCol', sky.ground)
       .set('uTime', sky.time)
-      .set('uNight', sky.night);
+      .set('uNight', sky.night)
+      .set('uGold', sky.gold);
     renderer.fullscreen.draw();
     gl.enable(gl.DEPTH_TEST);
     gl.depthMask(true);
@@ -1496,7 +1519,7 @@
       .set('uSkyTop', sky.skyTop)
       .set('uSkyHorizon', sky.skyHorizon)
       .set('uGroundCol', sky.ground)
-      .set('uFogColor', sky.fog)
+      .set('uFogColor', fogCol)
       .set('uCamPos', cam.position)
       .set('uFogStart', fogStart)
       .set('uFogEnd', fogEnd)
@@ -1535,7 +1558,7 @@
       .set('uSunColor', sky.sunColor)
       .set('uSkyTop', sky.skyTop)
       .set('uSkyHorizon', sky.skyHorizon)
-      .set('uFogColor', sky.fog)
+      .set('uFogColor', fogCol)
       .set('uCamPos', cam.position)
       .set('uFogStart', fogStart)
       .set('uFogEnd', fogEnd)
@@ -1602,7 +1625,7 @@
   function blockParticles(x, y, z, blockId) {
     var def = BLOCKS[blockId];
     var col = BLOCK_COLORS[blockId] || [0.6, 0.6, 0.6];
-    for (var i = 0; i < 14; i++) {
+    for (var i = 0; i < 20; i++) {
       renderer.particles.spawn({
         x: x + 0.15 + Math.random() * 0.7,
         y: y + 0.15 + Math.random() * 0.7,
@@ -1610,7 +1633,7 @@
         vx: (Math.random() - 0.5) * 4.5,
         vy: 1.5 + Math.random() * 4,
         vz: (Math.random() - 0.5) * 4.5,
-        size: 0.07 + Math.random() * 0.07,
+        size: 0.05 + Math.random() * 0.1,
         life: 0.6 + Math.random() * 0.5,
         r: col[0] * (0.8 + Math.random() * 0.4),
         g: col[1] * (0.8 + Math.random() * 0.4),
@@ -1628,6 +1651,54 @@
         });
       }
     }
+  }
+
+  /* 설치할 때 블록 밑면 가장자리에서 살짝 퍼지는 먼지 */
+  function placeParticles(x, y, z, blockId) {
+    var col = BLOCK_COLORS[blockId] || [0.6, 0.6, 0.6];
+    for (var i = 0; i < 10; i++) {
+      var ang = Math.random() * Math.PI * 2;
+      renderer.particles.spawn({
+        x: x + 0.5 + Math.cos(ang) * 0.55,
+        y: y + 0.06 + Math.random() * 0.22,
+        z: z + 0.5 + Math.sin(ang) * 0.55,
+        vx: Math.cos(ang) * (0.7 + Math.random() * 0.9),
+        vy: 0.35 + Math.random() * 0.7,
+        vz: Math.sin(ang) * (0.7 + Math.random() * 0.9),
+        size: 0.045 + Math.random() * 0.05,
+        life: 0.35 + Math.random() * 0.3,
+        r: col[0] * 0.9 + 0.1, g: col[1] * 0.9 + 0.1, b: col[2] * 0.9 + 0.1,
+        gravity: -3, drag: 0.2, shrink: 1
+      });
+    }
+  }
+
+  /* ── 밤 반딧불 — 잔디 지면 위를 느리게 떠다닙니다 ── */
+  var fireflyTimer = 0;
+  function updateFireflies(dt) {
+    if (sky.night < 0.5) return;                        // 낮에는 스폰 중단
+    fireflyTimer -= dt;
+    if (fireflyTimer > 0) return;
+    fireflyTimer = 0.36 + Math.random() * 0.16;         // 초당 2~3개
+    var ang = Math.random() * Math.PI * 2;
+    var rad = 8 + Math.random() * 8;
+    var bx = Math.floor(player.pos[0] + Math.cos(ang) * rad);
+    var bz = Math.floor(player.pos[2] + Math.sin(ang) * rad);
+    var h = terrainHeight(bx, bz);
+    if (h <= SEA + 1) return;                           // 물가·수면은 제외
+    if (world.getBlock(bx, h, bz) !== GRASS) return;    // 잔디 위에서만
+    renderer.particles.spawn({
+      x: bx + Math.random(),
+      y: h + 1.5 + Math.random() * 1.5,                 // 지면 위 0.5~2m
+      z: bz + Math.random(),
+      vx: (Math.random() - 0.5) * (AX.reduceMotion ? 0.15 : 0.5),
+      vy: 0.05 + Math.random() * (AX.reduceMotion ? 0.06 : 0.16),
+      vz: (Math.random() - 0.5) * (AX.reduceMotion ? 0.15 : 0.5),
+      size: 0.055 + Math.random() * 0.035,
+      life: 3 + Math.random() * 2,
+      r: 1.1, g: 2.3, b: 0.65,                          // 연두 — 1을 넘겨 블룸이 잡습니다
+      gravity: 0, drag: 0.012, shrink: 0
+    });
   }
 
   /* 파티클 색 — 텍스처 평균값을 미리 뽑아 둡니다. */
@@ -1683,6 +1754,7 @@
                       (py + 1 > player.pos[1] && py < player.pos[1] + player.height);
         if (!overlap) {
           world.setBlock(px, py, pz, HOTBAR[hotbarIndex]);
+          placeParticles(px, py, pz, HOTBAR[hotbarIndex]);
           placeCooldown = 0.19;
           player.swing = 1;
           stats.placed++;
@@ -1885,6 +1957,10 @@
     renderer.camera.yaw = 0.6;
     renderer.camera.pitch = -0.12;
 
+    /* ?night · ?gold — 렌더 검증용 시간대 강제. 출시 코드에 남아도 무해합니다. */
+    if (/night/.test(location.search)) sky.time = 0.75 * sky.dayLength;
+    else if (/gold/.test(location.search)) sky.time = 0.485 * sky.dayLength;
+
     resize(true);
     updateStreaming(true);
 
@@ -1921,6 +1997,7 @@
       update: function (dt) {
         if (!started) return;
         updatePlayer(dt);
+        updateFireflies(dt);
         renderer.particles.update(dt, function (x, y, z) {
           return world.isSolid(Math.floor(x), Math.floor(y), Math.floor(z));
         });
@@ -1951,6 +2028,20 @@
         cam.far = Math.max(180, AX.Quality.get().viewDist * CX + 60);
         cam.update(gl.axCanvas.width / gl.axCanvas.height);
         renderer.frustum.fromMatrix(cam.viewProj);
+
+        /* 눈이 물 블록 안인지 — 안개·색보정에 씁니다. */
+        eyeInWater = world.getBlock(Math.floor(cam.position[0]),
+                                    Math.floor(cam.position[1]),
+                                    Math.floor(cam.position[2])) === WATER;
+        uwMix = AX.damp(uwMix, eyeInWater ? 1 : 0, 9, dt);
+
+        /* 시간대 색보정 — goldMix/nightMix를 따라 post 이펙트를 매 프레임 보간합니다.
+           gold·night가 이미 smoothstep 값이라 결과도 부드럽게 이어집니다. */
+        var fx = renderer.post.effects;
+        fx.exposure = 1.06 + sky.gold * 0.10 - sky.night * 0.17 - uwMix * 0.12;
+        fx.saturation = 1.04 + sky.gold * 0.08 - sky.night * 0.12;
+        fx.vignette = 0.34 + sky.night * 0.17 + uwMix * 0.10;
+        fx.bloomStrength = 0.42 + sky.gold * 0.12 + sky.night * 0.18;
 
         collectVisible();
         renderShadowPass();

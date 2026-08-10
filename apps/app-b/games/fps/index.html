@@ -436,6 +436,9 @@
 
     /* 5) 경로 그래프 — 중앙(0) ↔ 복도(5..8) ↔ 방(1..4) */
     navEdges = [[0, 5], [5, 1], [0, 6], [6, 2], [0, 7], [7, 3], [0, 8], [8, 4]];
+
+    /* 6) 코어 방 홀로그램 상시 라이트 — 중앙을 시안으로 물들입니다. (room -2: 콘 제외 표식) */
+    pointLights.push({ pos: [48, 8.2, 48], color: [0.25, 0.9, 1.2], intensity: 26, room: -2 });
   }
 
   function nearestNode(x, z) {
@@ -913,6 +916,22 @@
     '    float tw = 0.7 + 0.3 * sin(uTime * 2.0 + mag * 50.0);',
     '    col += vec3(0.8, 0.87, 1.0) * star * tw * (layer == 0 ? 1.0 : 0.5);',
     '  }',
+    '  /* 유성 — 수십 초에 한 번, 한 줄기가 느리게 지나갑니다 */',
+    '  float mseg = floor(uTime / 31.0);',
+    '  float mprog = fract(uTime / 31.0) * 31.0 / 2.6;',
+    '  if (mprog < 1.0) {',
+    '    float mrnd = hash12(vec2(mseg, 3.7));',
+    '    vec3 mA = normalize(vec3(-0.55, 0.80, 0.55 * (mrnd - 0.5)));',
+    '    vec3 mB = normalize(vec3(0.62, 0.34, -0.40));',
+    '    float mfade = smoothstep(0.0, 0.12, mprog) * (1.0 - smoothstep(0.72, 1.0, mprog));',
+    '    for (int k = 0; k < 3; k++) {',
+    '      vec3 mp = normalize(mix(mA, mB, max(mprog - float(k) * 0.024, 0.0)));',
+    '      float md = dot(dir, mp);',
+    '      col += vec3(0.8, 0.88, 1.0) *',
+    '             smoothstep(0.99975 - float(k) * 0.00013, 0.99999, md) *',
+    '             mfade * (1.1 - float(k) * 0.34);',
+    '    }',
+    '  }',
     '  /* 지구 비슷한 행성 */',
     '  vec3 pd = normalize(vec3(0.55, 0.18, -0.72));',
     '  float pdot = dot(dir, pd);',
@@ -1025,6 +1044,38 @@
     '}'
   ].join('\n');
 
+  /* 볼류메트릭 라이트 콘 (가짜) — 천장광 아래 반투명 빛기둥.
+     실루엣(노멀⊥시선)과 바닥으로 갈수록 옅어져 부드럽게 읽힙니다. */
+  var CONE_VS = [
+    '#version 300 es',
+    'layout(location=0) in vec3 aPos;',
+    'layout(location=1) in vec3 aNormal;',
+    'uniform mat4 uViewProj, uModel;',
+    'uniform vec3 uCamPos;',
+    'out float vFade;',
+    'void main() {',
+    '  vec4 w = uModel * vec4(aPos, 1.0);',
+    '  vec3 wn = normalize(mat3(uModel) * aNormal);',
+    '  vec3 V = normalize(uCamPos - w.xyz);',
+    '  float ndv = abs(dot(wn, V));',
+    '  float vert = aPos.y + 0.5;',        // 꼭대기(광원) 1 → 바닥 0
+    '  vFade = ndv * ndv * vert * vert;',
+    '  gl_Position = uViewProj * w;',
+    '}'
+  ].join('\n');
+
+  var CONE_FS = [
+    '#version 300 es',
+    'precision highp float;',
+    'in float vFade;',
+    'uniform vec3 uColor;',
+    'uniform float uAlpha;',
+    'out vec4 fragColor;',
+    'void main() {',
+    '  fragColor = vec4(uColor * (uAlpha * vFade), 1.0);',   // 가산(ONE, ONE) 전제
+    '}'
+  ].join('\n');
+
   /* ══════════════════════════════════════════════════════════
      렌더러 상태
      ══════════════════════════════════════════════════════════ */
@@ -1053,6 +1104,7 @@
   var AMBIENT = [0.055, 0.07, 0.10];
   var FOG_COLOR = [0.008, 0.012, 0.024];
   var FOG_DENSITY = 0.00028;
+  var CONE_COLOR = [0.5, 0.72, 1.0];   // 라이트 콘 색 — 차가운 시안빛 백색
 
   function initRenderer(canvas) {
     var gl = R.gl = AX.GL.create(canvas);
@@ -1066,6 +1118,7 @@
     R.sh.prim = new AX.Shader(gl, PRIM_VS, PRIM_FS, 'prim');
     R.sh.shield = new AX.Shader(gl, PRIM_VS, SHIELD_FS, 'shield');
     R.sh.beam = new AX.Shader(gl, BEAM_VS, BEAM_FS, 'beam');
+    R.sh.cone = new AX.Shader(gl, CONE_VS, CONE_FS, 'cone');
 
     R.atlas = AX.tex.array(gl, 64, TEX_LAYERS, function (ctx, i, size) {
       if (TEX_DRAW[i]) TEX_DRAW[i](ctx, size);
@@ -1088,6 +1141,8 @@
     R.meshes.sphere = AX.Mesh.fromGeometry(gl, AX.geom.sphere(0.5, 26, 18));
     R.meshes.box = AX.Mesh.fromGeometry(gl, AX.geom.box(1, 1, 1));
     R.meshes.cyl = AX.Mesh.fromGeometry(gl, AX.geom.cylinder(0.5, 0.5, 1, 18));
+    /* 라이트 콘 — 위가 좁고 아래가 넓은 뚜껑 없는 원뿔 */
+    R.meshes.cone = AX.Mesh.fromGeometry(gl, AX.geom.cylinder(0.1, 1.0, 1, 20, false));
 
     /* 빔 — 교차 쿼드 */
     var bp = new Float32Array([
@@ -1180,6 +1235,22 @@
     sh.set('uSpecK', mat.specK !== undefined ? mat.specK : 0.5);
     sh.set('uRim', mat.rim !== undefined ? mat.rim : 0.12);
     mesh.draw();
+  }
+
+  /* ── 볼류메트릭 라이트 콘 — 정적 라이트라 행렬을 한 번만 만듭니다. ── */
+  var coneMats = [];
+  function buildConeMats() {
+    var botY = FLOOR_Y + 1.04;
+    for (var i = 0; i < pointLights.length; i++) {
+      var L = pointLights[i];
+      /* 방 천장 패널 라이트만 — 복도(-1)·홀로그램(-2) 라이트는 제외 */
+      if (L.room < 0 || L.pos[1] < CEIL_Y - 1.5) continue;
+      var topY = L.pos[1] + 0.55;
+      var m = AX.mat4.create();
+      AX.mat4.translate(m, m, [L.pos[0], (topY + botY) / 2, L.pos[2]]);
+      AX.mat4.scale(m, m, [2.7, topY - botY, 2.7]);
+      coneMats.push({ m: m, x: L.pos[0], z: L.pos[2], phase: i * 1.7 });
+    }
   }
 
   /* ══════════════════════════════════════════════════════════
@@ -1521,6 +1592,32 @@
         r: col[0], g: col[1], b: col[2],
         gravity: -20
       });
+    }
+  }
+
+  /* ── 부유 먼지 — 정거장 공기 중 미립자 ─────────
+     0.2초마다 1개, 수명 8초 → 평균 ~40개가 플레이어 주변을 떠다닙니다. */
+  var dustT = 0;
+  function updateDust(dt) {
+    dustT += dt;
+    while (dustT > 0.2) {
+      dustT -= 0.2;
+      for (var a = 0; a < 4; a++) {          // 벽 안이면 몇 번 다시 뽑습니다
+        var dx = player.pos[0] + (Math.random() - 0.5) * 17;
+        var dy = FLOOR_Y + 1.3 + Math.random() * (CEIL_Y - FLOOR_Y - 2.6);
+        var dz = player.pos[2] + (Math.random() - 0.5) * 17;
+        if (isSolid(Math.floor(dx), Math.floor(dy), Math.floor(dz))) continue;
+        R.particles.spawn({
+          x: dx, y: dy, z: dz,
+          vx: (Math.random() - 0.5) * 0.22,
+          vy: (Math.random() - 0.5) * 0.1,
+          vz: (Math.random() - 0.5) * 0.22,
+          size: 0.02 + Math.random() * 0.016,
+          life: 8, r: 0.5, g: 0.56, b: 0.66,
+          gravity: 0, drag: 0, shrink: 0
+        });
+        break;
+      }
     }
   }
 
@@ -1970,6 +2067,70 @@
       gl.disable(gl.BLEND);
     }
 
+    /* 볼류메트릭 라이트 콘 + 코어 홀로그램 — 가산, 깊이쓰기 끔 */
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE);
+    gl.depthMask(false);
+    gl.disable(gl.CULL_FACE);
+
+    var cs = R.sh.cone.use();
+    cs.set('uViewProj', cam.viewProj).set('uCamPos', cam.position);
+    cs.set('uColor', CONE_COLOR);
+    for (var li = 0; li < coneMats.length; li++) {
+      var cn = coneMats[li];
+      var cdx = cn.x - cam.position[0], cdz = cn.z - cam.position[2];
+      if (cdx * cdx + cdz * cdz > 3600) continue;                       // 60m 밖은 생략
+      if (!R.frustum.boxVisible(cn.x - 2.8, FLOOR_Y, cn.z - 2.8,
+                                cn.x + 2.8, CEIL_Y, cn.z + 2.8)) continue;
+      var fl = AX.reduceMotion ? 1 : 0.9 + 0.1 * Math.sin(game.time * 1.7 + cn.phase);
+      cs.set('uModel', cn.m);
+      cs.set('uAlpha', 0.062 * fl);
+      R.meshes.cone.draw();
+    }
+
+    /* 코어 방 홀로그램 — 회전 링 2개 + 중앙 발광 구, 은은한 펄스 */
+    var hp = R.sh.prim.use();
+    hp.set('uViewProj', cam.viewProj);
+    var hrot = AX.reduceMotion ? 0 : game.time;
+    var hpulse = AX.reduceMotion ? 1 : 0.82 + 0.18 * Math.sin(game.time * 2.3);
+    var hm = R.tmpM;
+    /* 링 1 — 수평, 살짝 기울여 Y축 스핀 */
+    AX.mat4.identity(hm);
+    AX.mat4.translate(hm, hm, [48, 8.5, 48]);
+    AX.mat4.rotateY(hm, hm, hrot * 0.55);
+    AX.mat4.rotateX(hm, hm, 0.2);
+    AX.mat4.scale(hm, hm, [2.6, 0.06, 2.6]);
+    drawPrim(R.meshes.cyl, hm, {
+      albedo: [0, 0, 0],
+      emissive: [0.1 * hpulse, 0.55 * hpulse, 0.9 * hpulse],
+      specPow: 1, specK: 0, rim: 0
+    });
+    /* 링 2 — 세워서 다른 축으로 세차 회전 */
+    AX.mat4.identity(hm);
+    AX.mat4.translate(hm, hm, [48, 8.5, 48]);
+    AX.mat4.rotateY(hm, hm, -hrot * 0.4);
+    AX.mat4.rotateX(hm, hm, Math.PI / 2);
+    AX.mat4.scale(hm, hm, [1.8, 0.05, 1.8]);
+    drawPrim(R.meshes.cyl, hm, {
+      albedo: [0, 0, 0],
+      emissive: [0.12 * hpulse, 0.6 * hpulse, 1.0 * hpulse],
+      specPow: 1, specK: 0, rim: 0
+    });
+    /* 중앙 코어 */
+    AX.mat4.identity(hm);
+    AX.mat4.translate(hm, hm, [48, 8.5, 48]);
+    AX.mat4.scale(hm, hm, [0.4, 0.4, 0.4]);
+    drawPrim(R.meshes.sphere, hm, {
+      albedo: [0, 0, 0],
+      emissive: [0.3 * hpulse, 1.15 * hpulse, 1.7 * hpulse],
+      specPow: 1, specK: 0, rim: 0
+    });
+
+    /* 상태 복원 — 가산 패스 누수 방지 */
+    gl.enable(gl.CULL_FACE);
+    gl.depthMask(true);
+    gl.disable(gl.BLEND);
+
     /* 유리 — 반투명, 마지막에 */
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -2072,6 +2233,16 @@
         AX.mat4.scale(m2, m2, [0.34 * sc, 0.08 * sc, 0.1 * sc]);
         drawPrim(R.meshes.box, m2, {
           albedo: [0.14, 0.16, 0.2], specPow: 40, specK: 0.6, rim: 0.15
+        });
+      }
+
+      /* 엔진 글로우 — 매 프레임 1개, 이동 반대 방향으로 흘려 호버 배기 트레일 */
+      if (loop && !loop.paused && sc > 0.4) {
+        R.particles.spawn({
+          x: dr.pos[0], y: dr.pos[1] + bob - 0.34 * sc, z: dr.pos[2],
+          vx: -dr.vel[0] * 0.6, vy: -1.4 - Math.abs(dr.vel[1]) * 0.3, vz: -dr.vel[2] * 0.6,
+          size: 0.11, life: 0.2, r: 0.25, g: 0.9, b: 1.3,
+          gravity: 0, drag: 0, shrink: 1
         });
       }
     }
@@ -2321,8 +2492,17 @@
   function updateHUD(dt) {
     /* 피격 비네트는 매 프레임 감쇠 */
     var op = parseFloat(hud.dmg.style.opacity || '0');
-    if (op > 0.01) hud.dmg.style.opacity = String(op * Math.pow(0.03, dt));
-    else if (op !== 0) hud.dmg.style.opacity = '0';
+    var nextOp = op > 0.01 ? op * Math.pow(0.03, dt) : 0;
+    /* 저체력 심박 — hp가 낮으면 비네트가 두 박자로 은은히 맥동합니다 */
+    if (player.hp > 0 && player.hp < 35 && game.state === 'combat') {
+      var hbT = game.time * 5.4;
+      var hb = AX.reduceMotion
+        ? 0.2
+        : 0.3 * Math.pow(Math.max(0, Math.sin(hbT)), 6) +
+          0.16 * Math.pow(Math.max(0, Math.sin(hbT - 1.1)), 18);
+      nextOp = Math.max(nextOp, hb);
+    }
+    if (nextOp !== op) hud.dmg.style.opacity = String(nextOp);
 
     hud.cross.style.setProperty('--gap',
       (5 + weapon.spread * 14 + (player.onGround ? 0 : 5)) + 'px');
@@ -2500,6 +2680,7 @@
     });
 
     generateStation();
+    buildConeMats();
     initSections();
     buildHUD();
 
@@ -2527,6 +2708,11 @@
       /* 렌더 검증용 — 스폰 코너를 바라봅니다. */
       R.camera.yaw = -Math.PI * 0.25;
       R.camera.pitch = 0.3;
+      /* ?demo2 — 홀로그램·라이트 콘 검증 화각 (중앙에서 비켜서 올려다봄) */
+      if (/demo2/.test(location.search)) {
+        AX.vec3.set(player.pos, 54.5, FLOOR_Y + 1, 54.5);
+        R.camera.pitch = 0.42;
+      }
     } else {
       R.camera.yaw = Math.PI * 0.25;
       R.camera.pitch = -0.06;
@@ -2539,6 +2725,7 @@
       updatePlayer(dt);
       for (var i = 0; i < drones.length; i++) updateDrone(drones[i], dt);
       updateBolts(dt);
+      updateDust(dt);
       R.particles.update(dt, function (x, y, z) {
         return isSolid(Math.floor(x), Math.floor(y), Math.floor(z));
       });
