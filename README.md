@@ -21,10 +21,11 @@
 │   ├── app-a/                  옛날 오락실 (8비트 레트로 아케이드)
 │   │   ├── index.html              게임 선택 화면
 │   │   └── games/
-│   │       ├── neoguri/index.html      너구리
-│   │       ├── breakout/index.html     벽돌깨기
-│   │       ├── galaga/index.html       갤러그
-│   │       └── fighter/index.html      격투 게임
+│   │       ├── lib/arcade.js           공용 아케이드 엔진 (루프·입력·사운드·기록)
+│   │       ├── neoguri/index.html      너구리 — 플레이 가능
+│   │       ├── breakout/index.html     벽돌깨기 — 플레이 가능
+│   │       ├── galaga/index.html       갤러그 — 플레이 가능
+│   │       └── fighter/index.html      격투 게임 — 플레이 가능
 │   ├── app-b/                  요즘 오락실 (실시간 3D 아케이드)
 │   │   ├── index.html              게임 선택 화면
 │   │   ├── lib/
@@ -57,7 +58,8 @@
 - `app-a`는 8비트 레트로(CRT·픽셀 아트), `app-b`는 실시간 3D(글래스·네온) 콘셉트입니다.
 
 `lecture-01`, `app-a`, `app-b`를 제외한 하위 페이지는 아직 자리표시자(placeholder)입니다. 내용은 차차 채웁니다.
-`app-a`는 선택 화면만 완성했고 게임 본체 4종은 준비 중입니다.
+`app-a`는 게임 4종(너구리·벽돌깨기·갤러그·격투)이 모두 플레이 가능합니다.
+하이스코어는 실제 플레이로 얻은 값만 sessionStorage에 세션 한정으로 기록합니다(조작된 초기값 없음).
 `app-b`는 게임 4종(블록 월드·제로 프론트·인형뽑기·뉴럴 리듬)이 모두 플레이 가능합니다.
 뉴럴 리듬의 손 추적 콘셉트는 사내 시연 환경(카메라 사용 불가)을 고려해
 마우스 광선 블레이드로 바꿔 구현했습니다.
@@ -79,11 +81,16 @@
 **app-a (옛날 오락실)**
 
 1. `apps/app-a/games/<이름>/index.html`을 만듭니다 (기존 게임 페이지를 복사해서 시작).
+   공용 엔진은 `games/lib/arcade.js`(클래식 스크립트, 전역 `ARC`)를 `<script src="../lib/arcade.js">`로 씁니다 —
+   60Hz 고정 스텝 루프, 키보드+터치 입력, WebAudio 합성음, 상태 머신, `sessionStorage` 세션 기록(`ARC.best`).
 2. `apps/app-a/index.html`의 `.cabs` 안에 `.cab` 링크를 하나 추가합니다.
    `style="--tint: …"`로 캐비닛 색을 정하고, 16×16 픽셀 SVG를 아트로 넣습니다.
 3. 게임이 완성되면 그 카드의 `<span class="status" data-state="soon">준비 중</span>` 을
    `data-state="ready"`와 `READY`로 바꿉니다.
 4. **한글을 새로 쓰면 픽셀 폰트를 다시 만들어야 합니다.** 아래 「app-a의 픽셀 폰트」 참고.
+   **`arcade.js`에는 화면용 한글 문자열을 넣지 않습니다** — 폰트 도구는 HTML만 스캔하므로,
+   화면에 나갈 한글은 반드시 각 게임 페이지(마크업·인라인 스크립트) 안에 있어야 합니다.
+5. 게임 페이지에 `?autostart`를 붙이면 어트랙트 화면을 건너뜁니다(검증용, app-b와 동일).
 
 **app-b (요즘 오락실)**
 
