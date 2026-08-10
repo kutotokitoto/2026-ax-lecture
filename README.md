@@ -29,12 +29,13 @@
 │   │   ├── index.html              게임 선택 화면
 │   │   ├── lib/
 │   │   │   ├── ax3d.js                 공용 WebGL2 미니 엔진
+│   │   │   ├── ax-audio.js             공용 WebAudio 합성 사운드
 │   │   │   ├── ax-ui.js                공용 게임 셸 (로딩·일시정지·결과)
 │   │   │   └── ax-ui.css               공용 게임 셸 스타일
 │   │   └── games/
 │   │       ├── voxel/index.html        블록 월드 (복셀 샌드박스) — 플레이 가능
 │   │       ├── claw/index.html         인형뽑기
-│   │       ├── fps/index.html          제로 프론트 (1인칭 슈팅)
+│   │       ├── fps/index.html          제로 프론트 (1인칭 슈팅) — 플레이 가능
 │   │       └── rhythm/index.html       뉴럴 리듬 (마우스 블레이드 리듬)
 │   ├── app-c/index.html
 │   ├── app-d/index.html
@@ -57,7 +58,7 @@
 
 `lecture-01`, `app-a`, `app-b`를 제외한 하위 페이지는 아직 자리표시자(placeholder)입니다. 내용은 차차 채웁니다.
 `app-a`는 선택 화면만 완성했고 게임 본체 4종은 준비 중입니다.
-`app-b`는 **블록 월드**가 플레이 가능하고, 나머지 3종을 만드는 중입니다.
+`app-b`는 **블록 월드**와 **제로 프론트**가 플레이 가능하고, 나머지 2종을 만드는 중입니다.
 
 ### app-b의 3D 엔진 (`lib/ax3d.js`)
 
