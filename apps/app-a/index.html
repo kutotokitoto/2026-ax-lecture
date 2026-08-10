@@ -3,71 +3,531 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>예제 A — 2026 AX 강의</title>
+<title>옛날 오락실 — 2026 AX 강의</title>
+<meta name="description" content="8비트 레트로 아케이드 게임 선택 화면">
 <style>
+  /* ── Theme tokens ─────────────────────────── */
   :root {
-    --bg: #ffffff; --bg-soft: #f6f7f9; --border: #e4e6ea;
-    --text: #16181d; --text-soft: #5c626c; --text-faint: #8b919b;
-    --accent: #2f5cff; --accent-soft: #eef2ff;
+    /* 오락실 '방' */
+    --room: #e7e2d6;
+    --room-2: #d9d3c4;
+    --room-line: rgba(30, 24, 16, .10);
+    --ink: #241f1a;
+    --ink-soft: #6b6254;
+    --ink-faint: #918878;
+
+    /* 캐비닛 몸체 */
+    --panel: #1c1b2e;
+    --panel-hi: #35334f;
+    --panel-lo: #08080f;
+
+    /* CRT 화면 (라이트/다크 공통 — 화면은 늘 어둡습니다) */
+    --screen: #0b0b14;
+    --screen-2: #12121f;
+    --screen-ink: #f3eee2;
+    --screen-soft: #9a94b5;
+    --scan: rgba(0, 0, 0, .30);
+
+    /* 네온 */
+    --neon-pink: #ff3b6b;
+    --neon-gold: #ffd23f;
+    --neon-mint: #35e0a1;
+    --neon-sky: #4cc2ff;
+    --neon-lilac: #b98cff;
+
+    --shadow-hard: 8px 8px 0 rgba(20, 16, 10, .28);
+    --font-ui: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
+               "Malgun Gothic", system-ui, sans-serif;
+    --font-arcade: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #0e1013; --bg-soft: #14171c; --border: #262a32;
-      --text: #eceef2; --text-soft: #a2a9b5; --text-faint: #737b88;
-      --accent: #7f9bff; --accent-soft: #1b2237;
+      --room: #0a0a11;
+      --room-2: #070709;
+      --room-line: rgba(255, 255, 255, .06);
+      --ink: #ece7dc;
+      --ink-soft: #a09a8d;
+      --ink-faint: #6f6a60;
+
+      --panel: #17162a;
+      --panel-hi: #2e2c49;
+      --panel-lo: #000004;
+
+      --screen: #07070e;
+      --screen-2: #0d0d18;
+      --screen-ink: #f6f2e8;
+      --screen-soft: #8f89ad;
+      --scan: rgba(0, 0, 0, .42);
+
+      --shadow-hard: 8px 8px 0 rgba(0, 0, 0, .55);
     }
   }
+
   * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
-                 "Malgun Gothic", system-ui, sans-serif;
-    line-height: 1.65; letter-spacing: -0.01em;
+    margin: 0;
+    background: var(--room);
+    background-image:
+      linear-gradient(var(--room-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--room-line) 1px, transparent 1px);
+    background-size: 32px 32px, 32px 32px;
+    color: var(--ink);
+    font-family: var(--font-ui);
+    line-height: 1.65;
+    letter-spacing: -0.01em;
   }
-  .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px; }
-  header { border-bottom: 1px solid var(--border); background: var(--bg-soft); }
+
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+
+  /* ── Back link ────────────────────────────── */
   .back {
-    display: inline-block; margin-bottom: 24px; padding-top: 28px;
-    font-size: 14px; color: var(--text-soft); text-decoration: none;
+    display: inline-block;
+    padding: 22px 0 18px;
+    font-family: var(--font-arcade);
+    font-size: 12px;
+    letter-spacing: .08em;
+    color: var(--ink-soft);
+    text-decoration: none;
   }
-  .back:hover { color: var(--accent); }
-  .head-inner { padding-bottom: 44px; }
-  .badge {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-width: 34px; height: 26px; padding: 0 9px; margin-bottom: 12px;
-    border-radius: 7px; background: var(--accent-soft); color: var(--accent);
-    font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;
+  .back:hover, .back:focus-visible { color: var(--neon-pink); outline: none; }
+
+  /* ── Marquee (간판) ───────────────────────── */
+  .marquee {
+    position: relative;
+    border: 4px solid var(--panel-lo);
+    background: linear-gradient(180deg, var(--panel-hi), var(--panel));
+    box-shadow: var(--shadow-hard);
+    padding: 26px 20px 22px;
+    text-align: center;
+    overflow: hidden;
   }
-  h1 { margin: 0 0 10px; font-size: clamp(26px, 4vw, 34px); font-weight: 700; letter-spacing: -0.03em; }
-  .kind { margin: 0; font-size: 14px; color: var(--text-faint); }
-  main { padding: 44px 0 72px; }
-  .placeholder {
-    border: 1px dashed var(--border); border-radius: 14px;
-    padding: 40px 24px; text-align: center; color: var(--text-soft); font-size: 15px;
+  .marquee::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(180deg, transparent 0 3px, var(--scan) 3px 4px);
+    pointer-events: none;
   }
-  .placeholder p { margin: 0; }
-  .placeholder p + p { margin-top: 8px; font-size: 13px; color: var(--text-faint); }
+  .bulbs {
+    display: flex; justify-content: center; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .bulb {
+    width: 8px; height: 8px;
+    background: var(--neon-gold);
+    box-shadow: 0 0 8px var(--neon-gold);
+    animation: bulb 1.2s steps(2, end) infinite;
+  }
+  .bulb:nth-child(2n) { background: var(--neon-pink); box-shadow: 0 0 8px var(--neon-pink); animation-delay: .6s; }
+  .bulb:nth-child(3n) { background: var(--neon-sky); box-shadow: 0 0 8px var(--neon-sky); }
+  @keyframes bulb { 0% { opacity: 1; } 50% { opacity: .18; } 100% { opacity: 1; } }
+
+  .marquee h1 {
+    position: relative;
+    margin: 0 0 10px;
+    font-size: clamp(30px, 7vw, 54px);
+    font-weight: 800;
+    letter-spacing: .12em;
+    color: var(--screen-ink);
+    text-shadow:
+      3px 0 0 var(--neon-pink),
+      -3px 0 0 var(--neon-sky),
+      0 5px 0 rgba(0, 0, 0, .55);
+  }
+  .marquee .sub {
+    position: relative;
+    margin: 0;
+    font-family: var(--font-arcade);
+    font-size: 11px;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+    color: var(--neon-gold);
+  }
+
+  /* ── CRT 화면 ─────────────────────────────── */
+  .crt {
+    position: relative;
+    margin-top: 26px;
+    border: 4px solid var(--panel-lo);
+    box-shadow: var(--shadow-hard);
+    background: radial-gradient(120% 90% at 50% 0%, var(--screen-2), var(--screen) 70%);
+    padding: 26px 20px 30px;
+    overflow: hidden;
+  }
+  .crt::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(180deg, transparent 0 2px, var(--scan) 2px 3px);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .hud {
+    display: flex; flex-wrap: wrap; gap: 8px 22px;
+    justify-content: space-between;
+    font-family: var(--font-arcade);
+    font-size: 11px;
+    letter-spacing: .14em;
+    color: var(--neon-mint);
+    margin-bottom: 22px;
+  }
+  .hud .hi { color: var(--neon-gold); }
+  .hud b { font-weight: 700; }
+
+  .screen-title {
+    text-align: center;
+    margin: 0 0 6px;
+    font-family: var(--font-arcade);
+    font-size: clamp(14px, 3vw, 18px);
+    letter-spacing: .28em;
+    color: var(--screen-ink);
+    text-shadow: 0 3px 0 rgba(0, 0, 0, .6);
+  }
+  .screen-help {
+    text-align: center;
+    margin: 0 0 26px;
+    font-family: var(--font-arcade);
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--screen-soft);
+  }
+  kbd {
+    font-family: inherit;
+    border: 1px solid var(--screen-soft);
+    padding: 1px 5px;
+    color: var(--screen-ink);
+  }
+
+  /* ── 게임 캐비닛 ──────────────────────────── */
+  .cabs {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  .cab {
+    position: relative;
+    display: block;
+    padding: 18px 16px 16px;
+    text-decoration: none;
+    color: var(--screen-ink);
+    background: linear-gradient(180deg, var(--panel-hi), var(--panel));
+    border: 3px solid var(--panel-lo);
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .05);
+    transition: transform .12s steps(2, end), box-shadow .12s steps(2, end);
+  }
+  .cab::before {
+    content: "";
+    position: absolute; left: 0; right: 0; top: 0;
+    height: 4px;
+    background: var(--tint, var(--neon-gold));
+  }
+  .cab:hover, .cab:focus-visible {
+    transform: translate(-3px, -3px);
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .08), 6px 6px 0 var(--tint, var(--neon-gold));
+    outline: none;
+  }
+  .cab-art {
+    display: block;
+    width: 88px; height: 88px;
+    margin: 4px auto 14px;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 3px 0 rgba(0, 0, 0, .5));
+  }
+  .cab h3 {
+    margin: 0 0 4px;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-align: center;
+  }
+  .cab .en {
+    display: block;
+    margin: 0 0 12px;
+    font-family: var(--font-arcade);
+    font-size: 10px;
+    letter-spacing: .2em;
+    text-align: center;
+    color: var(--tint, var(--neon-gold));
+  }
+  .cab p {
+    margin: 0 0 14px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--screen-soft);
+    text-align: center;
+    min-height: 40px;
+  }
+  .cab-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 2px solid rgba(255, 255, 255, .08);
+    padding-top: 10px;
+    font-family: var(--font-arcade);
+    font-size: 10px;
+    letter-spacing: .12em;
+  }
+  .status { color: var(--screen-soft); }
+  .status[data-state="ready"] { color: var(--neon-mint); }
+  .play { color: var(--tint, var(--neon-gold)); }
+  .cab:hover .play::after, .cab:focus-visible .play::after { content: " ◀"; }
+
+  /* 선택 커서 */
+  .cab .cursor {
+    position: absolute;
+    left: -2px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--tint, var(--neon-gold));
+    font-family: var(--font-arcade);
+    font-size: 14px;
+    opacity: 0;
+  }
+  .cab:hover .cursor, .cab:focus-visible .cursor {
+    opacity: 1;
+    animation: blink .6s steps(2, end) infinite;
+  }
+  @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
+
+  /* ── 동전 투입구 ──────────────────────────── */
+  .coin {
+    position: relative;
+    z-index: 2;
+    margin: 28px auto 0;
+    display: block;
+    padding: 12px 20px;
+    background: transparent;
+    border: 2px dashed var(--neon-gold);
+    color: var(--neon-gold);
+    font-family: var(--font-arcade);
+    font-size: 12px;
+    letter-spacing: .2em;
+    cursor: pointer;
+    animation: blink 1.1s steps(2, end) infinite;
+  }
+  .coin:hover, .coin:focus-visible {
+    background: var(--neon-gold);
+    color: var(--screen);
+    animation: none;
+    outline: none;
+  }
+
+  /* ── Footer ───────────────────────────────── */
+  footer {
+    margin-top: 26px;
+    padding: 18px 0 44px;
+    font-family: var(--font-arcade);
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--ink-faint);
+    text-align: center;
+  }
+  footer p { margin: 0; }
+
+  @media (max-width: 560px) {
+    .crt { padding: 20px 14px 24px; }
+    .marquee { padding: 20px 14px 18px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bulb, .coin, .cab .cursor { animation: none; }
+    .cab { transition: none; }
+  }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="wrap">
-    <a class="back" href="../../index.html">← 목록으로</a>
-    <div class="head-inner">
-      <span class="badge">A</span>
-      <h1>예제 A</h1>
-      <p class="kind">예제 웹앱</p>
-    </div>
-  </div>
-</header>
+<div class="wrap">
 
-<main class="wrap">
-  <div class="placeholder">
-    <p>내용 준비 중입니다.</p>
-    <p>이 자리에 예제 웹앱 내용이 들어갑니다.</p>
+  <a class="back" href="../../index.html">← 목록으로</a>
+
+  <!-- 간판 -->
+  <div class="marquee">
+    <div class="bulbs" aria-hidden="true">
+      <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+      <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+      <span class="bulb"></span>
+    </div>
+    <h1>옛날 오락실</h1>
+    <p class="sub">Retro Arcade · 8-Bit</p>
   </div>
-</main>
+
+  <!-- CRT 화면 -->
+  <div class="crt">
+    <div class="hud">
+      <span><b>1UP</b> <span id="score">000000</span></span>
+      <span class="hi"><b>HI-SCORE</b> <span>087650</span></span>
+      <span><b>CREDIT</b> <span id="credit">04</span></span>
+    </div>
+
+    <h2 class="screen-title">SELECT GAME</h2>
+    <p class="screen-help">
+      <kbd>←</kbd> <kbd>→</kbd> 이동 · <kbd>Enter</kbd> 시작 · 마우스로 눌러도 됩니다
+    </p>
+
+    <div class="cabs" id="cabs">
+
+      <!-- 너구리 -->
+      <a class="cab" href="games/neoguri/index.html" style="--tint: var(--neon-gold);">
+        <span class="cursor" aria-hidden="true">▶</span>
+        <svg class="cab-art" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+          <g fill="#6b6b7a">
+            <rect x="2" y="2" width="2" height="3"/><rect x="12" y="2" width="2" height="3"/>
+            <rect x="3" y="4" width="10" height="9"/>
+            <rect x="4" y="3" width="8" height="1"/>
+          </g>
+          <g fill="#2b2b38">
+            <rect x="2" y="2" width="1" height="2"/><rect x="13" y="2" width="1" height="2"/>
+            <rect x="3" y="6" width="4" height="3"/><rect x="9" y="6" width="4" height="3"/>
+          </g>
+          <g fill="#f3eee2">
+            <rect x="4" y="7" width="2" height="2"/><rect x="10" y="7" width="2" height="2"/>
+            <rect x="6" y="11" width="4" height="2"/>
+          </g>
+          <g fill="#12121f">
+            <rect x="5" y="7" width="1" height="1"/><rect x="10" y="7" width="1" height="1"/>
+            <rect x="7" y="9" width="2" height="2"/>
+          </g>
+          <rect x="6" y="12" width="1" height="1" fill="#2b2b38"/>
+          <rect x="9" y="12" width="1" height="1" fill="#2b2b38"/>
+        </svg>
+        <h3>너구리</h3>
+        <span class="en">Raccoon Run</span>
+        <p>사다리를 오르내리며 과일을 먹고 뱀을 피하는 고전 액션.</p>
+        <span class="cab-foot">
+          <span class="status" data-state="soon">준비 중</span>
+          <span class="play">PLAY</span>
+        </span>
+      </a>
+
+      <!-- 벽돌깨기 -->
+      <a class="cab" href="games/breakout/index.html" style="--tint: var(--neon-pink);">
+        <span class="cursor" aria-hidden="true">▶</span>
+        <svg class="cab-art" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+          <g>
+            <rect x="1" y="2" width="4" height="2" fill="#ff3b6b"/>
+            <rect x="6" y="2" width="4" height="2" fill="#ffd23f"/>
+            <rect x="11" y="2" width="4" height="2" fill="#4cc2ff"/>
+            <rect x="1" y="5" width="4" height="2" fill="#35e0a1"/>
+            <rect x="6" y="5" width="4" height="2" fill="#b98cff"/>
+            <rect x="11" y="5" width="4" height="2" fill="#ff3b6b"/>
+          </g>
+          <rect x="9" y="9" width="2" height="2" fill="#f3eee2"/>
+          <rect x="5" y="13" width="6" height="2" fill="#f3eee2"/>
+          <rect x="5" y="13" width="6" height="1" fill="#9a94b5"/>
+        </svg>
+        <h3>벽돌깨기</h3>
+        <span class="en">Brick Breaker</span>
+        <p>공을 튕겨 벽돌을 부수는 원조 반사신경 게임.</p>
+        <span class="cab-foot">
+          <span class="status" data-state="soon">준비 중</span>
+          <span class="play">PLAY</span>
+        </span>
+      </a>
+
+      <!-- 갤러그 -->
+      <a class="cab" href="games/galaga/index.html" style="--tint: var(--neon-sky);">
+        <span class="cursor" aria-hidden="true">▶</span>
+        <svg class="cab-art" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+          <g fill="#4cc2ff">
+            <rect x="6" y="1" width="4" height="2"/>
+            <rect x="4" y="3" width="8" height="2"/>
+            <rect x="2" y="3" width="2" height="1"/><rect x="12" y="3" width="2" height="1"/>
+          </g>
+          <g fill="#ff3b6b">
+            <rect x="5" y="5" width="2" height="1"/><rect x="9" y="5" width="2" height="1"/>
+          </g>
+          <rect x="7" y="7" width="2" height="2" fill="#ffd23f"/>
+          <g fill="#35e0a1">
+            <rect x="7" y="12" width="2" height="3"/>
+            <rect x="5" y="13" width="6" height="2"/>
+            <rect x="4" y="14" width="1" height="1"/><rect x="11" y="14" width="1" height="1"/>
+          </g>
+          <rect x="7" y="10" width="2" height="1" fill="#f3eee2"/>
+        </svg>
+        <h3>갤러그</h3>
+        <span class="en">Galaxy Fighter</span>
+        <p>편대로 몰려오는 외계 전투기를 격추하는 종스크롤 슈팅.</p>
+        <span class="cab-foot">
+          <span class="status" data-state="soon">준비 중</span>
+          <span class="play">PLAY</span>
+        </span>
+      </a>
+
+      <!-- 격투 게임 -->
+      <a class="cab" href="games/fighter/index.html" style="--tint: var(--neon-mint);">
+        <span class="cursor" aria-hidden="true">▶</span>
+        <svg class="cab-art" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+          <!-- 왼쪽 파이터 -->
+          <g fill="#4cc2ff">
+            <rect x="1" y="3" width="3" height="3"/>
+            <rect x="1" y="7" width="4" height="4"/>
+            <rect x="1" y="11" width="1" height="4"/><rect x="4" y="11" width="1" height="4"/>
+          </g>
+          <rect x="5" y="7" width="3" height="2" fill="#4cc2ff"/>
+          <rect x="3" y="4" width="1" height="1" fill="#0b0b14"/>
+          <!-- 오른쪽 파이터 -->
+          <g fill="#ff3b6b">
+            <rect x="12" y="3" width="3" height="3"/>
+            <rect x="11" y="7" width="4" height="4"/>
+            <rect x="11" y="11" width="1" height="4"/><rect x="14" y="11" width="1" height="4"/>
+          </g>
+          <rect x="9" y="9" width="2" height="2" fill="#ff3b6b"/>
+          <rect x="12" y="4" width="1" height="1" fill="#0b0b14"/>
+          <!-- 임팩트 -->
+          <g fill="#ffd23f">
+            <rect x="8" y="6" width="2" height="1"/>
+            <rect x="7" y="5" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/>
+            <rect x="8" y="4" width="2" height="1"/>
+          </g>
+        </svg>
+        <h3>격투 게임</h3>
+        <span class="en">Street Duel</span>
+        <p>커맨드를 입력해 필살기를 날리는 1대1 대전 격투.</p>
+        <span class="cab-foot">
+          <span class="status" data-state="soon">준비 중</span>
+          <span class="play">PLAY</span>
+        </span>
+      </a>
+
+    </div>
+
+    <button class="coin" id="coin" type="button">▷ INSERT COIN</button>
+  </div>
+
+  <footer>
+    <p>2026 AX 강의 · 예제 A — 옛날 오락실</p>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  var cabs = Array.prototype.slice.call(document.querySelectorAll('#cabs .cab'));
+
+  /* 방향키로 캐비닛 사이를 옮겨 다닙니다. Enter는 링크 기본 동작입니다. */
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' &&
+        e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    var i = cabs.indexOf(document.activeElement);
+    var step = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1;
+    var next = i === -1 ? (step > 0 ? 0 : cabs.length - 1)
+                        : (i + step + cabs.length) % cabs.length;
+    cabs[next].focus();
+    e.preventDefault();
+  });
+
+  /* 동전 투입 — 크레딧과 점수만 올라갑니다. */
+  var credit = 4, score = 0;
+  var creditEl = document.getElementById('credit');
+  var scoreEl = document.getElementById('score');
+  document.getElementById('coin').addEventListener('click', function () {
+    credit = Math.min(credit + 1, 99);
+    score += 1250;
+    creditEl.textContent = String(credit).padStart(2, '0');
+    scoreEl.textContent = String(score % 1000000).padStart(6, '0');
+    if (cabs[0]) cabs[0].focus();
+  });
+})();
+</script>
 
 </body>
 </html>

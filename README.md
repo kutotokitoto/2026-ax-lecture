@@ -16,7 +16,13 @@
 │   ├── lecture-05/index.html
 │   └── lecture-06/index.html
 ├── apps/
-│   ├── app-a/index.html
+│   ├── app-a/                  옛날 오락실 (8비트 레트로 아케이드)
+│   │   ├── index.html              게임 선택 화면
+│   │   └── games/
+│   │       ├── neoguri/index.html      너구리
+│   │       ├── breakout/index.html     벽돌깨기
+│   │       ├── galaga/index.html       갤러그
+│   │       └── fighter/index.html      격투 게임
 │   ├── app-b/index.html
 │   ├── app-c/index.html
 │   ├── app-d/index.html
@@ -31,8 +37,19 @@
 - **강의본(lectures)**: `lecture-01` ~ `lecture-06`. 바이브 코딩 강의 자료.
 - **예제(apps)**: `app-a` ~ `app-h`. 강의에서 다루는 예제 웹앱.
 - 각 폴더는 `index.html` 하나로 완결되며, 상단의 `← 목록으로` 링크로 랜딩 페이지에 돌아옵니다.
+- `app-a`만 예외로 하위에 `games/`를 둡니다. `app-a/index.html`이 오락실 선택 화면이고,
+  각 게임은 `games/<이름>/index.html` 한 파일로 완결됩니다.
 
-`lecture-01`을 제외한 하위 페이지는 아직 자리표시자(placeholder)입니다. 내용은 차차 채웁니다.
+`lecture-01`과 `app-a`를 제외한 하위 페이지는 아직 자리표시자(placeholder)입니다. 내용은 차차 채웁니다.
+`app-a`도 선택 화면만 완성했고 게임 본체 4종은 준비 중입니다.
+
+### 오락실에 게임을 추가하려면
+
+1. `apps/app-a/games/<이름>/index.html`을 만듭니다 (기존 게임 페이지를 복사해서 시작).
+2. `apps/app-a/index.html`의 `.cabs` 안에 `.cab` 링크를 하나 추가합니다.
+   `style="--tint: …"`로 캐비닛 색을 정하고, 16×16 픽셀 SVG를 아트로 넣습니다.
+3. 게임이 완성되면 그 카드의 `<span class="status" data-state="soon">준비 중</span>` 을
+   `data-state="ready"`와 `READY`로 바꿉니다.
 
 ### 번들 페이지에 대하여
 
