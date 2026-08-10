@@ -4,231 +4,1422 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>인형뽑기 — 요즘 오락실</title>
+<meta name="description" content="물리 기반 3D 인형뽑기 — 요즘 오락실">
+<link rel="stylesheet" href="../../lib/ax-ui.css">
 <style>
-  :root {
-    --hall: #eef0f7;
-    --hall-2: #e2e6f2;
-    --hall-line: rgba(18, 20, 32, .07);
-    --surface: rgba(255, 255, 255, .78);
-    --surface-2: #ffffff;
-    --stroke: rgba(18, 20, 32, .10);
-    --stroke-2: rgba(18, 20, 32, .20);
-    --text: #0f111a;
-    --text-soft: #4c5364;
-    --text-faint: #858c9d;
-    --screen: #080a12;
-    --screen-soft: #98a0bb;
-    --v-violet: #6d5bff;
-    --v-cyan: #00d0ff;
-    --v-pink: #ff4d8f;
-    --accent: #4a3bff;
-    --glow: rgba(109, 91, 255, .22);
-    --shadow: 0 1px 2px rgba(12, 14, 26, .06), 0 18px 48px rgba(12, 14, 26, .10);
-    --tint: #ff4d8f;
-    --font-ui: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
-               "Malgun Gothic", system-ui, sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --hall: #05060b;
-      --hall-2: #0a0c16;
-      --hall-line: rgba(255, 255, 255, .05);
-      --surface: rgba(255, 255, 255, .045);
-      --surface-2: #0f1220;
-      --stroke: rgba(255, 255, 255, .10);
-      --stroke-2: rgba(255, 255, 255, .22);
-      --text: #eef0f8;
-      --text-soft: #a3aabd;
-      --text-faint: #6e7589;
-      --screen: #05070e;
-      --accent: #9b8dff;
-      --glow: rgba(109, 91, 255, .38);
-      --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 18px 48px rgba(0, 0, 0, .45);
-    }
-  }
+  /* ── 인형뽑기 전용 HUD ──────────────────── */
 
-  * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    margin: 0;
-    background: var(--hall);
-    color: var(--text);
-    font-family: var(--font-ui);
-    line-height: 1.65;
-    letter-spacing: -0.01em;
+  .counter {
+    position: absolute;
+    left: 22px; top: 58px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
   }
-  .stage {
-    position: fixed; inset: 0; z-index: -1; overflow: hidden;
-    background:
-      radial-gradient(60% 45% at 12% 0%, var(--glow), transparent 70%),
-      radial-gradient(50% 40% at 92% 8%, rgba(255, 77, 143, .16), transparent 70%),
-      linear-gradient(180deg, var(--hall), var(--hall-2));
+  .chip-box {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 16px;
+    border: 1px solid var(--ax-stroke);
+    border-radius: 999px;
+    background: rgba(8, 10, 20, .6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
-  .floor {
-    position: absolute; left: -20%; right: -20%; bottom: -12%; height: 58%;
-    background-image:
-      linear-gradient(var(--hall-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--hall-line) 1px, transparent 1px);
-    background-size: 64px 64px, 64px 64px;
-    transform: perspective(420px) rotateX(62deg);
-    transform-origin: 50% 100%;
-    mask-image: linear-gradient(180deg, transparent, #000 45%);
-    -webkit-mask-image: linear-gradient(180deg, transparent, #000 45%);
+  .chip-box .label {
+    font-family: var(--ax-mono);
+    font-size: 10px;
+    letter-spacing: .16em;
+    color: var(--ax-text-faint);
   }
+  .chip-box .val {
+    font-size: 18px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--ax-text);
+  }
+  .chip-box .val[data-zero="1"] { color: var(--ax-pink); }
 
-  .wrap { max-width: 820px; margin: 0 auto; padding: 0 22px; }
-  .navs { display: flex; gap: 18px; flex-wrap: wrap; padding: 20px 0 16px; }
-  .navs a { font-size: 14px; color: var(--text-soft); text-decoration: none; }
-  .navs a:hover, .navs a:focus-visible { color: var(--accent); outline: none; }
-
-  .panel {
-    overflow: hidden;
-    border: 1px solid var(--stroke);
-    border-radius: 22px;
-    background: var(--surface-2);
-    box-shadow: var(--shadow);
+  /* 뽑은 인형 진열대 */
+  .shelf {
+    position: absolute;
+    right: 22px; bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 16px;
+    border: 1px solid var(--ax-stroke);
+    border-radius: 999px;
+    background: rgba(8, 10, 20, .6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    min-height: 40px;
   }
-  .shot { position: relative; aspect-ratio: 16 / 10; background: var(--screen); }
-  .shot svg { display: block; width: 100%; height: 100%; }
-  .shot::after {
+  .shelf .label {
+    font-family: var(--ax-mono);
+    font-size: 10px;
+    letter-spacing: .14em;
+    color: var(--ax-text-faint);
+    margin-right: 4px;
+  }
+  .plush-chip {
+    width: 20px; height: 20px;
+    border-radius: 50% 50% 46% 46%;
+    position: relative;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .5);
+    animation: chip-pop .4s cubic-bezier(.2, 1.6, .4, 1);
+  }
+  .plush-chip::before, .plush-chip::after {
     content: "";
-    position: absolute; inset: 0;
-    background:
-      linear-gradient(180deg, transparent 60%, rgba(5, 6, 12, .6)),
-      linear-gradient(112deg, rgba(255, 255, 255, .09) 0 22%, transparent 42%);
+    position: absolute;
+    top: -5px;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: inherit;
   }
-  .info { padding: 26px 26px 30px; }
-  .title-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
-  h1 { margin: 0; font-size: clamp(26px, 5vw, 36px); font-weight: 800; letter-spacing: -0.035em; }
-  .en {
-    font-family: var(--font-mono); font-size: 11px; letter-spacing: .16em;
-    text-transform: uppercase; color: var(--tint);
+  .plush-chip::before { left: 0; }
+  .plush-chip::after { right: 0; }
+  @keyframes chip-pop {
+    0% { transform: scale(0) rotate(-40deg); }
+    100% { transform: scale(1) rotate(0); }
   }
-  .desc { margin: 0 0 22px; max-width: 52ch; font-size: 15px; color: var(--text-soft); }
-
-  .bar-label {
-    display: flex; justify-content: space-between; align-items: baseline;
-    font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em;
-    color: var(--text-faint); margin-bottom: 8px;
-  }
-  .bar-label b {
-    font-family: var(--font-ui); font-size: 13px; letter-spacing: -0.01em;
-    color: var(--tint); font-weight: 600;
-  }
-  .bar { height: 6px; border-radius: 999px; background: var(--stroke); overflow: hidden; }
-  .bar span {
-    display: block; height: 100%; width: 34%; border-radius: 999px;
-    background: linear-gradient(90deg, var(--v-violet), var(--tint));
+  .shelf .empty {
+    font-size: 12px;
+    color: var(--ax-text-faint);
   }
 
-  .specs {
-    display: flex; gap: 12px 30px; flex-wrap: wrap;
-    margin: 26px 0 0; padding-top: 20px; border-top: 1px solid var(--stroke);
+  /* 그립 텐션 미터 */
+  .tension {
+    position: absolute;
+    left: 50%; top: 14%;
+    transform: translateX(-50%);
+    width: min(300px, 60vw);
+    opacity: 0;
+    transition: opacity .25s ease;
   }
-  .spec { min-width: 100px; }
-  .spec dt {
-    margin: 0 0 2px; font-family: var(--font-mono); font-size: 10px;
-    letter-spacing: .16em; text-transform: uppercase; color: var(--text-faint);
+  .tension[data-show="1"] { opacity: 1; }
+  .tension .t-label {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--ax-mono);
+    font-size: 10px;
+    letter-spacing: .18em;
+    color: var(--ax-text-soft);
+    margin-bottom: 6px;
+    text-shadow: 0 1px 4px #000;
   }
-  .spec dd { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
+  .tension .t-bar {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .12);
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .5);
+  }
+  .tension .t-bar span {
+    display: block;
+    height: 100%;
+    width: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ff4d8f, #ffc44d, #3ce8b0);
+    transition: width .1s linear;
+  }
+  .tension[data-danger="1"] .t-bar span { animation: t-blink .3s steps(2, end) infinite; }
+  @keyframes t-blink { 50% { opacity: .45; } }
 
-  footer {
-    margin-top: 26px; padding: 20px 0 52px;
-    font-size: 13px; color: var(--text-faint); text-align: center;
+  /* 상태 안내 */
+  .guide {
+    position: absolute;
+    left: 50%; bottom: 26px;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    border: 1px solid var(--ax-stroke);
+    border-radius: 999px;
+    background: rgba(8, 10, 20, .6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    font-size: 13px;
+    color: var(--ax-text-soft);
+    white-space: nowrap;
   }
-  footer p { margin: 0; }
+  .guide kbd { margin: 0 2px; }
+  .guide b { color: var(--ax-amber); font-weight: 600; }
+
+  /* 당첨 배너 */
+  .prize-banner {
+    position: absolute;
+    left: 50%; top: 26%;
+    transform: translateX(-50%);
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .prize-banner[data-show="1"] { animation: prize-in 2.2s ease forwards; }
+  @keyframes prize-in {
+    0% { opacity: 0; transform: translateX(-50%) scale(.6); }
+    14% { opacity: 1; transform: translateX(-50%) scale(1.06); }
+    22% { transform: translateX(-50%) scale(1); }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .prize-banner .big {
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 800;
+    letter-spacing: .04em;
+    color: #ffe9a8;
+    text-shadow: 0 0 30px rgba(255, 196, 77, .8);
+  }
+  .prize-banner .sub {
+    font-family: var(--ax-mono);
+    font-size: 12px;
+    letter-spacing: .3em;
+    color: var(--ax-amber);
+  }
+
+  .edge {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(120% 85% at 50% 45%, transparent 55%, rgba(0, 0, 0, .5));
+  }
 </style>
 </head>
 <body>
 
-<div class="stage" aria-hidden="true"><div class="floor"></div></div>
+<canvas id="gl"></canvas>
 
-<div class="wrap">
-  <nav class="navs">
-    <a href="../../index.html">← 오락실로</a>
-    <a href="../../../../index.html">← 목록으로</a>
-  </nav>
+<script src="../../lib/ax3d.js"></script>
+<script src="../../lib/ax-audio.js"></script>
+<script src="../../lib/ax-ui.js"></script>
+<script>
+(function () {
+  'use strict';
 
-  <div class="panel">
-    <div class="shot">
-      <svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <defs>
-          <linearGradient id="cw-bg" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#2a0f3d"/>
-            <stop offset="1" stop-color="#0a0512"/>
-          </linearGradient>
-          <linearGradient id="cw-glass" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#ffffff" stop-opacity=".14"/>
-            <stop offset="0.45" stop-color="#ffffff" stop-opacity=".03"/>
-            <stop offset="1" stop-color="#ff4d8f" stop-opacity=".10"/>
-          </linearGradient>
-          <linearGradient id="cw-frame" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#ff7ab0"/>
-            <stop offset="1" stop-color="#7a2bff"/>
-          </linearGradient>
-        </defs>
-        <rect width="320" height="200" fill="url(#cw-bg)"/>
-        <ellipse cx="160" cy="184" rx="130" ry="26" fill="#ff4d8f" opacity=".14"/>
-        <rect x="62" y="14" width="196" height="172" rx="14" fill="#160a24" stroke="url(#cw-frame)" stroke-width="2.5"/>
-        <rect x="74" y="26" width="172" height="118" rx="8" fill="url(#cw-glass)"/>
-        <rect x="86" y="36" width="148" height="4" rx="2" fill="#4b3a6e"/>
-        <rect x="150" y="34" width="22" height="8" rx="3" fill="#9a7fd6"/>
-        <line x1="161" y1="42" x2="161" y2="70" stroke="#cbb8f5" stroke-width="2"/>
-        <rect x="149" y="70" width="24" height="12" rx="4" fill="#d7c9ff"/>
-        <path d="M152 82 C144 92 141 102 145 112" stroke="#e6dcff" stroke-width="4" fill="none" stroke-linecap="round"/>
-        <path d="M170 82 C178 92 181 102 177 112" stroke="#e6dcff" stroke-width="4" fill="none" stroke-linecap="round"/>
-        <path d="M161 84 C161 96 161 104 161 114" stroke="#bda9ef" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-        <g>
-          <circle cx="104" cy="120" r="9" fill="#ffd66e"/><circle cx="96" cy="112" r="4" fill="#ffd66e"/><circle cx="112" cy="112" r="4" fill="#ffd66e"/>
-          <circle cx="128" cy="128" r="11" fill="#69d5ff"/><circle cx="119" cy="119" r="4.5" fill="#69d5ff"/><circle cx="137" cy="119" r="4.5" fill="#69d5ff"/>
-          <circle cx="160" cy="124" r="10" fill="#ff9ec4"/><circle cx="152" cy="115" r="4" fill="#ff9ec4"/><circle cx="168" cy="115" r="4" fill="#ff9ec4"/>
-          <circle cx="188" cy="129" r="11" fill="#a8f0c4"/><circle cx="179" cy="120" r="4.5" fill="#a8f0c4"/><circle cx="197" cy="120" r="4.5" fill="#a8f0c4"/>
-          <circle cx="214" cy="121" r="9" fill="#c8a4ff"/><circle cx="206" cy="113" r="4" fill="#c8a4ff"/><circle cx="222" cy="113" r="4" fill="#c8a4ff"/>
-          <g fill="#2b1636">
-            <circle cx="101" cy="119" r="1.4"/><circle cx="107" cy="119" r="1.4"/>
-            <circle cx="124" cy="127" r="1.6"/><circle cx="132" cy="127" r="1.6"/>
-            <circle cx="157" cy="123" r="1.5"/><circle cx="163" cy="123" r="1.5"/>
-            <circle cx="184" cy="128" r="1.6"/><circle cx="192" cy="128" r="1.6"/>
-            <circle cx="211" cy="120" r="1.4"/><circle cx="217" cy="120" r="1.4"/>
-          </g>
-        </g>
-        <polygon points="80,140 118,26 142,26 104,140" fill="#ffffff" opacity=".07"/>
-        <rect x="74" y="150" width="172" height="28" rx="7" fill="#20112f"/>
-        <circle cx="100" cy="164" r="8" fill="#3a2154"/><circle cx="100" cy="161" r="5" fill="#ff4d8f"/>
-        <rect x="126" y="158" width="34" height="12" rx="6" fill="#3a2154"/>
-        <g fill="#6d5b8f">
-          <rect x="176" y="160" width="30" height="3" rx="1.5"/>
-          <rect x="176" y="167" width="18" height="3" rx="1.5"/>
-        </g>
-        <rect x="216" y="156" width="20" height="16" rx="4" fill="#0d0616" stroke="#4b3a6e"/>
-      </svg>
-    </div>
+  /* ══════════════════════════════════════════════════════════
+     상수 — 기계 치수
+     ══════════════════════════════════════════════════════════ */
 
-    <div class="info">
-      <div class="title-row">
-        <h1>인형뽑기</h1>
-        <span class="en">Claw Master</span>
-      </div>
-      <p class="desc">
-        집게의 장력, 인형의 무게, 더미가 무너지는 방식까지 전부 물리 엔진이 계산합니다.
-        같은 자리를 노려도 매번 결과가 다릅니다. 게임 본체는 아직 준비 중입니다.
-      </p>
+  var BOX = {                        // 유리 상자 내부
+    x0: -1.6, x1: 1.6,
+    z0: -1.15, z1: 1.15,
+    floor: 1.12, top: 3.55
+  };
+  var CHUTE = {                      // 배출구 (앞왼쪽 바닥 구멍)
+    x0: -1.55, x1: -0.92,
+    z0: 0.5, z1: 1.1
+  };
+  var RAIL_Y = 3.42;                 // 집게 갠트리 높이
+  var CLAW_MIN_Y = 1.5;              // 하강 한계
+  var HOME = { x: -1.22, z: 0.8 };   // 배출구 위 (홈 포지션)
 
-      <div class="bar-label"><span>BUILD PROGRESS</span><b>준비 중</b></div>
-      <div class="bar"><span></span></div>
+  var PALETTE = [
+    { name: '레몬', body: [1.0, 0.72, 0.18], css: '#ffd66e' },
+    { name: '소다', body: [0.18, 0.62, 0.95], css: '#69d5ff' },
+    { name: '피치', body: [1.0, 0.42, 0.62], css: '#ff9ec4' },
+    { name: '민트', body: [0.30, 0.85, 0.55], css: '#a8f0c4' },
+    { name: '라일락', body: [0.62, 0.45, 0.95], css: '#c8a4ff' }
+  ];
 
-      <dl class="specs">
-        <div class="spec"><dt>Genre</dt><dd>물리 퍼즐</dd></div>
-        <div class="spec"><dt>Renderer</dt><dd>PBR · WebGL 2</dd></div>
-        <div class="spec"><dt>Players</dt><dd>1인</dd></div>
-        <div class="spec"><dt>Control</dt><dd>스틱 · 버튼</dd></div>
-      </dl>
-    </div>
-  </div>
+  /* ══════════════════════════════════════════════════════════
+     물리 — 위치 기반(PBD) 입자 + 거리 제약
+     인형 하나 = 몸통·머리 입자 2개
+     ══════════════════════════════════════════════════════════ */
 
-  <footer><p>2026 AX 강의 · 요즘 오락실</p></footer>
-</div>
+  var plushes = [];
+
+  function makePlush(x, y, z, colorIdx) {
+    var body = { x: x, y: y, z: z, px: x, py: y, pz: z, r: 0.21, invMass: 1 };
+    var head = { x: x, y: y + 0.3, z: z, px: x, py: y + 0.3, pz: z, r: 0.155, invMass: 1.15 };
+    return {
+      body: body, head: head,
+      restLen: 0.3,
+      color: colorIdx !== undefined ? colorIdx : Math.floor(Math.random() * PALETTE.length),
+      yaw: Math.random() * Math.PI * 2,
+      yawVel: 0,
+      state: 'pile',              // pile | grabbed | falling | delivered
+      squish: 0,                  // 잡혔을 때 눌리는 연출
+      wob: Math.random() * 10
+    };
+  }
+
+  function particles(fn) {
+    for (var i = 0; i < plushes.length; i++) {
+      var p = plushes[i];
+      if (p.state === 'delivered') continue;
+      fn(p.body, p); fn(p.head, p);
+    }
+  }
+
+  var GRAV = -13;
+
+  function verlet(pt, dt, damp) {
+    var vx = (pt.x - pt.px) * damp;
+    var vy = (pt.y - pt.py) * damp;
+    var vz = (pt.z - pt.pz) * damp;
+    pt.px = pt.x; pt.py = pt.y; pt.pz = pt.z;
+    pt.x += vx; pt.y += vy + GRAV * dt * dt; pt.z += vz;
+  }
+
+  var chuteOpen = false;      // 사전 안정화 중에는 닫아 둡니다
+
+  function overChute(x, z) {
+    return chuteOpen && x > CHUTE.x0 && x < CHUTE.x1 && z > CHUTE.z0 && z < CHUTE.z1;
+  }
+
+  var thudCd = 0;
+
+  function stepPhysics(dt) {
+    thudCd -= dt;
+
+    particles(function (pt, p) {
+      if (p.state === 'grabbed' && pt === p.head) return;    // 머리는 집게에 붙습니다
+      verlet(pt, dt, 0.985);
+    });
+
+    /* 잡힌 인형: 머리를 집게 끝에 부드럽게 구속 */
+    for (var g = 0; g < plushes.length; g++) {
+      var gp = plushes[g];
+      if (gp.state !== 'grabbed') continue;
+      var tip = clawTip();
+      gp.head.px = gp.head.x; gp.head.py = gp.head.y; gp.head.pz = gp.head.z;
+      gp.head.x += (tip[0] - gp.head.x) * 0.55;
+      gp.head.y += (tip[1] - gp.head.y) * 0.55;
+      gp.head.z += (tip[2] - gp.head.z) * 0.55;
+    }
+
+    var iter = 5;
+    for (var it = 0; it < iter; it++) {
+      /* 거리 제약 — 몸통·머리 */
+      for (var i = 0; i < plushes.length; i++) {
+        var p = plushes[i];
+        if (p.state === 'delivered') continue;
+        var dx = p.head.x - p.body.x, dy = p.head.y - p.body.y, dz = p.head.z - p.body.z;
+        var d = Math.hypot(dx, dy, dz) || 0.001;
+        var diff = (d - p.restLen) / d;
+        var wA = p.body.invMass / (p.body.invMass + p.head.invMass);
+        var wB = 1 - wA;
+        p.body.x += dx * diff * wA; p.body.y += dy * diff * wA; p.body.z += dz * diff * wA;
+        p.head.x -= dx * diff * wB; p.head.y -= dy * diff * wB; p.head.z -= dz * diff * wB;
+      }
+
+      /* 입자끼리 밀어내기 */
+      for (var a = 0; a < plushes.length; a++) {
+        var pa = plushes[a];
+        if (pa.state === 'delivered') continue;
+        var partsA = [pa.body, pa.head];
+        for (var b = a + 1; b < plushes.length; b++) {
+          var pb = plushes[b];
+          if (pb.state === 'delivered') continue;
+          /* 대략적 거리 컷 */
+          var cdx = pa.body.x - pb.body.x, cdz = pa.body.z - pb.body.z;
+          if (cdx * cdx + cdz * cdz > 1.2) continue;
+          var partsB = [pb.body, pb.head];
+          for (var ai = 0; ai < 2; ai++) {
+            for (var bi = 0; bi < 2; bi++) {
+              var A = partsA[ai], B = partsB[bi];
+              var ddx = A.x - B.x, ddy = A.y - B.y, ddz = A.z - B.z;
+              var dd = Math.hypot(ddx, ddy, ddz);
+              var min = A.r + B.r;
+              if (dd < min && dd > 0.0001) {
+                var push = (min - dd) / dd * 0.5;
+                A.x += ddx * push; A.y += ddy * push; A.z += ddz * push;
+                B.x -= ddx * push; B.y -= ddy * push; B.z -= ddz * push;
+              }
+            }
+          }
+        }
+      }
+
+      /* 상자 경계 */
+      particles(function (pt, p) {
+        if (p.state === 'falling' || p.state === 'grabbed') {
+          /* 배출 중에는 벽만 */
+        }
+        if (pt.x - pt.r < BOX.x0) pt.x = BOX.x0 + pt.r;
+        if (pt.x + pt.r > BOX.x1) pt.x = BOX.x1 - pt.r;
+        if (pt.z - pt.r < BOX.z0) pt.z = BOX.z0 + pt.r;
+        if (pt.z + pt.r > BOX.z1) pt.z = BOX.z1 - pt.r;
+
+        /* 바닥 — 배출구 위는 뚫려 있습니다 */
+        var hole = overChute(pt.x, pt.z);
+        if (!hole && pt.y - pt.r < BOX.floor) {
+          var vy = pt.y - pt.py;
+          if (vy < -0.02 && thudCd <= 0) { AX.Audio.sfx.step(); thudCd = 0.12; }
+          pt.y = BOX.floor + pt.r;
+          /* 마찰 */
+          pt.px = pt.x - (pt.x - pt.px) * 0.72;
+          pt.pz = pt.z - (pt.z - pt.pz) * 0.72;
+        }
+
+        /* 배출구 펜스 — 옆에서 굴러드는 건 막고, 위에서 떨어지는 것만 받습니다 */
+        var FENCE_TOP = BOX.floor + 0.34;
+        if (!hole && pt.y - pt.r * 0.5 < FENCE_TOP) {
+          var ex0 = CHUTE.x0 - pt.r, ex1 = CHUTE.x1 + pt.r;
+          var ez0 = CHUTE.z0 - pt.r, ez1 = CHUTE.z1 + pt.r;
+          if (pt.x > ex0 && pt.x < ex1 && pt.z > ez0 && pt.z < ez1) {
+            /* 가장 얕은 축으로 밀어냅니다 */
+            var pushL = pt.x - ex0, pushR = ex1 - pt.x;
+            var pushN = pt.z - ez0, pushF = ez1 - pt.z;
+            var minP = Math.min(pushL, pushR, pushN, pushF);
+            if (minP === pushL) pt.x = ex0;
+            else if (minP === pushR) pt.x = ex1;
+            else if (minP === pushN) pt.z = ez0;
+            else pt.z = ez1;
+          }
+        }
+        /* 구멍 안 — 중심 쪽으로 모아 떨어뜨립니다 */
+        if (hole && pt.y < FENCE_TOP) {
+          var cx = (CHUTE.x0 + CHUTE.x1) / 2, cz = (CHUTE.z0 + CHUTE.z1) / 2;
+          pt.x += (cx - pt.x) * 0.05;
+          pt.z += (cz - pt.z) * 0.05;
+        }
+      });
+    }
+
+    /* 배출 판정 + 정리 */
+    for (var d2 = 0; d2 < plushes.length; d2++) {
+      var pd = plushes[d2];
+      if (pd.state === 'delivered') continue;
+      if (pd.body.y < BOX.floor - 1.1) {
+        pd.state = 'delivered';
+        onPrize(pd);
+      }
+      /* 회전 연출 — 수평 속도로 요를 천천히 돌립니다 */
+      var hv = (pd.body.x - pd.body.px) + (pd.body.z - pd.body.pz);
+      pd.yawVel += hv * 0.4;
+      pd.yawVel *= 0.94;
+      pd.yaw += pd.yawVel;
+      pd.squish = Math.max(0, pd.squish - dt * 3);
+      pd.wob += dt * 3;
+    }
+  }
+
+  /* 시작 더미 — 미리 안정될 때까지 돌립니다 */
+  function fillPile() {
+    var rng = AX.noise.rng(777);
+    for (var i = 0; i < 22; i++) {
+      var x = BOX.x0 + 0.3 + rng() * (BOX.x1 - BOX.x0 - 0.6);
+      var z = BOX.z0 + 0.3 + rng() * (BOX.z1 - BOX.z0 - 0.6);
+      /* 배출구 바로 위는 피합니다 */
+      if (overChute(x, z)) { x += 0.8; }
+      plushes.push(makePlush(x, BOX.floor + 0.3 + (i % 5) * 0.3, z, i % PALETTE.length));
+    }
+    for (var s = 0; s < 300; s++) stepPhysics(1 / 120);
+    chuteOpen = true;
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     집게 — 상태기계
+     ══════════════════════════════════════════════════════════ */
+
+  var claw = {
+    x: HOME.x, z: HOME.z,          // 헤드 위치
+    y: RAIL_Y - 0.18,
+    tx: HOME.x, tz: HOME.z,
+    prong: 0.55,                    // 벌림 각 (rad)
+    state: 'idle',                  // idle | descend | close | ascend | carry | drop | reset
+    stateT: 0,
+    grabbed: null,
+    grip: 0,                        // 남은 그립력 0~1
+    swingX: 0, swingZ: 0, swingVX: 0, swingVZ: 0,
+    moveSound: 0
+  };
+
+  function clawTip() {
+    return [claw.x + claw.swingX, claw.y - 0.34, claw.z + claw.swingZ];
+  }
+
+  var session = { tries: 0, wins: 0, credits: 5, over: false };
+
+  function updateClaw(dt) {
+    claw.stateT += dt;
+
+    /* 진자 흔들림 */
+    var targetLean = 0;
+    claw.swingVX += (-claw.swingX * 26 - claw.swingVX * 3.2) * dt;
+    claw.swingVZ += (-claw.swingZ * 26 - claw.swingVZ * 3.2) * dt;
+    claw.swingX += claw.swingVX * dt;
+    claw.swingZ += claw.swingVZ * dt;
+
+    switch (claw.state) {
+      case 'idle': {
+        var mx = 0, mz = 0;
+        if (AX.Input.down('ArrowLeft')) mx -= 1;
+        if (AX.Input.down('ArrowRight')) mx += 1;
+        if (AX.Input.down('ArrowUp')) mz -= 1;
+        if (AX.Input.down('ArrowDown')) mz += 1;
+        if (mx !== 0 || mz !== 0) {
+          var spd = 1.15 * dt;
+          claw.tx = AX.clamp(claw.tx + mx * spd, BOX.x0 + 0.35, BOX.x1 - 0.35);
+          claw.tz = AX.clamp(claw.tz + mz * spd, BOX.z0 + 0.32, BOX.z1 - 0.32);
+          claw.moveSound -= dt;
+          if (claw.moveSound <= 0) { AX.Audio.sfx.click(); claw.moveSound = 0.14; }
+          /* 이동 방향으로 살짝 흔들립니다 */
+          claw.swingVX += mx * dt * 2.2;
+          claw.swingVZ += mz * dt * 2.2;
+        }
+        claw.x += (claw.tx - claw.x) * Math.min(1, dt * 10);
+        claw.z += (claw.tz - claw.z) * Math.min(1, dt * 10);
+        claw.y += (RAIL_Y - 0.18 - claw.y) * Math.min(1, dt * 8);
+        claw.prong += (0.55 - claw.prong) * Math.min(1, dt * 8);
+
+        if (AX.Input.justPressed('Space') && session.credits > 0 && !session.over) {
+          session.credits--;
+          session.tries++;
+          claw.state = 'descend';
+          claw.stateT = 0;
+          AX.Audio.sfx.confirm();
+          syncHUD();
+        }
+        break;
+      }
+
+      case 'descend': {
+        claw.prong += (0.62 - claw.prong) * Math.min(1, dt * 6);
+        claw.y -= dt * 1.35;
+        AX.Audio.sfx; /* 하강음은 톤 반복 대신 생략 */
+        /* 인형 더미 표면 또는 하한에 닿으면 집기 */
+        var surface = pileHeightAt(claw.x, claw.z);
+        if (claw.y - 0.34 <= Math.max(surface + 0.05, CLAW_MIN_Y - 0.3)) {
+          claw.state = 'close';
+          claw.stateT = 0;
+        }
+        break;
+      }
+
+      case 'close': {
+        claw.prong += (0.06 - claw.prong) * Math.min(1, dt * 9);
+        if (claw.stateT > 0.42) {
+          attemptGrab();
+          claw.state = 'ascend';
+          claw.stateT = 0;
+        }
+        break;
+      }
+
+      case 'ascend': {
+        claw.y += dt * 1.5;
+        dragGrabbed(dt);
+        if (claw.y >= RAIL_Y - 0.18) {
+          claw.y = RAIL_Y - 0.18;
+          claw.state = 'carry';
+          claw.stateT = 0;
+        }
+        break;
+      }
+
+      case 'carry': {
+        /* 홈(배출구 위)으로 이동 */
+        var hdx = HOME.x - claw.x, hdz = HOME.z - claw.z;
+        var hd = Math.hypot(hdx, hdz);
+        var sp = Math.min(0.95 * dt, hd);
+        if (hd > 0.01) {
+          claw.x += hdx / hd * sp;
+          claw.z += hdz / hd * sp;
+          claw.swingVX += -hdx / hd * dt * 1.1;
+          claw.swingVZ += -hdz / hd * dt * 1.1;
+        }
+        dragGrabbed(dt);
+        if (hd < 0.03) {
+          claw.state = 'drop';
+          claw.stateT = 0;
+        }
+        break;
+      }
+
+      case 'drop': {
+        claw.prong += (0.62 - claw.prong) * Math.min(1, dt * 7);
+        if (claw.grabbed && claw.prong > 0.4) releaseGrab(false);
+        if (claw.stateT > 0.9) {
+          claw.tx = claw.x; claw.tz = claw.z;
+          claw.state = 'idle';
+          claw.stateT = 0;
+          checkGameOver();
+          syncHUD();
+        }
+        break;
+      }
+    }
+
+    /* 그립 소모 — 옮기는 동안 */
+    if (claw.grabbed && (claw.state === 'ascend' || claw.state === 'carry')) {
+      var swing = Math.hypot(claw.swingX, claw.swingZ);
+      var wear = 0.055 + swing * 1.9 + Math.random() * 0.05;
+      claw.grip -= wear * dt;
+      if (claw.grip <= 0) releaseGrab(true);
+    }
+  }
+
+  /* 집게 아래 인형 더미의 대략 높이 */
+  function pileHeightAt(x, z) {
+    var h = BOX.floor;
+    for (var i = 0; i < plushes.length; i++) {
+      var p = plushes[i];
+      if (p.state !== 'pile') continue;
+      var dx = p.body.x - x, dz = p.body.z - z;
+      if (dx * dx + dz * dz < 0.16) h = Math.max(h, p.body.y + p.body.r * 0.4);
+    }
+    return h;
+  }
+
+  function attemptGrab() {
+    var tip = clawTip();
+    var best = null, bestD = 1e9;
+    for (var i = 0; i < plushes.length; i++) {
+      var p = plushes[i];
+      if (p.state !== 'pile') continue;
+      var dx = p.head.x - tip[0], dz = p.head.z - tip[2];
+      var dy = p.head.y - tip[1];
+      var hd = Math.hypot(dx, dz);
+      if (hd < 0.42 && dy < 0.42 && dy > -0.5) {
+        if (hd < bestD) { bestD = hd; best = p; }
+      }
+    }
+    AX.Audio.sfx.blockPlace();
+
+    if (!best) {
+      /* 허탕 — 주변 인형을 살짝 밀칩니다 */
+      for (var j = 0; j < plushes.length; j++) {
+        var pj = plushes[j];
+        if (pj.state !== 'pile') continue;
+        var jx = pj.body.x - tip[0], jz = pj.body.z - tip[2];
+        var jd = Math.hypot(jx, jz);
+        if (jd < 0.6 && jd > 0.001) {
+          pj.body.px -= jx / jd * 0.03;
+          pj.body.pz -= jz / jd * 0.03;
+        }
+      }
+      return;
+    }
+
+    /* 그립 품질 — 중심 정확도 + 운 */
+    var quality = 1 - (bestD / 0.42) * 0.62 + (Math.random() * 0.3 - 0.15);
+    if (quality < 0.34) {
+      /* 잡히다 빠짐 — 위로 톡 튀었다 떨어집니다 */
+      best.body.py += 0.05;
+      best.head.py += 0.07;
+      AX.Audio.sfx.denied();
+      return;
+    }
+    claw.grabbed = best;
+    claw.grip = AX.clamp(quality, 0.3, 1);
+    best.state = 'grabbed';
+    best.squish = 1;
+    AX.Audio.sfx.pickup();
+  }
+
+  function dragGrabbed(dt) {
+    /* verlet 이전 위치를 같이 끌어 관성 폭주를 막습니다 */
+    var g = claw.grabbed;
+    if (!g) return;
+  }
+
+  function releaseGrab(slipped) {
+    var g = claw.grabbed;
+    if (!g) return;
+    claw.grabbed = null;
+    g.state = 'pile';
+    if (slipped) {
+      AX.Audio.sfx.denied();
+      hud.guideFlash('앗, 미끄러졌습니다…');
+      shakeProngs();
+    }
+  }
+
+  function shakeProngs() {
+    claw.swingVX += (Math.random() - 0.5) * 1.4;
+    claw.swingVZ += (Math.random() - 0.5) * 1.4;
+  }
+
+  function onPrize(p) {
+    if (!hud.prize) return;          // 사전 안정화 중에는 무시합니다
+    session.wins++;
+    AX.Audio.sfx.waveClear();
+    hud.prize(PALETTE[p.color]);
+    syncHUD();
+    checkGameOver();
+  }
+
+  function checkGameOver() {
+    if (session.credits <= 0 && claw.state === 'idle' && !claw.grabbed && !session.over) {
+      /* 떨어지는 중인 인형이 있으면 잠시 기다립니다 */
+      setTimeout(function () {
+        if (session.credits > 0 || session.over) return;
+        session.over = true;
+        var rate = session.tries ? Math.round(session.wins / session.tries * 100) : 0;
+        AX.UI.result({
+          title: session.wins > 0 ? '인형 ' + session.wins + '개 획득' : '다음 기회에…',
+          lede: session.wins > 0 ? '뽑은 인형은 진열대에 올려 두었습니다.' : '집게 중심을 인형 머리에 정확히 맞춰 보십시오.',
+          stats: [
+            ['시도', String(session.tries)],
+            ['성공', String(session.wins)],
+            ['성공률', rate + '%']
+          ],
+          primary: {
+            label: '코인 5개 더 넣기',
+            onClick: function () {
+              session.credits = 5;
+              session.over = false;
+              AX.Audio.sfx.confirm();
+              syncHUD();
+              AX.UI.show(null);
+            }
+          }
+        });
+      }, 1600);
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     셰이더
+     ══════════════════════════════════════════════════════════ */
+
+  var MAX_LIGHTS = 8;
+
+  var LIGHT_GLSL = [
+    'uniform int uLightCount;',
+    'uniform vec3 uLightPos[' + MAX_LIGHTS + '];',
+    'uniform vec3 uLightColor[' + MAX_LIGHTS + '];',
+    'vec3 shadePoints(vec3 P, vec3 N, vec3 V, vec3 albedo, float specPow, float specK) {',
+    '  vec3 sum = vec3(0.0);',
+    '  for (int i = 0; i < ' + MAX_LIGHTS + '; i++) {',
+    '    if (i >= uLightCount) break;',
+    '    vec3 Ld = uLightPos[i] - P;',
+    '    float d2 = dot(Ld, Ld);',
+    '    vec3 L = Ld * inversesqrt(max(d2, 1e-4));',
+    '    float atten = 1.0 / (1.0 + d2 * 0.16);',
+    '    float ndl = max(dot(N, L), 0.0);',
+    '    vec3 H = normalize(L + V);',
+    '    float spec = pow(max(dot(N, H), 0.0), specPow) * specK;',
+    '    sum += uLightColor[i] * atten * (albedo * ndl + vec3(spec) * ndl);',
+    '  }',
+    '  return sum;',
+    '}'
+  ].join('\n');
+
+  var PRIM_VS = [
+    '#version 300 es',
+    'layout(location=0) in vec3 aPos;',
+    'layout(location=1) in vec3 aNormal;',
+    'layout(location=2) in vec2 aUV;',
+    'uniform mat4 uViewProj, uModel;',
+    'uniform mat3 uNormalMat;',
+    'out vec3 vNormal;',
+    'out vec3 vWorld;',
+    'out vec2 vUV;',
+    'void main() {',
+    '  vec4 w = uModel * vec4(aPos, 1.0);',
+    '  vWorld = w.xyz;',
+    '  vNormal = uNormalMat * aNormal;',
+    '  vUV = aUV;',
+    '  gl_Position = uViewProj * w;',
+    '}'
+  ].join('\n');
+
+  var PRIM_FS = [
+    '#version 300 es',
+    'precision highp float;',
+    'in vec3 vNormal;',
+    'in vec3 vWorld;',
+    'in vec2 vUV;',
+    'uniform vec3 uCamPos, uAlbedo, uEmissive, uAmbientA, uAmbientB;',
+    'uniform float uSpecPow, uSpecK, uRim, uFuzz;',
+    'out vec4 fragColor;',
+    LIGHT_GLSL,
+    'void main() {',
+    '  vec3 N = normalize(vNormal);',
+    '  vec3 V = normalize(uCamPos - vWorld);',
+    '  /* 위/아래 두 색 앰비언트 */',
+    '  vec3 amb = mix(uAmbientB, uAmbientA, N.y * 0.5 + 0.5);',
+    '  vec3 color = uAlbedo * amb;',
+    '  color += shadePoints(vWorld, N, V, uAlbedo, uSpecPow, uSpecK);',
+    '  float rim = pow(1.0 - max(dot(N, V), 0.0), 2.6);',
+    '  /* uFuzz — 봉제인형의 백라이트 잔털 느낌 */',
+    '  color += uAlbedo * rim * uFuzz * 1.6;',
+    '  color += vec3(0.35, 0.6, 1.0) * rim * uRim;',
+    '  color += uEmissive;',
+    '  fragColor = vec4(color, 1.0);',
+    '}'
+  ].join('\n');
+
+  var GLASS_FS = [
+    '#version 300 es',
+    'precision highp float;',
+    'in vec3 vNormal;',
+    'in vec3 vWorld;',
+    'in vec2 vUV;',
+    'uniform vec3 uCamPos, uTint;',
+    'out vec4 fragColor;',
+    'void main() {',
+    '  vec3 N = normalize(vNormal);',
+    '  vec3 V = normalize(uCamPos - vWorld);',
+    '  float fres = pow(1.0 - abs(dot(N, V)), 3.0);',
+    '  /* 흐릿한 세로 하이라이트 */',
+    '  float streak = smoothstep(0.25, 0.0, abs(fract(vUV.x * 1.7 + 0.18) - 0.5) - 0.18);',
+    '  vec3 col = uTint * (0.25 + fres * 1.9) + vec3(1.0) * streak * 0.045;',
+    '  fragColor = vec4(col, 0.05 + fres * 0.55 + streak * 0.05);',
+    '}'
+  ].join('\n');
+
+  /* 배경 — 어두운 쇼룸 그라디언트 + 글로우 */
+  var BG_FS = [
+    '#version 300 es',
+    'precision highp float;',
+    'in vec2 vUV;',
+    'uniform vec2 uRes;',
+    'uniform float uTime;',
+    'out vec4 fragColor;',
+    AX.chunk.hash,
+    'void main() {',
+    '  vec2 uv = vUV;',
+    '  vec2 p = (uv - 0.5) * vec2(uRes.x / uRes.y, 1.0);',
+    '  vec3 col = mix(vec3(0.012, 0.014, 0.030), vec3(0.030, 0.024, 0.058), uv.y);',
+    '  /* 네온 글로우 블롭 */',
+    '  float g1 = exp(-dot(p - vec2(-0.72, 0.18), p - vec2(-0.72, 0.18)) * 2.4);',
+    '  float g2 = exp(-dot(p - vec2(0.78, 0.05), p - vec2(0.78, 0.05)) * 2.2);',
+    '  float g3 = exp(-dot(p - vec2(0.0, -0.48), p - vec2(0.0, -0.48)) * 3.2);',
+    '  col += vec3(0.45, 0.10, 0.34) * g1 * (0.8 + 0.2 * sin(uTime * 0.7));',
+    '  col += vec3(0.08, 0.24, 0.50) * g2 * (0.8 + 0.2 * sin(uTime * 0.9 + 2.0));',
+    '  col += vec3(0.30, 0.10, 0.50) * g3 * 0.5;',
+    '  /* 바닥 격자 느낌의 은은한 라인 */',
+    '  float ln = smoothstep(0.99, 1.0, sin(uv.y * 90.0)) * smoothstep(0.5, 0.2, uv.y);',
+    '  col += vec3(0.06, 0.10, 0.18) * ln * 0.35;',
+    '  fragColor = vec4(col, 1.0);',
+    '}'
+  ].join('\n');
+
+  /* ══════════════════════════════════════════════════════════
+     렌더러
+     ══════════════════════════════════════════════════════════ */
+
+  var R = {
+    gl: null,
+    camera: new AX.Camera(),
+    sh: {},
+    post: null,
+    particles: null,
+    fullscreen: null,
+    meshes: {},
+    tmpM: AX.mat4.create(),
+    tmpM2: AX.mat4.create(),
+    tmpN: AX.mat3.create(),
+    lightPosArr: new Float32Array(MAX_LIGHTS * 3),
+    lightColArr: new Float32Array(MAX_LIGHTS * 3),
+    lightCount: 0
+  };
+
+  var AMB_TOP = [0.10, 0.11, 0.16];
+  var AMB_BOT = [0.035, 0.03, 0.05];
+
+  /* 고정 라이트 — 기계 내부 2 + 외부 키/네온 3 */
+  var LIGHTS = [
+    { pos: [-1.1, 3.4, 0.6], color: [1.0, 0.95, 0.9], intensity: 2.6 },   // 내부 좌
+    { pos: [1.1, 3.4, -0.4], color: [0.9, 0.95, 1.0], intensity: 2.4 },   // 내부 우
+    { pos: [3.4, 4.6, 3.2], color: [1.0, 0.9, 0.8], intensity: 5.5 },     // 키 라이트
+    { pos: [-4.2, 2.4, 1.8], color: [1.0, 0.25, 0.55], intensity: 3.2 },  // 네온 핑크
+    { pos: [4.4, 1.8, -2.6], color: [0.2, 0.55, 1.0], intensity: 2.8 }    // 네온 블루
+  ];
+
+  function initRenderer(canvas) {
+    var gl = R.gl = AX.GL.create(canvas);
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+    gl.clearColor(0.01, 0.012, 0.026, 1);
+
+    R.sh.prim = new AX.Shader(gl, PRIM_VS, PRIM_FS, 'prim');
+    R.sh.glass = new AX.Shader(gl, PRIM_VS, GLASS_FS, 'glass');
+    R.sh.bg = new AX.Shader(gl, AX.chunk.fullscreenVS, BG_FS, 'bg');
+
+    R.post = new AX.Post(gl);
+    R.post.effects.exposure = 1.12;
+    R.post.effects.bloomStrength = 0.75;
+    R.post.effects.bloomThreshold = 0.82;
+    R.post.effects.vignette = 0.42;
+    R.post.effects.grain = 0.028;
+    R.post.effects.chroma = 0.0014;
+    R.post.effects.saturation = 1.1;
+
+    R.particles = new AX.Particles(gl, 260);
+    R.fullscreen = AX.geom.fullscreen(gl);
+
+    R.meshes.sphere = AX.Mesh.fromGeometry(gl, AX.geom.sphere(0.5, 24, 18));
+    R.meshes.box = AX.Mesh.fromGeometry(gl, AX.geom.box(1, 1, 1));
+    R.meshes.cyl = AX.Mesh.fromGeometry(gl, AX.geom.cylinder(0.5, 0.5, 1, 16));
+    R.meshes.cone = AX.Mesh.fromGeometry(gl, AX.geom.cylinder(0.06, 0.5, 1, 12));
+
+    /* 고정 라이트 배열 채우기 */
+    R.lightCount = LIGHTS.length;
+    for (var i = 0; i < LIGHTS.length; i++) {
+      R.lightPosArr[i * 3] = LIGHTS[i].pos[0];
+      R.lightPosArr[i * 3 + 1] = LIGHTS[i].pos[1];
+      R.lightPosArr[i * 3 + 2] = LIGHTS[i].pos[2];
+      R.lightColArr[i * 3] = LIGHTS[i].color[0] * LIGHTS[i].intensity;
+      R.lightColArr[i * 3 + 1] = LIGHTS[i].color[1] * LIGHTS[i].intensity;
+      R.lightColArr[i * 3 + 2] = LIGHTS[i].color[2] * LIGHTS[i].intensity;
+    }
+
+    AX.Quality.onChange(function () {
+      R.post.dispose();
+      R.post.width = R.post.height = 0;
+      resize(true);
+    });
+  }
+
+  function resize(force) {
+    var gl = R.gl;
+    var changed = AX.GL.resize(gl);
+    if (changed || force) R.post.resize(gl.axCanvas.width, gl.axCanvas.height);
+    return changed;
+  }
+
+  function drawPrim(mesh, model, mat) {
+    var sh = R.sh.prim;
+    AX.mat3.normalFromMat4(R.tmpN, model);
+    sh.set('uModel', model);
+    sh.set('uNormalMat', R.tmpN);
+    sh.set('uAlbedo', mat.albedo);
+    sh.set('uEmissive', mat.emissive || ZERO3);
+    sh.set('uSpecPow', mat.specPow !== undefined ? mat.specPow : 30);
+    sh.set('uSpecK', mat.specK !== undefined ? mat.specK : 0.3);
+    sh.set('uRim', mat.rim !== undefined ? mat.rim : 0.03);
+    sh.set('uFuzz', mat.fuzz !== undefined ? mat.fuzz : 0);
+    mesh.draw();
+  }
+  var ZERO3 = [0, 0, 0];
+
+  /* 행렬 헬퍼 — translate·rotate·scale 한 번에 */
+  function trs(out, x, y, z, ry, rx, rz, sx, sy, sz) {
+    AX.mat4.identity(out);
+    AX.mat4.translate(out, out, [x, y, z]);
+    if (ry) AX.mat4.rotateY(out, out, ry);
+    if (rx) AX.mat4.rotateX(out, out, rx);
+    if (rz) AX.mat4.rotateZ(out, out, rz);
+    AX.mat4.scale(out, out, [sx, sy !== undefined ? sy : sx, sz !== undefined ? sz : sx]);
+    return out;
+  }
+
+  /* ── 기계 본체 ─────────────────────────────── */
+
+  var MAT = {
+    frame: { albedo: [0.045, 0.05, 0.075], specPow: 70, specK: 0.7, rim: 0.06 },
+    framePink: { albedo: [0.5, 0.06, 0.2], specPow: 50, specK: 0.5, rim: 0.05,
+                 emissive: [0.24, 0.02, 0.1] },
+    body: { albedo: [0.10, 0.05, 0.16], specPow: 40, specK: 0.4, rim: 0.05 },
+    bodyDark: { albedo: [0.035, 0.03, 0.055], specPow: 40, specK: 0.3, rim: 0.03 },
+    pad: { albedo: [0.30, 0.08, 0.14], specPow: 8, specK: 0.05, rim: 0.02 },
+    chute: { albedo: [0.02, 0.02, 0.03], specPow: 20, specK: 0.2 },
+    chuteRim: { albedo: [0.9, 0.62, 0.1], specPow: 30, specK: 0.3,
+                emissive: [0.5, 0.3, 0.02] },
+    rail: { albedo: [0.06, 0.065, 0.09], specPow: 80, specK: 0.9 },
+    clawMetal: { albedo: [0.5, 0.52, 0.58], specPow: 90, specK: 1.3, rim: 0.08 },
+    clawJoint: { albedo: [0.12, 0.13, 0.17], specPow: 60, specK: 0.6 },
+    cable: { albedo: [0.03, 0.03, 0.04], specPow: 10, specK: 0.1 },
+    floor: { albedo: [0.016, 0.018, 0.03], specPow: 160, specK: 1.6, rim: 0 },
+    glow: function (c, k) { return { albedo: [0.02, 0.02, 0.03], emissive: [c[0] * k, c[1] * k, c[2] * k], specPow: 10, specK: 0 }; }
+  };
+
+  function drawMachine(time) {
+    var m = R.tmpM;
+
+    /* 스튜디오 바닥 */
+    drawPrim(R.meshes.box, trs(m, 0, -0.1, 0, 0, 0, 0, 30, 0.2, 30), MAT.floor);
+
+    /* 하부 본체 */
+    drawPrim(R.meshes.box, trs(m, 0, 0.56, 0, 0, 0, 0, 3.8, 1.12, 2.9), MAT.body);
+    /* 앞면 조작부 패널 */
+    drawPrim(R.meshes.box, trs(m, 0.5, 0.86, 1.47, 0, -0.35, 0, 1.7, 0.4, 0.16), MAT.bodyDark);
+    /* 조이스틱 */
+    drawPrim(R.meshes.cyl, trs(m, 0.3, 1.06, 1.44, 0, -0.35, 0, 0.07, 0.18, 0.07), MAT.clawJoint);
+    drawPrim(R.meshes.sphere, trs(m, 0.3, 1.17, 1.4, 0, 0, 0, 0.11), MAT.framePink);
+    /* 버튼 */
+    drawPrim(R.meshes.cyl, trs(m, 0.78, 1.04, 1.42, 0, -0.35, 0, 0.09, 0.05, 0.09),
+             MAT.glow([1.0, 0.25, 0.45], 1.6));
+
+    /* 배출구 도어 (앞면) */
+    drawPrim(R.meshes.box, trs(m, -1.22, 0.62, 1.47, 0, 0, 0, 0.75, 0.62, 0.06), MAT.bodyDark);
+    drawPrim(R.meshes.box, trs(m, -1.22, 0.62, 1.5, 0, 0, 0, 0.62, 0.5, 0.03),
+             { albedo: [0.01, 0.01, 0.02], specPow: 90, specK: 0.7 });
+
+    /* 인형 바닥 패드 */
+    drawPrim(R.meshes.box, trs(m, 0, BOX.floor - 0.045, 0, 0, 0, 0, 3.3, 0.09, 2.42), MAT.pad);
+
+    /* 배출구 구멍 — 패드 위 어두운 함몰 + 발광 테두리 */
+    var chx = (CHUTE.x0 + CHUTE.x1) / 2, chz = (CHUTE.z0 + CHUTE.z1) / 2;
+    var chw = CHUTE.x1 - CHUTE.x0, chd = CHUTE.z1 - CHUTE.z0;
+    drawPrim(R.meshes.box, trs(m, chx, BOX.floor - 0.04, chz, 0, 0, 0, chw, 0.1, chd), MAT.chute);
+    /* 펜스 벽 — 물리와 같은 높이(0.34), 위에 발광 캡 */
+    var pulse = 0.8 + Math.sin(time * 3.2) * 0.25;
+    var FH = 0.3, FY = BOX.floor + FH / 2;
+    var fenceMat = MAT.bodyDark;
+    [
+      [chx, FY, chz - chd / 2 - 0.03, chw + 0.12, FH, 0.06],
+      [chx, FY, chz + chd / 2 + 0.03, chw + 0.12, FH, 0.06],
+      [chx - chw / 2 - 0.03, FY, chz, 0.06, FH, chd],
+      [chx + chw / 2 + 0.03, FY, chz, 0.06, FH, chd]
+    ].forEach(function (f) {
+      drawPrim(R.meshes.box, trs(m, f[0], f[1], f[2], 0, 0, 0, f[3], f[4], f[5]), fenceMat);
+      drawPrim(R.meshes.box, trs(m, f[0], BOX.floor + FH + 0.015, f[2], 0, 0, 0, f[3], 0.03, f[5]),
+               MAT.glow([1, 0.62, 0.1], pulse));
+    });
+
+    /* 기둥 4개 */
+    [[-1.82, -1.38], [1.82, -1.38], [-1.82, 1.38], [1.82, 1.38]].forEach(function (c) {
+      drawPrim(R.meshes.box, trs(m, c[0], 2.42, c[1], 0, 0, 0, 0.16, 2.6, 0.16), MAT.frame);
+    });
+
+    /* 상단 하우징 */
+    drawPrim(R.meshes.box, trs(m, 0, 3.94, 0, 0, 0, 0, 3.96, 0.5, 3.06), MAT.body);
+    /* 상단 LED 스트립 — 색이 흐르며 돕니다 */
+    var hue = time * 0.6;
+    var ledc = [
+      0.55 + 0.45 * Math.sin(hue),
+      0.55 + 0.45 * Math.sin(hue + 2.1),
+      0.55 + 0.45 * Math.sin(hue + 4.2)
+    ];
+    drawPrim(R.meshes.box, trs(m, 0, 3.72, 1.5, 0, 0, 0, 3.9, 0.06, 0.07), MAT.glow(ledc, 2.2));
+    drawPrim(R.meshes.box, trs(m, 0, 3.72, -1.5, 0, 0, 0, 3.9, 0.06, 0.07), MAT.glow(ledc, 2.2));
+    drawPrim(R.meshes.box, trs(m, 1.94, 3.72, 0, 0, 0, 0, 0.07, 0.06, 3.0), MAT.glow(ledc, 2.2));
+    drawPrim(R.meshes.box, trs(m, -1.94, 3.72, 0, 0, 0, 0, 0.07, 0.06, 3.0), MAT.glow(ledc, 2.2));
+    /* 내부 천장 라이트 패널 */
+    drawPrim(R.meshes.box, trs(m, -1.1, 3.62, 0.6, 0, 0, 0, 0.5, 0.03, 0.3),
+             MAT.glow([1, 0.95, 0.88], 3));
+    drawPrim(R.meshes.box, trs(m, 1.1, 3.62, -0.4, 0, 0, 0, 0.5, 0.03, 0.3),
+             MAT.glow([0.88, 0.95, 1], 3));
+
+    /* 갠트리 레일 (x 고정 2개 + 이동 브리지) */
+    drawPrim(R.meshes.box, trs(m, 0, RAIL_Y + 0.06, BOX.z0 + 0.06, 0, 0, 0, 3.4, 0.08, 0.1), MAT.rail);
+    drawPrim(R.meshes.box, trs(m, 0, RAIL_Y + 0.06, BOX.z1 - 0.06, 0, 0, 0, 3.4, 0.08, 0.1), MAT.rail);
+    drawPrim(R.meshes.box, trs(m, claw.x, RAIL_Y + 0.1, 0, 0, 0, 0, 0.12, 0.1, 2.42), MAT.rail);
+    /* 캐리지 */
+    drawPrim(R.meshes.box, trs(m, claw.x, RAIL_Y, claw.z, 0, 0, 0, 0.3, 0.16, 0.3), MAT.clawJoint);
+  }
+
+  function drawClaw(time) {
+    var m = R.tmpM;
+    var tipX = claw.x + claw.swingX, tipZ = claw.z + claw.swingZ;
+    var headY = claw.y;
+
+    /* 케이블 */
+    var cableLen = RAIL_Y - headY + 0.06;
+    drawPrim(R.meshes.cyl, trs(m, (claw.x + tipX) / 2, RAIL_Y - cableLen / 2,
+             (claw.z + tipZ) / 2, 0, 0, 0, 0.022, cableLen, 0.022), MAT.cable);
+
+    /* 집게 머리 */
+    drawPrim(R.meshes.sphere, trs(m, tipX, headY, tipZ, 0, 0, 0, 0.19, 0.16, 0.19), MAT.clawMetal);
+    drawPrim(R.meshes.cyl, trs(m, tipX, headY - 0.1, tipZ, 0, 0, 0, 0.1, 0.1, 0.1), MAT.clawJoint);
+
+    /* 프롱 3개 — 벌림 각 claw.prong */
+    for (var i = 0; i < 3; i++) {
+      var a = i * Math.PI * 2 / 3 + time * 0;
+      var open = claw.prong;
+      /* 상완 */
+      AX.mat4.identity(m);
+      AX.mat4.translate(m, m, [tipX, headY - 0.12, tipZ]);
+      AX.mat4.rotateY(m, m, a);
+      AX.mat4.rotateZ(m, m, -open);
+      AX.mat4.translate(m, m, [0.1, -0.13, 0]);
+      AX.mat4.scale(m, m, [0.045, 0.28, 0.06]);
+      drawPrim(R.meshes.box, m, MAT.clawMetal);
+      /* 하완 (안쪽으로 굽음) */
+      AX.mat4.identity(m);
+      AX.mat4.translate(m, m, [tipX, headY - 0.12, tipZ]);
+      AX.mat4.rotateY(m, m, a);
+      AX.mat4.rotateZ(m, m, -open);
+      AX.mat4.translate(m, m, [0.1, -0.26, 0]);
+      AX.mat4.rotateZ(m, m, open * 1.7 + 0.5);
+      AX.mat4.translate(m, m, [0.02, -0.1, 0]);
+      AX.mat4.scale(m, m, [0.04, 0.2, 0.05]);
+      drawPrim(R.meshes.box, m, MAT.clawMetal);
+    }
+  }
+
+  /* ── 인형 ─────────────────────────────────── */
+
+  function drawPlush(p) {
+    if (p.state === 'delivered') return;
+    var m = R.tmpM;
+    var pal = PALETTE[p.color];
+    var body = p.body, head = p.head;
+
+    /* 업 벡터 = 몸통→머리 */
+    var ux = head.x - body.x, uy = head.y - body.y, uz = head.z - body.z;
+    var ul = Math.hypot(ux, uy, uz) || 0.001;
+    ux /= ul; uy /= ul; uz /= ul;
+
+    /* 요 회전을 섞은 기저 */
+    var cy = Math.cos(p.yaw), sy = Math.sin(p.yaw);
+    var refX = cy, refZ = sy;
+    var rx = refX - ux * (ux * refX + uz * refZ);
+    var ry2 = -uy * (ux * refX + uz * refZ);
+    var rz = refZ - uz * (ux * refX + uz * refZ);
+    var rl = Math.hypot(rx, ry2, rz) || 0.001;
+    rx /= rl; ry2 /= rl; rz /= rl;
+    var fx = uy * rz - uz * ry2;
+    var fy = uz * rx - ux * rz;
+    var fz = ux * ry2 - uy * rx;
+
+    var squish = 1 - p.squish * 0.18;
+    var wob = 1 + Math.sin(p.wob) * 0.015;
+
+    function basis(px, py, pz, s1, s2, s3) {
+      m[0] = rx * s1; m[1] = ry2 * s1; m[2] = rz * s1; m[3] = 0;
+      m[4] = ux * s2; m[5] = uy * s2; m[6] = uz * s2; m[7] = 0;
+      m[8] = fx * s3; m[9] = fy * s3; m[10] = fz * s3; m[11] = 0;
+      m[12] = px; m[13] = py; m[14] = pz; m[15] = 1;
+      return m;
+    }
+
+    var mat = { albedo: pal.body, specPow: 6, specK: 0.04, rim: 0.02, fuzz: 0.30 };
+    var dark = { albedo: [0.06, 0.035, 0.045], specPow: 20, specK: 0.3 };
+    var belly = { albedo: [pal.body[0] * 0.72 + 0.32, pal.body[1] * 0.72 + 0.3, pal.body[2] * 0.72 + 0.28],
+                  specPow: 6, specK: 0.04, fuzz: 0.24 };
+
+    /* 몸통 */
+    drawPrim(R.meshes.sphere, basis(body.x, body.y, body.z,
+             0.46 * wob, 0.44 * squish, 0.42 * wob), mat);
+    /* 배 */
+    drawPrim(R.meshes.sphere, basis(body.x + fx * 0.12, body.y + fy * 0.12 + 0.02, body.z + fz * 0.12,
+             0.3, 0.3, 0.24), belly);
+    /* 머리 */
+    drawPrim(R.meshes.sphere, basis(head.x, head.y, head.z,
+             0.36 * wob, 0.34 * squish, 0.34), mat);
+    /* 귀 2개 */
+    var earOff = 0.15;
+    drawPrim(R.meshes.sphere, basis(
+      head.x + (ux * 0.14 + rx * earOff), head.y + (uy * 0.14 + ry2 * earOff), head.z + (uz * 0.14 + rz * earOff),
+      0.11, 0.11, 0.09), mat);
+    drawPrim(R.meshes.sphere, basis(
+      head.x + (ux * 0.14 - rx * earOff), head.y + (uy * 0.14 - ry2 * earOff), head.z + (uz * 0.14 - rz * earOff),
+      0.11, 0.11, 0.09), mat);
+    /* 주둥이 */
+    drawPrim(R.meshes.sphere, basis(
+      head.x + fx * 0.13, head.y + fy * 0.13 - 0.02, head.z + fz * 0.13,
+      0.1, 0.08, 0.08), belly);
+    /* 눈 2개 */
+    var eyeS = 0.026, eo = 0.062;
+    drawPrim(R.meshes.sphere, basis(
+      head.x + fx * 0.15 + rx * eo + ux * 0.05,
+      head.y + fy * 0.15 + ry2 * eo + uy * 0.05,
+      head.z + fz * 0.15 + rz * eo + uz * 0.05, eyeS, eyeS, eyeS), dark);
+    drawPrim(R.meshes.sphere, basis(
+      head.x + fx * 0.15 - rx * eo + ux * 0.05,
+      head.y + fy * 0.15 - ry2 * eo + uy * 0.05,
+      head.z + fz * 0.15 - rz * eo + uz * 0.05, eyeS, eyeS, eyeS), dark);
+    /* 팔 2개 */
+    drawPrim(R.meshes.sphere, basis(
+      body.x + rx * 0.24 + fx * 0.06, body.y + ry2 * 0.24 + 0.05, body.z + rz * 0.24 + fz * 0.06,
+      0.1, 0.13, 0.1), mat);
+    drawPrim(R.meshes.sphere, basis(
+      body.x - rx * 0.24 + fx * 0.06, body.y - ry2 * 0.24 + 0.05, body.z - rz * 0.24 + fz * 0.06,
+      0.1, 0.13, 0.1), mat);
+    /* 발 2개 */
+    drawPrim(R.meshes.sphere, basis(
+      body.x + rx * 0.13 + fx * 0.1 - ux * 0.16, body.y + ry2 * 0.13 - uy * 0.16 + fy * 0.1,
+      body.z + rz * 0.13 + fz * 0.1 - uz * 0.16, 0.11, 0.09, 0.12), mat);
+    drawPrim(R.meshes.sphere, basis(
+      body.x - rx * 0.13 + fx * 0.1 - ux * 0.16, body.y - ry2 * 0.13 - uy * 0.16 + fy * 0.1,
+      body.z - rz * 0.13 + fz * 0.1 - uz * 0.16, 0.11, 0.09, 0.12), mat);
+  }
+
+  /* ── 유리 ─────────────────────────────────── */
+
+  function drawGlassBox() {
+    var gl = R.gl;
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.depthMask(false);
+    gl.disable(gl.CULL_FACE);
+
+    var sh = R.sh.glass.use();
+    sh.set('uViewProj', R.camera.viewProj);
+    sh.set('uCamPos', R.camera.position);
+    sh.set('uTint', [0.35, 0.55, 0.8]);
+
+    var m = R.tmpM;
+    var h = (BOX.top - BOX.floor), cy2 = BOX.floor + h / 2;
+    var panes = [
+      /* x, y, z, ry, sx, sy, sz */
+      [0, cy2, BOX.z1 + 0.02, 0, 3.62, h, 0.012],
+      [0, cy2, BOX.z0 - 0.02, 0, 3.62, h, 0.012],
+      [BOX.x1 + 0.02, cy2, 0, 0, 0.012, h, 2.72],
+      [BOX.x0 - 0.02, cy2, 0, 0, 0.012, h, 2.72]
+    ];
+    panes.forEach(function (p2) {
+      trs(m, p2[0], p2[1], p2[2], p2[3], 0, 0, p2[4], p2[5], p2[6]);
+      AX.mat3.normalFromMat4(R.tmpN, m);
+      sh.set('uModel', m);
+      sh.set('uNormalMat', R.tmpN);
+      R.meshes.box.draw();
+    });
+
+    gl.enable(gl.CULL_FACE);
+    gl.depthMask(true);
+    gl.disable(gl.BLEND);
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     카메라 — 마우스 드래그 궤도
+     ══════════════════════════════════════════════════════════ */
+
+  var orbit = {
+    yaw: 0.32, pitch: 0.22,
+    tyaw: 0.32, tpitch: 0.22,
+    dist: 7.0,
+    target: [0, 2.15, 0]
+  };
+
+  function updateCamera(dt) {
+    if (AX.Input.mouseDown(0)) {
+      orbit.tyaw += AX.Input.mouse.dx * 0.0035;
+      orbit.tpitch += AX.Input.mouse.dy * 0.0025;
+    }
+    orbit.tyaw = AX.clamp(orbit.tyaw, -0.62, 0.85);
+    orbit.tpitch = AX.clamp(orbit.tpitch, 0.06, 0.5);
+    if (AX.Input.mouse.wheel !== 0) {
+      orbit.dist = AX.clamp(orbit.dist + AX.Input.mouse.wheel * 0.5, 5.2, 9.5);
+    }
+    orbit.yaw = AX.damp(orbit.yaw, orbit.tyaw, 8, dt);
+    orbit.pitch = AX.damp(orbit.pitch, orbit.tpitch, 8, dt);
+
+    var cam = R.camera;
+    var cx = Math.sin(orbit.yaw) * Math.cos(orbit.pitch) * orbit.dist;
+    var cyy = Math.sin(orbit.pitch) * orbit.dist + orbit.target[1];
+    var cz = Math.cos(orbit.yaw) * Math.cos(orbit.pitch) * orbit.dist;
+    AX.vec3.set(cam.position, cx, cyy, cz);
+
+    /* lookAt을 직접 계산 */
+    AX.mat4.lookAt(cam.view, cam.position, orbit.target, [0, 1, 0]);
+    var gl = R.gl;
+    AX.mat4.perspective(cam.proj, 44 * Math.PI / 180, gl.axCanvas.width / gl.axCanvas.height, 0.1, 80);
+    AX.mat4.multiply(cam.viewProj, cam.proj, cam.view);
+
+    /* 파티클 빌보드용 축 */
+    AX.vec3.set(cam.right, cam.view[0], cam.view[4], cam.view[8]);
+    AX.vec3.set(cam.up, cam.view[1], cam.view[5], cam.view[9]);
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     HUD
+     ══════════════════════════════════════════════════════════ */
+
+  var hud = {};
+
+  function buildHUD() {
+    var root = AX.UI.hud;
+
+    var edge = document.createElement('div');
+    edge.className = 'edge';
+    root.appendChild(edge);
+
+    var counter = document.createElement('div');
+    counter.className = 'counter';
+    counter.innerHTML =
+      '<div class="chip-box"><span class="label">CREDIT</span><span class="val" id="hud-credit">5</span></div>' +
+      '<div class="chip-box"><span class="label">PRIZE</span><span class="val" id="hud-prize">0</span></div>';
+    root.appendChild(counter);
+    hud.credit = counter.querySelector('#hud-credit');
+    hud.prizeN = counter.querySelector('#hud-prize');
+
+    hud.shelfEl = document.createElement('div');
+    hud.shelfEl.className = 'shelf';
+    hud.shelfEl.innerHTML = '<span class="label">진열대</span><span class="empty">아직 없음</span>';
+    root.appendChild(hud.shelfEl);
+
+    hud.tensionEl = document.createElement('div');
+    hud.tensionEl.className = 'tension';
+    hud.tensionEl.innerHTML =
+      '<div class="t-label"><span>GRIP</span><span id="t-pct">100%</span></div>' +
+      '<div class="t-bar"><span id="t-fill"></span></div>';
+    root.appendChild(hud.tensionEl);
+    hud.tFill = hud.tensionEl.querySelector('#t-fill');
+    hud.tPct = hud.tensionEl.querySelector('#t-pct');
+
+    hud.guideEl = document.createElement('div');
+    hud.guideEl.className = 'guide';
+    root.appendChild(hud.guideEl);
+
+    hud.bannerEl = document.createElement('div');
+    hud.bannerEl.className = 'prize-banner';
+    hud.bannerEl.innerHTML = '<div class="big" id="pb-big"></div><div class="sub">PRIZE GET!</div>';
+    root.appendChild(hud.bannerEl);
+    hud.pbBig = hud.bannerEl.querySelector('#pb-big');
+
+    hud.prize = function (pal) {
+      hud.prizeN.textContent = String(session.wins);
+      var empty = hud.shelfEl.querySelector('.empty');
+      if (empty) empty.remove();
+      var chip = document.createElement('span');
+      chip.className = 'plush-chip';
+      chip.style.background = pal.css;
+      hud.shelfEl.appendChild(chip);
+      hud.pbBig.textContent = pal.name + ' 획득!';
+      hud.bannerEl.removeAttribute('data-show');
+      void hud.bannerEl.offsetWidth;
+      hud.bannerEl.setAttribute('data-show', '1');
+    };
+
+    var flashTimer = 0;
+    hud.guideFlash = function (msg) {
+      hud.guideEl.innerHTML = '<b>' + msg + '</b>';
+      clearTimeout(flashTimer);
+      flashTimer = setTimeout(syncGuide, 1700);
+    };
+  }
+
+  function syncGuide() {
+    if (session.over) { hud.guideEl.innerHTML = '크레딧이 없습니다'; return; }
+    switch (claw.state) {
+      case 'idle':
+        hud.guideEl.innerHTML =
+          '<kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> 이동 · <kbd>Space</kbd> 내려잡기 · 마우스 드래그로 시점';
+        break;
+      case 'descend': hud.guideEl.innerHTML = '내려갑니다…'; break;
+      case 'close': hud.guideEl.innerHTML = '집는 중…'; break;
+      case 'ascend':
+      case 'carry':
+        hud.guideEl.innerHTML = claw.grabbed ? '<b>조심조심…</b> 배출구까지 옮깁니다' : '빈 집게로 돌아갑니다';
+        break;
+      case 'drop': hud.guideEl.innerHTML = '배출!'; break;
+    }
+  }
+
+  function syncHUD() {
+    hud.credit.textContent = String(session.credits);
+    if (session.credits <= 0) hud.credit.setAttribute('data-zero', '1');
+    else hud.credit.removeAttribute('data-zero');
+    hud.prizeN.textContent = String(session.wins);
+    syncGuide();
+  }
+
+  var lastClawState = '';
+  function updateHUD() {
+    if (claw.state !== lastClawState) {
+      lastClawState = claw.state;
+      syncGuide();
+    }
+    var show = claw.grabbed && (claw.state === 'ascend' || claw.state === 'carry');
+    if (show) {
+      hud.tensionEl.setAttribute('data-show', '1');
+      var pct = Math.max(0, Math.round(claw.grip * 100));
+      hud.tFill.style.width = pct + '%';
+      hud.tPct.textContent = pct + '%';
+      if (claw.grip < 0.3) hud.tensionEl.setAttribute('data-danger', '1');
+      else hud.tensionEl.removeAttribute('data-danger');
+    } else {
+      hud.tensionEl.removeAttribute('data-show');
+    }
+    AX.UI.fps(loop.frameMs);
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     부팅
+     ══════════════════════════════════════════════════════════ */
+
+  var loop = null;
+  var started = false;
+
+  function boot() {
+    var canvas = document.getElementById('gl');
+
+    AX.UI.init({
+      title: '인형뽑기',
+      en: 'Claw Master',
+      tint: '#ff4d8f',
+      lede: '집게의 장력과 인형 더미가 전부 물리 연산입니다. 집게 중심을 인형 머리에 맞추고, 옮기는 동안 그립이 버텨 주길 비십시오.',
+      controls: [
+        ['← → ↑ ↓', '집게 이동'],
+        ['Space', '내려서 잡기'],
+        ['마우스', '드래그로 시점 회전 · 휠로 줌'],
+        ['Esc', '일시정지']
+      ],
+      startLabel: '코인 넣고 시작',
+      onStart: function () {
+        AX.Audio.resume();
+        AX.Audio.sfx.confirm();
+        AX.Audio.ambient(true, 52);
+        loop.setPaused(false);
+        started = true;
+        syncHUD();
+      },
+      onPause: function () { loop.setPaused(true); },
+      onResume: function () { AX.Audio.resume(); loop.setPaused(false); }
+    });
+
+    try {
+      initRenderer(canvas);
+    } catch (err) {
+      AX.UI.error(err);
+      return;
+    }
+
+    AX.Input.init(canvas, { pointerLock: false });
+
+    buildHUD();
+    AX.UI.loading(0.4, '인형 더미 정리 중');
+    fillPile();
+    syncHUD();
+
+    AX.UI.loading(1, '준비 완료');
+    setTimeout(function () {
+      if (/autostart/.test(location.search)) AX.UI.start();
+      else AX.UI.showStart();
+    }, 150);
+
+    loop = new AX.Loop({
+      step: 1 / 120,
+      update: function (dt) {
+        if (!started) return;
+        updateClaw(dt);
+        stepPhysics(dt);
+      },
+      render: function (dt, time) {
+        resize(false);
+        var gl = R.gl;
+
+        updateCamera(dt);
+        R.particles.update(dt, null);
+
+        R.post.begin();
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        /* 배경 */
+        gl.disable(gl.DEPTH_TEST);
+        R.sh.bg.use()
+          .set('uRes', [gl.axCanvas.width, gl.axCanvas.height])
+          .set('uTime', time);
+        R.fullscreen.draw();
+        gl.enable(gl.DEPTH_TEST);
+
+        /* 프림 공통 유니폼 */
+        var prim = R.sh.prim.use();
+        prim.set('uViewProj', R.camera.viewProj)
+          .set('uCamPos', R.camera.position)
+          .set('uAmbientA', AMB_TOP)
+          .set('uAmbientB', AMB_BOT);
+        prim.set('uLightCount', R.lightCount);
+        prim.set('uLightPos', R.lightPosArr);
+        prim.set('uLightColor', R.lightColArr);
+
+        drawMachine(time);
+        for (var i = 0; i < plushes.length; i++) drawPlush(plushes[i]);
+        drawClaw(time);
+
+        R.particles.draw(R.camera.viewProj, R.camera.right, R.camera.up);
+
+        drawGlassBox();
+
+        R.post.end(dt);
+        updateHUD();
+      }
+    });
+    loop.setPaused(false);
+    loop.start();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+})();
+</script>
 
 </body>
 </html>
