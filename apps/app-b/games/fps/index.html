@@ -291,6 +291,23 @@
     }
   }
 
+  /* 복도는 진행 방향 양끝의 방 벽면까지 뚫어 문을 냅니다.
+     (carveInterior만 쓰면 복도 양끝이 1블록 벽으로 막혀 맵이 밀폐됩니다.) */
+  function carveCorridor(c) {
+    var horizontal = (c.x1 - c.x0) > (c.z1 - c.z0);
+    var x0 = horizontal ? c.x0 : c.x0 + 1;
+    var x1 = horizontal ? c.x1 : c.x1 - 1;
+    var z0 = horizontal ? c.z0 + 1 : c.z0;
+    var z1 = horizontal ? c.z1 - 1 : c.z1;
+    for (var z = z0; z <= z1; z++) {
+      for (var x = x0; x <= x1; x++) {
+        for (var y = FLOOR_Y + 1; y < CEIL_Y; y++) setBlockRaw(x, y, z, AIR);
+        setBlockRaw(x, FLOOR_Y, z, DECK);
+        setBlockRaw(x, CEIL_Y, z, CEIL);
+      }
+    }
+  }
+
   function generateStation() {
     var rng = AX.noise.rng(20260810);
     var all = rooms.concat(corridors);
@@ -304,8 +321,9 @@
       }
     });
 
-    /* 2) 내부를 파냅니다. */
-    all.forEach(carveInterior);
+    /* 2) 내부를 파냅니다 — 복도는 양끝 벽까지 관통. */
+    rooms.forEach(carveInterior);
+    corridors.forEach(carveCorridor);
 
     /* 3) 방 치장 */
     rooms.forEach(function (r, ri) {
@@ -1270,6 +1288,14 @@
       } else { player.pos[1] -= 1.02; player.vel[2] = 0; }
     }
 
+    /* 깨진 창으로 우주에 떨어지면 정거장으로 되돌립니다. */
+    if (player.pos[1] < -14) {
+      AX.vec3.set(player.pos, 48, FLOOR_Y + 1.2, 48);
+      AX.vec3.set(player.vel, 0, 0, 0);
+      damagePlayer(20, null);
+      AX.UI.toast('견인빔이 당신을 회수했습니다');
+    }
+
     /* 실드 재생 */
     if (game.time - player.lastHurt > 3.6 && player.shield < player.maxShield) {
       player.shield = Math.min(player.maxShield, player.shield + 14 * dt);
@@ -1374,6 +1400,7 @@
     if (weapon.mag <= 0) {
       AX.Audio.sfx.denied();
       startReload();
+      weapon.fireCd = 0.4;      // 빈 총 클릭음이 매 프레임 반복되지 않게
       return;
     }
     weapon.mag--;
@@ -1791,9 +1818,13 @@
     });
     for (var i = 0; i < count; i++) {
       (function (idx) {
-        setTimeout(function () {
-          if (game.state === 'combat') spawnDrone(pool[idx % pool.length], hpScale);
-        }, idx * 700);
+        /* 일시정지 중에는 스폰을 미뤘다가 재개 후에 잇습니다. */
+        var trySpawn = function () {
+          if (game.state !== 'combat') return;
+          if (loop.paused) { setTimeout(trySpawn, 400); return; }
+          spawnDrone(pool[idx % pool.length], hpScale);
+        };
+        setTimeout(trySpawn, idx * 700);
       })(i);
     }
 
@@ -2325,7 +2356,10 @@
 
     /* ?demo — 헤드리스 검증에서 드론 상태를 밖에서 읽을 수 있게 합니다. */
     if (DEMO) {
+      /* doors: 네 복도의 방쪽 경계 블록이 뚫려 있으면 0(AIR) */
+      var doors = [getBlock(48, 5, 36), getBlock(48, 5, 60), getBlock(36, 5, 48), getBlock(60, 5, 48)].join('');
       document.title = 't=' + game.time.toFixed(1) + ' st=' + game.state + ' n=' + drones.length +
+        ' doors=' + doors +
         ' :: ' + (drones.map(function (d) {
           return (d.dead ? 'D' : d.state.charAt(0)) + ':' +
                  d.pos[0].toFixed(1) + ',' + d.pos[1].toFixed(1) + ',' + d.pos[2].toFixed(1);
@@ -2416,6 +2450,7 @@
       title: '제로 프론트',
       en: 'Zero Front · FPS',
       tint: '#00d0ff',
+      pointerLock: true,
       lede: '버려진 궤도 정거장에 방어 드론이 깨어났습니다. 다섯 웨이브를 버텨내십시오. 유리창과 화물 상자는 실제로 부서집니다.',
       controls: [
         ['W A S D', '이동'],
@@ -2440,6 +2475,7 @@
       onPause: function () {
         AX.Input.unlock();
         loop.setPaused(true);
+        if (AX.Audio.ctx) AX.Audio.ctx.suspend();
       },
       onResume: function () {
         AX.Audio.resume();

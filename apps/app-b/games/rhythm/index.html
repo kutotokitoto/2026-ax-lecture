@@ -304,6 +304,8 @@
     scheduled: 0,        // 예약 완료된 마디
     playing: false,
     perfStart: 0,        // 오디오가 없을 때의 대체 시계
+    lastT: 0,            // 마지막으로 읽은 곡 시간 — suspend 중 동결용
+    pausedAt: 0,         // 일시정지 시각 (폴백 시계 보정용)
     demoT: 26            // demo 모드 결정적 시계
   };
 
@@ -312,8 +314,15 @@
        가상 시간 환경에서는 실제 시계가 프레임당 수 초씩 점프하기 때문입니다. */
     if (DEMO) return song.demoT;
     var ctx = AX.Audio.ctx;
-    if (song.playing && ctx && ctx.state === 'running') {
-      return ctx.currentTime - song.startCtxTime;
+    if (song.playing && ctx) {
+      if (ctx.state === 'running') {
+        song.lastT = ctx.currentTime - song.startCtxTime;
+        return song.lastT;
+      }
+      /* suspend 직후 resume 완료 전의 짧은 창 — 벽시계로 점프하지 않고
+         마지막 값으로 동결합니다. 안 그러면 일시정지 길이만큼 채보가
+         한 프레임에 통째로 MISS 처리됩니다. */
+      return song.lastT;
     }
     return (performance.now() - song.perfStart) / 1000;
   }
@@ -933,7 +942,8 @@
     setTimeout(function () {
       AX.UI.result({
         title: 'RANK ' + rank,
-        lede: play.counts.MISS === 0 && total > 0 ? '풀 콤보입니다.' : '수고하셨습니다.',
+        lede: (total > 0 && play.counts.MISS === 0 && play.counts.BAD === 0 &&
+               play.counts.BOMB === 0) ? '풀 콤보입니다.' : '수고하셨습니다.',
         stats: [
           ['점수', play.score.toLocaleString('ko-KR')],
           ['최대 콤보', String(play.maxCombo)],
@@ -1210,10 +1220,16 @@
       onPause: function () {
         document.body.setAttribute('data-menu', '1');
         loop.setPaused(true);
+        song.pausedAt = performance.now();
         if (AX.Audio.ctx) AX.Audio.ctx.suspend();
       },
       onResume: function () {
         document.body.removeAttribute('data-menu');
+        /* 오디오가 없는 환경의 폴백 시계에서 일시정지 시간을 제거합니다. */
+        if (song.pausedAt) {
+          song.perfStart += performance.now() - song.pausedAt;
+          song.pausedAt = 0;
+        }
         if (AX.Audio.ctx) AX.Audio.ctx.resume();
         loop.setPaused(false);
       }

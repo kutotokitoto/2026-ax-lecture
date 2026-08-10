@@ -478,12 +478,26 @@
         var twx = ox + tx, twz = oz + tz;
         AX.noise.setSeed(TERRAIN_SEED + 99);
         if (AX.noise.hash2(twx, twz) > 0.0135) continue;
+        /* 줄기 높이 난수는 시드가 오염되기 전(biomeAt·terrainHeight가 시드를
+           바꾸기 전)에 뽑아야 청크 생성 순서와 무관하게 같은 나무가 나옵니다. */
+        var treeR = AX.noise.hash2(twx + 7, twz - 3);
         if (biomeAt(twx, twz) === 2) continue;              // 사막에는 안 심습니다
         var th = terrainHeight(twx, twz);
         if (th <= SEA + 1 || th > 44) continue;
-        this.placeTree(tx, th + 1, tz, AX.noise.hash2(twx + 7, twz - 3));
+        this.placeTree(tx, th + 1, tz, treeR);
         if (th + 8 > maxY) maxY = th + 8;
       }
+    }
+
+    /* 저장된 플레이어 편집 재적용 */
+    var em = world.edits.get(this.cx + ',' + this.cz);
+    if (em) {
+      var blocks = this.blocks;
+      em.forEach(function (v, idx) {
+        blocks[idx] = v;
+        var ey = Math.floor(idx / (CX * CZ));
+        if (ey > maxY) maxY = ey;
+      });
     }
 
     this.maxY = Math.min(CY - 1, maxY + 1);
@@ -525,6 +539,9 @@
     chunks: new Map(),
     genQueue: [],
     meshQueue: [],
+    /* 플레이어 편집 — 청크가 폐기·재생성돼도 살아남습니다.
+       chunkKey → Map(로컬 블록 인덱스 → 블록 id) */
+    edits: new Map(),
 
     key: function (cx, cz) { return cx + ',' + cz; },
 
@@ -556,14 +573,25 @@
       var c = world.chunks.get(cx + ',' + cz);
       if (!c || !c.generated) return false;
       var lx = x - cx * CX, lz = z - cz * CZ;
-      c.blocks[lx + CX * (lz + CZ * y)] = v;
+      var idx = lx + CX * (lz + CZ * y);
+      c.blocks[idx] = v;
+      /* 편집 기록 — 청크가 폐기됐다 재생성돼도 다시 적용됩니다. */
+      var ek = cx + ',' + cz;
+      var em = world.edits.get(ek);
+      if (!em) { em = new Map(); world.edits.set(ek, em); }
+      em.set(idx, v);
       if (y > c.maxY) c.maxY = Math.min(CY - 1, y + 1);
       world.markDirty(c);
-      /* 경계 블록이면 이웃 청크의 면도 다시 계산해야 합니다. */
+      /* 경계 블록이면 이웃 청크의 면(AO 포함)도 다시 계산해야 합니다.
+         모서리 블록은 대각 청크까지 갱신합니다. */
       if (lx === 0) world.markDirtyAt(cx - 1, cz);
       if (lx === CX - 1) world.markDirtyAt(cx + 1, cz);
       if (lz === 0) world.markDirtyAt(cx, cz - 1);
       if (lz === CZ - 1) world.markDirtyAt(cx, cz + 1);
+      if (lx === 0 && lz === 0) world.markDirtyAt(cx - 1, cz - 1);
+      if (lx === 0 && lz === CZ - 1) world.markDirtyAt(cx - 1, cz + 1);
+      if (lx === CX - 1 && lz === 0) world.markDirtyAt(cx + 1, cz - 1);
+      if (lx === CX - 1 && lz === CZ - 1) world.markDirtyAt(cx + 1, cz + 1);
       return true;
     },
 
@@ -585,9 +613,14 @@
     },
 
     neighborsReady: function (c) {
-      var n = [world.get(c.cx - 1, c.cz), world.get(c.cx + 1, c.cz),
-               world.get(c.cx, c.cz - 1), world.get(c.cx, c.cz + 1)];
-      for (var i = 0; i < 4; i++) if (!n[i] || !n[i].generated) return false;
+      /* 대각 이웃까지 포함 — 모서리 AO가 이웃 생성 순서에 따라 틀리지 않게. */
+      for (var dz = -1; dz <= 1; dz++) {
+        for (var dx = -1; dx <= 1; dx++) {
+          if (dx === 0 && dz === 0) continue;
+          var n = world.get(c.cx + dx, c.cz + dz);
+          if (!n || !n.generated) return false;
+        }
+      }
       return true;
     }
   };
@@ -1261,6 +1294,9 @@
       renderer.post.dispose();
       renderer.post.width = renderer.post.height = 0;
       resize(true);
+      /* viewDist가 바뀌었으니 스트리밍 반경을 다시 계산합니다. */
+      streamState.cx = 999999;
+      streamState.cz = 999999;
     });
   }
 
@@ -1412,12 +1448,16 @@
     var vp = sm.begin(sky.sunDir, renderer.shadowCenter, 46);
     var sh = renderer.shaders.depth.use();
     sh.set('uViewProj', vp);
-    for (var i = 0; i < visibleChunks.length; i++) {
-      var c = visibleChunks[i];
-      if (!c.mesh || c._dist > 90 * 90) continue;
+    /* 카메라 절두체와 무관하게 그림자 상자 반경 안의 청크를 전부 그립니다 —
+       화면 밖 지형의 그림자가 사라지지 않게. */
+    var scx = renderer.shadowCenter[0], scz = renderer.shadowCenter[2];
+    world.chunks.forEach(function (c) {
+      if (!c.mesh) return;
+      var dx = c.cx * CX + CX / 2 - scx, dz = c.cz * CZ + CZ / 2 - scz;
+      if (dx * dx + dz * dz > 70 * 70) return;
       sh.set('uChunkOrigin', c.origin);
       c.mesh.draw();
-    }
+    });
     sm.end();
     return vp;
   }
@@ -1665,7 +1705,7 @@
     }
     if (AX.Input.justPressed('KeyT')) {
       sky.time = (sky.time + 30) % sky.dayLength;
-      AX.UI.toast('시간 이동 → ' + sky.label);
+      AX.UI.toast('시간을 30초 앞당깁니다');
     }
   }
 
@@ -1795,6 +1835,7 @@
       title: '블록 월드',
       en: 'Voxel World',
       tint: '#7bd45a',
+      pointerLock: true,
       lede: '블록을 캐고 쌓아 지형을 바꾸는 오픈 월드입니다. 지형은 시드값으로 무한히 생성되고, 하루가 4분마다 한 바퀴 돕니다.',
       controls: [
         ['W A S D', '이동'],

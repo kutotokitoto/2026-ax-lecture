@@ -65,12 +65,22 @@
       for (var k in UI.screens) document.body.appendChild(UI.screens[k]);
 
       /* Esc는 브라우저가 포인터 락을 풀면서 함께 옵니다.
-         락 해제만으로 일시정지를 걸면 두 번 처리되니, 여기서 한 곳으로 모읍니다. */
+         락 해제만으로 일시정지를 걸면 두 번 처리되니, 여기서 한 곳으로 모읍니다.
+         포인터 락을 쓰는 게임은 Esc로 재개하지 않습니다 — Escape 키는 사용자
+         제스처로 인정되지 않아 requestPointerLock이 거부되고, 마우스가 죽은 채
+         게임만 재개되는 상태가 되기 때문입니다. 재개는 '계속하기' 클릭으로만. */
       global.addEventListener('keydown', function (e) {
         if (e.code !== 'Escape') return;
         if (UI.current === 'start' || UI.current === 'loading') return;
-        if (UI.current === 'pause') UI.resume();
-        else if (UI.current === null && opts.onPause) { UI.showPause(); }
+        if (UI.current === 'pause') {
+          if (!opts.pointerLock) UI.resume();
+        } else if (UI.current === null && opts.onPause) { UI.showPause(); }
+      });
+
+      /* 탭이 가려지면 자동 일시정지 — rAF가 멈춘 사이 절대 시계 판정이
+         밀리거나(리듬) 오디오 예약이 끊기는 것을 막습니다. */
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden && UI.current === null && opts.onPause) UI.showPause();
       });
 
       AX.Quality.onChange(function () { UI.syncQuality(); });
@@ -172,6 +182,7 @@
     error: function (err) {
       var s = UI.screens.error;
       s.querySelector('.ax-error').textContent = (err && err.stack) || String(err);
+      if (AX.Input && AX.Input.unlock) AX.Input.unlock();
       UI.show('error');
       console.error(err);
     },

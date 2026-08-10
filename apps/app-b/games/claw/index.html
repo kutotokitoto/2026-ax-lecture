@@ -642,8 +642,10 @@
   function checkGameOver() {
     if (session.credits <= 0 && claw.state === 'idle' && !claw.grabbed && !session.over) {
       /* 떨어지는 중인 인형이 있으면 잠시 기다립니다 */
-      setTimeout(function () {
+      var showResult = function () {
         if (session.credits > 0 || session.over) return;
+        /* 일시정지 화면을 결과 화면으로 덮지 않습니다 — 재개 후로 미룹니다. */
+        if (loop.paused) { setTimeout(showResult, 500); return; }
         session.over = true;
         var rate = session.tries ? Math.round(session.wins / session.tries * 100) : 0;
         AX.UI.result({
@@ -659,13 +661,17 @@
             onClick: function () {
               session.credits = 5;
               session.over = false;
+              AX.Audio.resume();
               AX.Audio.sfx.confirm();
               syncHUD();
               AX.UI.show(null);
+              /* 일시정지 중에 결과 화면이 떴던 경우를 대비해 반드시 재개합니다. */
+              loop.setPaused(false);
             }
           }
         });
-      }, 1600);
+      };
+      setTimeout(showResult, 1600);
     }
   }
 
@@ -1340,7 +1346,10 @@
         started = true;
         syncHUD();
       },
-      onPause: function () { loop.setPaused(true); },
+      onPause: function () {
+        loop.setPaused(true);
+        if (AX.Audio.ctx) AX.Audio.ctx.suspend();
+      },
       onResume: function () { AX.Audio.resume(); loop.setPaused(false); }
     });
 

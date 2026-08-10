@@ -219,6 +219,9 @@
       if (!on) {
         if (A._amb) {
           var stopAt = A.ctx.currentTime + 0.6;
+          /* 램프 앵커를 현재 값으로 찍어야 즉시 컷(클릭 노이즈)이 없습니다. */
+          A._amb.g.gain.cancelScheduledValues(A.ctx.currentTime);
+          A._amb.g.gain.setValueAtTime(A._amb.g.gain.value, A.ctx.currentTime);
           A._amb.g.gain.linearRampToValueAtTime(0, stopAt);
           var amb = A._amb;
           setTimeout(function () {

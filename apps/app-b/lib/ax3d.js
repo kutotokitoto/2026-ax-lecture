@@ -681,7 +681,8 @@
       for (var yy = 0; yy < rings; yy++) {
         for (var xx = 0; xx < seg; xx++) {
           var a = yy * (seg + 1) + xx, b = a + seg + 1;
-          idx.push(a, b, a + 1, a + 1, b, b + 1);
+          /* CCW-바깥 감김 — box·plane과 같은 규약 */
+          idx.push(a, a + 1, b, b, a + 1, b + 1);
         }
       }
       return {
@@ -707,7 +708,8 @@
       }
       for (var s = 0; s < seg; s++) {
         var b = s * 2;
-        idx.push(b, b + 1, b + 2, b + 1, b + 3, b + 2);
+        /* CCW-바깥 감김 — 캡·box와 같은 규약 */
+        idx.push(b, b + 2, b + 1, b + 1, b + 2, b + 3);
       }
       if (caps) {
         [[rTop, hh, 1], [rBot, -hh, -1]].forEach(function (cap) {
@@ -1331,8 +1333,12 @@
 
       global.addEventListener('keydown', function (e) {
         if (e.repeat) return;
-        /* 게임 중에는 스크롤·검색 등 기본 동작을 막습니다. */
-        if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Slash'].indexOf(e.code) >= 0) {
+        /* 게임 중에는 스크롤·검색 등 기본 동작을 막습니다.
+           단, 버튼·링크에 포커스가 있으면 Space/Enter 활성화를 살려 둡니다. */
+        var tag = document.activeElement && document.activeElement.tagName;
+        var uiFocused = tag === 'BUTTON' || tag === 'A' || tag === 'INPUT';
+        if (!uiFocused &&
+            ['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Slash'].indexOf(e.code) >= 0) {
           e.preventDefault();
         }
         Input.keys[e.code] = true;
@@ -1396,19 +1402,36 @@
     onLockChange: function (fn) { Input._onLockChange = fn; },
 
     down: function (code) { return !!Input.keys[code]; },
-    justPressed: function (code) { return !!Input.pressed[code]; },
-    justReleased: function (code) { return !!Input.released[code]; },
-    mouseDown: function (btn) { return (Input.mouse.buttons & (1 << btn)) !== 0; },
-    mouseClicked: function (btn) { return (Input.mouse.clicked & (1 << btn)) !== 0; },
 
-    /* 매 프레임 마지막에 호출 — 1프레임짜리 상태를 비웁니다. */
-    endFrame: function () {
-      Input.pressed = {};
-      Input.released = {};
+    /* 엣지 상태는 읽는 순간 소비됩니다. 고정 스텝이 한 프레임에 여러 번 돌아도
+       한 번만 true가 되고, 업데이트가 안 돈 프레임(>120Hz)에서는 다음 프레임까지
+       살아남습니다 — endFrame(clearEdges)와 짝을 이룹니다. */
+    justPressed: function (code) {
+      if (Input.pressed[code]) { delete Input.pressed[code]; return true; }
+      return false;
+    },
+    justReleased: function (code) {
+      if (Input.released[code]) { delete Input.released[code]; return true; }
+      return false;
+    },
+    mouseDown: function (btn) { return (Input.mouse.buttons & (1 << btn)) !== 0; },
+    mouseClicked: function (btn) {
+      var bit = 1 << btn;
+      if (Input.mouse.clicked & bit) { Input.mouse.clicked &= ~bit; return true; }
+      return false;
+    },
+
+    /* 매 프레임 마지막에 호출. clearEdges=false면(이번 프레임에 고정 스텝이
+       한 번도 안 돌았을 때) 키·클릭 엣지는 남겨 두고 마우스 델타만 비웁니다. */
+    endFrame: function (clearEdges) {
+      if (clearEdges !== false) {
+        Input.pressed = {};
+        Input.released = {};
+        Input.mouse.clicked = 0;
+      }
       Input.mouse.dx = 0;
       Input.mouse.dy = 0;
       Input.mouse.wheel = 0;
-      Input.mouse.clicked = 0;
     },
 
     /* 여러 키 중 아무거나 눌렸는지 */
@@ -1462,7 +1485,8 @@
       }
       if (n === self.maxSub) self._acc = 0;   // 따라잡기 포기 — 나선형 지연 방지
       self.render(dt, self.time);
-      Input.endFrame();
+      /* 고정 스텝이 안 돈 프레임에서는 키 엣지를 보존합니다 (>120Hz 입력 유실 방지). */
+      Input.endFrame(n > 0);
     };
   };
 
