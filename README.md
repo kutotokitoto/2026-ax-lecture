@@ -9,7 +9,7 @@
 .
 ├── index.html              랜딩 페이지 (강의본 6개 + 예제 8개 링크)
 ├── lectures/
-│   ├── lecture-01/index.html
+│   ├── lecture-01/index.html   AI 전사의 모험 1일차
 │   ├── lecture-02/index.html
 │   ├── lecture-03/index.html
 │   ├── lecture-04/index.html
@@ -32,7 +32,13 @@
 - **예제(apps)**: `app-a` ~ `app-h`. 강의에서 다루는 예제 웹앱.
 - 각 폴더는 `index.html` 하나로 완결되며, 상단의 `← 목록으로` 링크로 랜딩 페이지에 돌아옵니다.
 
-현재 모든 하위 페이지는 자리표시자(placeholder)입니다. 내용은 차차 채웁니다.
+`lecture-01`을 제외한 하위 페이지는 아직 자리표시자(placeholder)입니다. 내용은 차차 채웁니다.
+
+### 번들 페이지에 대하여
+
+`lecture-01/index.html`처럼 외부에서 만들어 온 standalone 번들 파일은 원본 그대로 둡니다.
+번들은 로딩 시 문서 전체를 교체하므로, 상단에 `← 목록으로` 링크를 끼워 넣어도 지워집니다.
+번들 페이지에서는 브라우저 뒤로 가기로 랜딩에 돌아갑니다.
 
 ## 실행
 
