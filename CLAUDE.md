@@ -10,7 +10,8 @@
 - `lectures/lecture-01` ~ `lecture-06` — 강의본. 각 폴더에 `index.html` 하나.
 - `apps/app-a` ~ `app-h` — 예제 웹앱. 각 폴더에 `index.html` 하나.
 
-강의본과 예제의 실제 내용은 사용자가 차차 전달합니다. 현재는 모두 자리표시자 상태입니다.
+강의본과 예제의 실제 내용은 사용자가 차차 전달합니다.
+완성: `lecture-01`, `app-a`~`app-d`. 나머지는 자리표시자 상태입니다. 상세는 `README.md` 참고.
 
 ## 규칙
 
@@ -43,6 +44,21 @@
   런타임이 `fetch(location.href)`로 원본을 다시 받아 정규식으로 파싱하는데, 첫 매칭을 템플릿 시작점으로 잡습니다.
   실제로 이 문제로 주석 잔여 텍스트가 화면에 노출된 적이 있습니다.
 - React·ReactDOM·Babel을 unpkg에서, 픽셀 폰트를 jsdelivr·Google Fonts에서 받습니다. 오프라인에서는 렌더되지 않습니다.
+
+## app-d (Quality Lab) 다룰 때
+
+- **Plotly.js 3.7.0 고정 버전 CDN**(`plotly-3.7.0.min.js`)을 쓰는 유일한 앱입니다(규칙 2의 의도적 예외).
+  `plotly-latest.min.js`는 v1.58에 동결된 함정이므로 금지. 버전을 올릴 때는 v3 breaking change
+  (문자열 `layout.title` 불가, `transforms` 제거, surface `zmin/zmax` 제거)를 확인합니다.
+- 렌더는 `newPlot` 1회 + 이후 전부 `Plotly.react`. 재생성 때 `newPlot`을 다시 부르면
+  WebGL 컨텍스트가 누적되어 3D가 죽습니다. `uirevision`/`scene.uirevision`은 seed로 키잉되어 있습니다.
+- 상태 변이는 `setFilters`/`setSelection`/`regenerate` 세 함수로만 합니다. 산점도 선택은
+  하이라이트 전용(필터 아님)이고, 선택 스코프 렌더에서 산점도는 `restyle`만 받습니다.
+- 데이터 생성기를 수정하면 `node tools/qlab-check/check.js`를 돌립니다(HTML에서 인라인 코드를
+  직접 추출해 고정 8시드 + 200시드 스윕 검사 — Cpk 0.75~1.35, |r| 0.55~0.8, 불량률 3~6.5%, 파레토 지배 40~75%).
+- `?seed=N` = 데이터 고정(스크린샷 재현), `?selftest` = 연동 자가 검증(결과는 `<pre id="selftest-out">`와
+  document.title의 SELFTEST-PASS/FAIL). 헤드리스 검증 시 rAF가 멎을 수 있어 렌더 스케줄러는 setTimeout 기반입니다.
+- 프로젝터 대비 라이트 고정 테마(규칙 4의 예외). 차트 색은 CVD 검증을 거친 팔레트라 임의로 바꾸지 않습니다.
 
 ## 작업 시 주의
 

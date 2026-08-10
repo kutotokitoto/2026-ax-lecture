@@ -3,71 +3,1402 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>예제 D — 2026 AX 강의</title>
+<meta name="color-scheme" content="light">
+<title>Quality Lab — 품질 데이터 분석 대시보드</title>
+<script src="https://cdn.plot.ly/plotly-3.7.0.min.js" charset="utf-8"
+        onerror="window.__plotlyFailed=true"></script>
 <style>
+  /* ── 테마: 라이트 고정 (프로젝터 명부 환경 대비, 규칙 4의 의도적 예외) ──
+     팔레트는 검증된 데이터비주얼 기준값 — 라인 4색은 CVD-safe 고정 순서,
+     저대비 색(aqua·yellow)은 항상 라벨과 병기한다. */
   :root {
-    --bg: #ffffff; --bg-soft: #f6f7f9; --border: #e4e6ea;
-    --text: #16181d; --text-soft: #5c626c; --text-faint: #8b919b;
-    --accent: #2f5cff; --accent-soft: #eef2ff;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0e1013; --bg-soft: #14171c; --border: #262a32;
-      --text: #eceef2; --text-soft: #a2a9b5; --text-faint: #737b88;
-      --accent: #7f9bff; --accent-soft: #1b2237;
-    }
+    --page: #f9f9f7;
+    --surface: #fcfcfb;
+    --ink: #0b0b0b;
+    --ink-2: #52514e;
+    --muted: #898781;
+    --grid: #e1e0d9;
+    --baseline: #c3c2b7;
+    --hairline: rgba(11, 11, 11, .10);
+    --accent: #2a78d6;
+    --accent-deep: #184f95;
+    --l1: #2a78d6; --l2: #eb6834; --l3: #1baf7a; --l4: #eda100;
+    --good: #0ca30c; --warning: #fab219; --serious: #ec835a; --critical: #d03b3b;
+    --good-tint: #e9f6e9; --warning-tint: #fdf3dc; --critical-tint: #fbe8e8;
+    --shadow: 0 1px 2px rgba(11, 11, 11, .04), 0 6px 18px rgba(11, 11, 11, .05);
   }
   * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
-    margin: 0; background: var(--bg); color: var(--text);
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    background: var(--page);
+    color: var(--ink);
     font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
                  "Malgun Gothic", system-ui, sans-serif;
-    line-height: 1.65; letter-spacing: -0.01em;
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
   }
-  .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px; }
-  header { border-bottom: 1px solid var(--border); background: var(--bg-soft); }
-  .back {
-    display: inline-block; margin-bottom: 24px; padding-top: 28px;
-    font-size: 14px; color: var(--text-soft); text-decoration: none;
+
+  /* ── 헤더: 타이틀 + KPI ─────────────────── */
+  header {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 12px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--hairline);
   }
-  .back:hover { color: var(--accent); }
-  .head-inner { padding-bottom: 44px; }
-  .badge {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-width: 34px; height: 26px; padding: 0 9px; margin-bottom: 12px;
-    border-radius: 7px; background: var(--accent-soft); color: var(--accent);
-    font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;
+  .brand { min-width: 220px; }
+  .brand .back {
+    font-size: 12.5px;
+    color: var(--muted);
+    text-decoration: none;
   }
-  h1 { margin: 0 0 10px; font-size: clamp(26px, 4vw, 34px); font-weight: 700; letter-spacing: -0.03em; }
-  .kind { margin: 0; font-size: 14px; color: var(--text-faint); }
-  main { padding: 44px 0 72px; }
-  .placeholder {
-    border: 1px dashed var(--border); border-radius: 14px;
-    padding: 40px 24px; text-align: center; color: var(--text-soft); font-size: 15px;
+  .brand .back:hover { color: var(--accent); }
+  .brand h1 {
+    margin: 1px 0 0;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
-  .placeholder p { margin: 0; }
-  .placeholder p + p { margin-top: 8px; font-size: 13px; color: var(--text-faint); }
+  .brand h1 small {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-left: 8px;
+    letter-spacing: 0;
+  }
+  .kpis {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-left: auto;
+  }
+  .kpi {
+    min-width: 128px;
+    padding: 8px 14px 9px;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+  }
+  .kpi .k-label {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: .02em;
+  }
+  .kpi .k-value {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+  .kpi .k-value small { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  .kpi .k-sub {
+    display: block;
+    font-size: 11.5px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .kpi .k-sub.sel { color: var(--accent-deep); font-weight: 600; }
+  /* Cpk 타일: 상태색 + 아이콘 + 라벨 (색만으로 구분하지 않음) */
+  .kpi.status { border-left: 4px solid var(--baseline); }
+  .kpi.status .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 999px;
+    vertical-align: 3px;
+    margin-left: 6px;
+  }
+  .kpi.st-good     { border-left-color: var(--good); }
+  .kpi.st-warning  { border-left-color: var(--warning); }
+  .kpi.st-critical { border-left-color: var(--critical); }
+  .kpi.st-good .badge     { background: var(--good-tint);     color: #006300; }
+  .kpi.st-warning .badge  { background: var(--warning-tint);  color: #8a5b00; }
+  .kpi.st-critical .badge { background: var(--critical-tint); color: #a02020; }
+
+  /* ── 컨트롤 바 ──────────────────────────── */
+  .controls {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 9px 20px;
+    border-bottom: 1px solid var(--hairline);
+    background: var(--surface);
+  }
+  .ctl-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-right: 2px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--ink-2);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .12s, border-color .12s, opacity .12s;
+  }
+  .chip .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--c, var(--accent));
+    box-shadow: 0 0 0 1px rgba(11,11,11,.15) inset;
+  }
+  .chip[aria-pressed="true"] {
+    background: color-mix(in srgb, var(--c, var(--accent)) 12%, var(--surface));
+    border-color: color-mix(in srgb, var(--c, var(--accent)) 45%, var(--hairline));
+    color: var(--ink);
+  }
+  .chip[aria-pressed="false"] { opacity: .48; }
+  .chip:hover { border-color: var(--baseline); opacity: 1; }
+  select#lot {
+    height: 30px;
+    padding: 0 8px;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+  }
+  .spacer { flex: 1; }
+  .seed-tag {
+    font-size: 11.5px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  button.btn {
+    height: 30px;
+    padding: 0 14px;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink-2);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .12s, border-color .12s;
+  }
+  button.btn:hover { border-color: var(--baseline); background: var(--page); }
+  button.btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  button.btn.primary:hover { background: var(--accent-deep); border-color: var(--accent-deep); }
+  .insight {
+    flex-basis: 100%;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--ink-2);
+    padding-top: 2px;
+  }
+  .insight .tag {
+    flex: 0 0 auto;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-deep);
+    background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+    border-radius: 5px;
+    padding: 1px 7px;
+    letter-spacing: .03em;
+  }
+  .insight b { color: var(--ink); font-weight: 600; }
+
+  /* ── 차트 그리드 ────────────────────────── */
+  main {
+    flex: 1 1 auto;
+    min-height: 700px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, minmax(300px, 1fr));
+    gap: 12px;
+    padding: 12px 20px 16px;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .card h2 {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 0;
+    padding: 10px 14px 0;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .card h2 .hint {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ink-2);   /* 프로젝터 가독성: 조작 안내가 가장 잘 보여야 한다 */
+  }
+  .chart { flex: 1 1 auto; min-height: 0; min-width: 0; }
+
+  @media (max-width: 1500px) {
+    body { height: auto; min-height: 100vh; }
+    main {
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: none;
+      grid-auto-rows: 360px;
+      min-height: 0;
+    }
+  }
+  @media (max-width: 920px) {
+    main { grid-template-columns: 1fr; grid-auto-rows: 340px; }
+    .kpis { margin-left: 0; }
+  }
+
+  /* ── CDN 실패 안내 ──────────────────────── */
+  #offline {
+    display: none;
+    margin: 40px auto;
+    max-width: 520px;
+    padding: 24px 28px;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-left: 4px solid var(--critical);
+    border-radius: 12px;
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+  #offline b { color: var(--ink); }
+  #selftest-out { display: none; }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="wrap">
+  <div class="brand">
     <a class="back" href="../../index.html">← 목록으로</a>
-    <div class="head-inner">
-      <span class="badge">D</span>
-      <h1>예제 D</h1>
-      <p class="kind">예제 웹앱</p>
+    <h1>Quality Lab <small>부품 측정 품질 분석 · 시뮬레이션 데모</small></h1>
+  </div>
+  <div class="kpis">
+    <div class="kpi" id="kpi-n">
+      <span class="k-label">표본</span>
+      <span class="k-value">–</span>
+      <span class="k-sub">–</span>
+    </div>
+    <div class="kpi" id="kpi-mean">
+      <span class="k-label">평균 · 산포 (mm)</span>
+      <span class="k-value">–</span>
+      <span class="k-sub">규격 10.000 ±0.150</span>
+    </div>
+    <div class="kpi status" id="kpi-cpk">
+      <span class="k-label">공정능력 Cpk</span>
+      <span class="k-value">–</span>
+      <span class="k-sub">Cp –</span>
+    </div>
+    <div class="kpi" id="kpi-def">
+      <span class="k-label">불량률</span>
+      <span class="k-value">–</span>
+      <span class="k-sub">–</span>
+    </div>
+    <div class="kpi" id="kpi-oos">
+      <span class="k-label">규격 이탈</span>
+      <span class="k-value">–</span>
+      <span class="k-sub">USL/LSL 초과</span>
     </div>
   </div>
 </header>
 
-<main class="wrap">
-  <div class="placeholder">
-    <p>내용 준비 중입니다.</p>
-    <p>이 자리에 예제 웹앱 내용이 들어갑니다.</p>
-  </div>
+<div class="controls">
+  <span class="ctl-label">라인</span>
+  <button class="chip" id="chip-L1" style="--c:var(--l1)" aria-pressed="true"><span class="dot"></span>L1</button>
+  <button class="chip" id="chip-L2" style="--c:var(--l2)" aria-pressed="true"><span class="dot"></span>L2</button>
+  <button class="chip" id="chip-L3" style="--c:var(--l3)" aria-pressed="true"><span class="dot"></span>L3</button>
+  <button class="chip" id="chip-L4" style="--c:var(--l4)" aria-pressed="true"><span class="dot"></span>L4</button>
+  <span class="ctl-label" style="margin-left:10px">로트</span>
+  <select id="lot"><option value="">전체 로트</option></select>
+  <div class="spacer"></div>
+  <span class="seed-tag" id="seed-tag">seed –</span>
+  <button class="btn" id="btn-reset">필터 초기화</button>
+  <button class="btn primary" id="btn-regen">데이터 재생성</button>
+  <div class="insight"><span class="tag">자동 진단</span><span id="insight-text">–</span></div>
+</div>
+
+<main>
+  <section class="card">
+    <h2>치수 분포 · 공정능력 <span class="hint">규격 밖 구간 적색 · 곡선 = 정규 피팅</span></h2>
+    <div class="chart" id="chart-hist"></div>
+  </section>
+  <section class="card">
+    <h2>라인별 비교 <span class="hint">상자 클릭 = 해당 라인 격리</span></h2>
+    <div class="chart" id="chart-box"></div>
+  </section>
+  <section class="card">
+    <h2>온도 – 단차 상관 <span class="hint">드래그 = 선택 → 분포·밀도 하이라이트 · 더블클릭 = 해제</span></h2>
+    <div class="chart" id="chart-scatter"></div>
+  </section>
+  <section class="card">
+    <h2>불량 위치 밀도 <span class="hint">제품 영역 100×80mm · 10×10mm 격자</span></h2>
+    <div class="chart" id="chart-heat"></div>
+  </section>
+  <section class="card">
+    <h2>단차 3D 맵 <span class="hint">드래그 회전 · 휠 확대 · 전 라인 공통 곡면</span></h2>
+    <div class="chart" id="chart-surface"></div>
+  </section>
+  <section class="card">
+    <h2>불량 유형 파레토 <span class="hint">점유율 + 누적 (%)</span></h2>
+    <div class="chart" id="chart-pareto"></div>
+  </section>
 </main>
 
+<div id="offline">
+  <b>차트 라이브러리를 불러오지 못했습니다.</b><br>
+  이 페이지는 Plotly.js CDN(cdn.plot.ly) 연결이 필요합니다.
+  네트워크 연결을 확인한 뒤 새로고침해 주세요.
+</div>
+<pre id="selftest-out"></pre>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   Quality Lab — 데이터 생성기 + 통계 유틸
+   (Node 단독 검증을 거친 코드 — 고정 8시드 + 200시드 스윕 통과)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 시드 RNG ─────────────────────────────── */
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function makeRng(seed) {
+  const u = mulberry32(seed);
+  let spare = null;
+  return {
+    uniform: (a, b) => a + (b - a) * u(),
+    // Box-Muller (polar)
+    gauss(mu, sigma) {
+      if (spare !== null) { const v = spare; spare = null; return mu + sigma * v; }
+      let x, y, s;
+      do { x = 2 * u() - 1; y = 2 * u() - 1; s = x * x + y * y; } while (s >= 1 || s === 0);
+      const m = Math.sqrt(-2 * Math.log(s) / s);
+      spare = y * m;
+      return mu + sigma * (x * m);
+    },
+    pick: (arr) => arr[Math.floor(u() * arr.length)],
+    chance: (p) => u() < p,
+    sign: (pPlus) => (u() < pPlus ? 1 : -1),
+    raw: u,
+  };
+}
+
+/* ── 생성 파라미터 (제약 샘플링: 항상 "이야기가 되는" 범위) ── */
+const LINES = ['L1', 'L2', 'L3', 'L4'];
+const DEFECT_TYPES = ['버(Burr)', '스크래치', '찍힘', '변색'];
+const AREA = { w: 100, h: 80 };           // 제품 영역 (mm)
+const SPEC = { nominal: 10.0, USL: 10.15, LSL: 9.85 };  // dim (mm)
+const N_PARTS = 4000;
+const GRID = { nx: 40, ny: 32 };          // 3D 서피스 격자
+
+function genParams(seed) {
+  const r = makeRng(seed);
+  const badLine = r.pick(LINES);
+  const lines = {};
+  for (const L of LINES) {
+    if (L === badLine) {
+      lines[L] = { muOffset: r.sign(0.5) * r.uniform(0.035, 0.055), sigmaFactor: r.uniform(1.3, 1.5) };
+    } else {
+      lines[L] = { muOffset: r.uniform(-0.015, 0.015), sigmaFactor: r.uniform(0.9, 1.1) };
+    }
+  }
+  const beta1 = r.sign(0.5) * r.uniform(0.6, 1.0);
+  const domIdx = Math.floor(r.raw() * DEFECT_TYPES.length);
+  // 비-핫스팟 배정용 기본 점유율. 핫스팟 집중 배정(p=0.7)과 합산하면
+  // 전체 지배 점유율이 55~67%에 안착한다 (검증 스크립트로 확인).
+  const domShare = r.uniform(0.30, 0.42);
+  // 나머지 3종은 25/10/5 비율을 (1-domShare)로 정규화
+  const rest = [0.25, 0.10, 0.05];
+  const restSum = rest.reduce((a, b) => a + b, 0);
+  const typeShares = DEFECT_TYPES.map((t, i) => {
+    if (i === domIdx) return domShare;
+    const k = i < domIdx ? i : i - 1;
+    return (1 - domShare) * rest[k] / restSum;
+  });
+  return {
+    seed,
+    baseSigma: 0.032,
+    lines, badLine,
+    outlierRate: r.uniform(0.012, 0.018),
+    tempRange: [45, 75],
+    beta1,
+    beta0: -beta1 * 60,                       // 60°C에서 온도 기여 0 → step이 0(플러시) 중심
+    epsSigma: Math.abs(beta1) * 8.66 * 1.04,  // |r| ≈ 0.66~0.72 고정
+    // 핫스팟: "기여 불량률" c를 먼저 뽑고 A를 역산 (c = 2π·A·s²/Area).
+    // base(1.5~2.5%) + c(2~3.5%)로 전체 불량률이 항상 3.5~6% 창에 들어온다.
+    hotspot: (() => {
+      const s = r.uniform(9, 14);
+      const c = r.uniform(0.020, 0.035);
+      return {
+        x: r.uniform(20, 80), y: r.uniform(15, 65),
+        s, A: c * AREA.w * AREA.h / (2 * Math.PI * s * s),
+        base: r.uniform(0.015, 0.025),
+      };
+    })(),
+    surface: {
+      cx: r.uniform(30, 70), cy: r.uniform(25, 55),
+      D: r.sign(0.5) * r.uniform(6, 10),
+      tx: r.sign(0.5) * r.uniform(4, 7), ty: r.sign(0.5) * r.uniform(3, 5),
+      phi1: r.uniform(0, 2 * Math.PI), phi2: r.uniform(0, 2 * Math.PI),
+      noise: 0.35,   // 시각 검증 후 하향 — 1.2는 곡면이 스파이크로 읽힘
+    },
+    domIdx, typeShares,
+  };
+}
+
+/* ── 단차 곡면 z(x,y) [µm] — 서피스·산점도가 같은 모델을 공유 ── */
+function surfaceZ(p, x, y) {
+  const s = p.surface;
+  return s.tx * (x / AREA.w - 0.5) + s.ty * (y / AREA.h - 0.5)
+    + s.D * Math.exp(-((x - s.cx) ** 2 + (y - s.cy) ** 2) / (2 * 35 * 35))
+    + 2.5 * Math.sin(2 * Math.PI * x / 120 + s.phi1) * Math.sin(2 * Math.PI * y / 90 + s.phi2);
+}
+
+function defectProb(p, x, y) {
+  const h = p.hotspot;
+  const d2 = (x - h.x) ** 2 + (y - h.y) ** 2;
+  return h.base + h.A * Math.exp(-d2 / (2 * h.s * h.s));
+}
+
+/* ── 데이터셋 생성 ───────────────────────── */
+function genData(params) {
+  const r = makeRng(params.seed ^ 0x9E3779B9);
+  const perLine = N_PARTS / LINES.length;       // 1000
+  const lotsPerLine = 5, perLot = perLine / lotsPerLine; // 200
+  const records = [];
+  let id = 0;
+
+  for (const L of LINES) {
+    const cfg = params.lines[L];
+    const mu = SPEC.nominal + cfg.muOffset;
+    const sigma = params.baseSigma * cfg.sigmaFactor;
+    for (let k = 0; k < lotsPerLine; k++) {
+      const lot = `${L}-${String(k + 1).padStart(2, '0')}`;
+      for (let i = 0; i < perLot; i++) {
+        id++;
+        let dim = r.gauss(mu, sigma);
+        if (r.chance(params.outlierRate)) {           // 이상치: ±(3.5~6)σ 치환, 상측 60%
+          dim = mu + r.sign(0.6) * r.uniform(3.5, 6.0) * sigma;
+        }
+        const x = r.uniform(0, AREA.w), y = r.uniform(0, AREA.h);
+        const temp = r.uniform(params.tempRange[0], params.tempRange[1]);
+        const step = surfaceZ(params, x, y) + params.beta0 + params.beta1 * temp
+          + r.gauss(0, params.epsSigma);
+        const defect = r.chance(defectProb(params, x, y));
+        let defectType = null;
+        if (defect) {
+          const nearHot = Math.hypot(x - params.hotspot.x, y - params.hotspot.y) < 2 * params.hotspot.s;
+          if (nearHot && r.chance(0.7)) {
+            defectType = DEFECT_TYPES[params.domIdx];  // 핫스팟 = 지배 유형 집중
+          } else {
+            const u = r.raw(); let acc = 0; defectType = DEFECT_TYPES[0];
+            for (let t = 0; t < DEFECT_TYPES.length; t++) {
+              acc += params.typeShares[t];
+              if (u < acc) { defectType = DEFECT_TYPES[t]; break; }
+            }
+          }
+        }
+        records.push({
+          id: 'P-' + String(id).padStart(4, '0'),
+          line: L, lot,
+          dim: Math.round(dim * 10000) / 10000,
+          step: Math.round(step * 100) / 100,
+          x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10,
+          temp: Math.round(temp * 10) / 10,
+          defect, defectType,
+        });
+      }
+    }
+  }
+
+  // 3D 서피스 격자 (측정 노이즈 포함 재평가)
+  const gx = [], gy = [], gz = [];
+  for (let i = 0; i < GRID.nx; i++) gx.push(AREA.w * i / (GRID.nx - 1));
+  for (let j = 0; j < GRID.ny; j++) gy.push(AREA.h * j / (GRID.ny - 1));
+  for (let j = 0; j < GRID.ny; j++) {
+    const row = [];
+    for (let i = 0; i < GRID.nx; i++) {
+      row.push(surfaceZ(params, gx[i], gy[j]) + r.gauss(0, params.surface.noise));
+    }
+    gz.push(row);
+  }
+  return { records, surface: { x: gx, y: gy, z: gz } };
+}
+
+/* ═══ 통계 유틸 (전부 n-가드 포함) ═══ */
+function mean(a) { return a.length ? a.reduce((s, v) => s + v, 0) / a.length : NaN; }
+function sd(a) {
+  if (a.length < 2) return NaN;
+  const m = mean(a);
+  return Math.sqrt(a.reduce((s, v) => s + (v - m) ** 2, 0) / (a.length - 1));
+}
+function quantile(sorted, q) {
+  if (!sorted.length) return NaN;
+  const pos = (sorted.length - 1) * q, lo = Math.floor(pos), hi = Math.ceil(pos);
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
+}
+function normalPdf(x, mu, sigma) {
+  return Math.exp(-((x - mu) ** 2) / (2 * sigma * sigma)) / (sigma * Math.sqrt(2 * Math.PI));
+}
+function processCapability(dims) {
+  if (dims.length < 8) return null;                       // 표본 부족
+  const m = mean(dims), s = sd(dims);
+  if (!isFinite(s) || s === 0) return null;
+  return {
+    mean: m, sd: s,
+    cp: (SPEC.USL - SPEC.LSL) / (6 * s),
+    cpk: Math.min(SPEC.USL - m, m - SPEC.LSL) / (3 * s),
+    oos: dims.filter(d => d < SPEC.LSL || d > SPEC.USL).length,
+  };
+}
+// OLS 회귀 + 95% CI 밴드 (n>30이면 t* ≈ 1.96)
+function linreg(xs, ys) {
+  const n = xs.length;
+  if (n < 3) return null;
+  const mx = mean(xs), my = mean(ys);
+  let sxx = 0, sxy = 0, syy = 0;
+  for (let i = 0; i < n; i++) {
+    sxx += (xs[i] - mx) ** 2; sxy += (xs[i] - mx) * (ys[i] - my); syy += (ys[i] - my) ** 2;
+  }
+  if (sxx === 0 || syy === 0) return null;
+  const slope = sxy / sxx, intercept = my - slope * mx;
+  const r = sxy / Math.sqrt(sxx * syy);
+  let sse = 0;
+  for (let i = 0; i < n; i++) { const e = ys[i] - (intercept + slope * xs[i]); sse += e * e; }
+  const se = Math.sqrt(sse / (n - 2));
+  const tStar = n > 30 ? 1.96 : [0, 12.71, 4.30, 3.18, 2.78, 2.57, 2.45, 2.36, 2.31, 2.26][Math.min(n - 2, 9)];
+  return {
+    slope, intercept, r, n,
+    band(x) {  // 평균 반응 95% CI 반폭
+      return tStar * se * Math.sqrt(1 / n + (x - mx) ** 2 / sxx);
+    },
+  };
+}
+// 고정 빈: LSL/USL이 정확히 빈 경계에 오도록 (autobin 금지)
+function makeBins(dims) {
+  const w = (SPEC.USL - SPEC.LSL) / 24;   // 0.0125mm
+  let lo = SPEC.LSL, hi = SPEC.USL;
+  if (dims.length) {
+    const dMin = Math.min(...dims), dMax = Math.max(...dims);
+    while (lo > dMin) lo -= w;
+    while (hi < dMax) hi += w;
+  }
+  const edges = [];
+  for (let e = lo; e <= hi + w / 2; e += w) edges.push(Math.round(e * 10000) / 10000);
+  return { edges, w };
+}
+function histogram(dims, edges) {
+  const counts = new Array(edges.length - 1).fill(0);
+  for (const d of dims) {
+    // +1e-9: 규격 경계값(예: 정확히 9.8500)이 부동소수점 오차로 아래 빈에
+    // 떨어지지 않게 스냅 — oos의 엄격 부등호 규약과 빈 색이 일치한다
+    let i = Math.floor((d - edges[0]) / (edges[1] - edges[0]) + 1e-9);
+    if (i < 0) i = 0; if (i > counts.length - 1) i = counts.length - 1;
+    counts[i]++;
+  }
+  return counts;
+}
+// 불량 위치 2D 히스토그램 (10×8, 빈당 10×10mm)
+function defectGrid(records) {
+  const BX = 10, BY = 8;
+  const z = Array.from({ length: BY }, () => new Array(BX).fill(0));
+  let total = 0;
+  for (const rec of records) {
+    if (!rec.defect) continue;
+    const i = Math.min(BX - 1, Math.floor(rec.x / (AREA.w / BX)));
+    const j = Math.min(BY - 1, Math.floor(rec.y / (AREA.h / BY)));
+    z[j][i]++; total++;
+  }
+  return { z, total, bx: BX, by: BY };
+}
+// 파레토: 유형별 점유율(%) + 누적(%) — 단일 0~100% 축용
+function pareto(records) {
+  const cnt = {};
+  for (const rec of records) if (rec.defect && rec.defectType) cnt[rec.defectType] = (cnt[rec.defectType] || 0) + 1;
+  const entries = Object.entries(cnt).sort((a, b) => b[1] - a[1]);
+  const total = entries.reduce((s, [, c]) => s + c, 0);
+  if (!total) return null;
+  let acc = 0;
+  return entries.map(([name, c]) => {
+    const share = 100 * c / total; acc += share;
+    return { name, count: c, share, cum: acc };
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   대시보드 앱 — 단일 상태 · 파생 렌더 · 스코프 분리
+   ═══════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  /* ── 디자인 토큰 (CSS와 동일 값) ─────────── */
+  const C = {
+    surface: '#fcfcfb', ink: '#0b0b0b', ink2: '#52514e', muted: '#898781',
+    grid: '#e1e0d9', baseline: '#c3c2b7',
+    accent: '#2a78d6', accentDeep: '#184f95', selDark: '#0d366b',
+    critical: '#d03b3b',
+    line: { L1: '#2a78d6', L2: '#eb6834', L3: '#1baf7a', L4: '#eda100' },
+  };
+  // 순차 램프 (블루) — 히트맵
+  const SEQ = [
+    [0, '#fcfcfb'], [0.10, '#cde2fb'], [0.28, '#9ec5f4'], [0.46, '#6da7ec'],
+    [0.64, '#3987e5'], [0.82, '#256abf'], [1, '#0d366b'],
+  ];
+  // 발산 램프 (blue ↔ red, 회색 중점) — 3D 단차
+  const DIV = [
+    [0, '#0d366b'], [0.2, '#2a78d6'], [0.38, '#9ec5f4'], [0.5, '#f0efec'],
+    [0.62, '#f0b6b6'], [0.8, '#d03b3b'], [1, '#7a1d1d'],
+  ];
+  const FONT = {
+    family: "Pretendard,-apple-system,'Segoe UI','Noto Sans KR','Malgun Gothic',sans-serif",
+    size: 13, color: C.ink2,
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const fmtN = (n) => n.toLocaleString('ko-KR');
+
+  /* ── 상태: 변이는 setFilters / setSelection / regenerate 만 ── */
+  const state = {
+    seed: 0, params: null, raw: [], surfaceData: null, bins: null,
+    filters: { lines: new Set(LINES), lot: '' },
+    selection: null,          // Set<recordId> | null (하이라이트 전용, 필터 아님)
+  };
+  let regenCounter = 0;
+  let lastSurfaceSeed = null; // 서피스는 재생성 때만 다시 그린다
+
+  function view() {
+    const { lines, lot } = state.filters;
+    return state.raw.filter(r => lines.has(r.line) && (!lot || r.lot === lot));
+  }
+
+  /* ── 렌더 스케줄러: 코얼레싱 + 스코프 병합 ──
+     rAF 대신 setTimeout(16) — 인터랙션 완료 후 실행이라는 목적은 같고,
+     헤드리스·백그라운드 탭에서 rAF가 멎어도 렌더가 잠기지 않는다. */
+  let pendingScope = null, timerId = 0;
+  function schedule(scope) {
+    pendingScope = (pendingScope === 'data' || scope === 'data') ? 'data' : 'selection';
+    if (timerId) return;
+    timerId = setTimeout(() => {
+      const s = pendingScope;
+      pendingScope = null; timerId = 0;
+      try { render(s); }
+      catch (e) { (window.__qlabErrors = window.__qlabErrors || []).push(String(e && e.stack || e)); }
+    }, 16);
+  }
+
+  let filterRev = 0;   // 필터 세대 — 산점도 selectionrevision 키 (유령 선택 방지)
+  function setFilters(mut) {
+    mut(state.filters);
+    if (state.filters.lines.size === 0) state.filters.lines = new Set(LINES); // 전부 끄면 전체로
+    // 로트는 라인에 종속 — 로트가 선택돼 있으면 그 라인은 항상 켜 둔다 (빈 교집합 방지)
+    if (state.filters.lot) {
+      const LL = state.filters.lot.split('-')[0];
+      if (LINES.includes(LL)) state.filters.lines.add(LL);
+    }
+    state.selection = null;   // 필터가 바뀌면 선택은 무효
+    filterRev++;              // GUI 드래그 선택(selections·selectedpoints)도 함께 무효화
+    schedule('data');
+  }
+  function setSelection(ids) {
+    state.selection = ids && ids.size ? ids : null;
+    schedule('selection');
+  }
+  function regenerate(seed) {
+    regenCounter++;
+    state.seed = seed !== undefined ? (seed >>> 0)
+      : ((Date.now() ^ (regenCounter * 2654435761)) >>> 0);
+    state.params = genParams(state.seed);
+    const { records, surface } = genData(state.params);
+    state.raw = records;
+    state.surfaceData = surface;
+    state.bins = makeBins(records.map(r => r.dim));
+    state.filters = { lines: new Set(LINES), lot: '' };
+    state.selection = null;
+    rebuildLotOptions();
+    updateInsight();
+    schedule('data');
+  }
+
+  /* ── 공통 레이아웃 ───────────────────────── */
+  function baseLayout() {
+    return {
+      paper_bgcolor: C.surface, plot_bgcolor: C.surface,
+      font: FONT,
+      margin: { l: 54, r: 14, t: 8, b: 42 },
+      showlegend: false,
+      hovermode: 'closest',
+      uirevision: state.seed,
+      hoverlabel: { bgcolor: C.ink, bordercolor: C.ink, font: { color: '#fff', size: 12.5, family: FONT.family } },
+    };
+  }
+  function axis(title, extra) {
+    return Object.assign({
+      title: { text: title, font: { size: 12, color: C.muted }, standoff: 8 },
+      gridcolor: C.grid, zerolinecolor: C.baseline, linecolor: C.baseline,
+      tickfont: { size: 12, color: C.ink2 }, ticks: 'outside', ticklen: 4, tickcolor: C.baseline,
+      automargin: true,
+    }, extra || {});
+  }
+  function emptyNote(text) {
+    return [{
+      text, xref: 'paper', yref: 'paper', x: 0.5, y: 0.5, showarrow: false,
+      font: { size: 14, color: C.muted },
+    }];
+  }
+  const CFG_2D = {
+    responsive: true, displaylogo: false, displayModeBar: 'hover', scrollZoom: false,
+    modeBarButtonsToRemove: ['select2d', 'lasso2d', 'autoScale2d', 'zoomIn2d', 'zoomOut2d', 'pan2d'],
+  };
+  const CFG_SCATTER = {
+    responsive: true, displaylogo: false, displayModeBar: 'hover', scrollZoom: false,
+    modeBarButtonsToRemove: ['autoScale2d', 'zoomIn2d', 'zoomOut2d', 'pan2d'],
+  };
+  const CFG_3D = {
+    responsive: true, displaylogo: false, displayModeBar: 'hover', scrollZoom: true,
+    modeBarButtonsToRemove: ['resetCameraLastSave3d'],
+  };
+
+  /* ── ① 히스토그램 + 공정능력 ─────────────── */
+  function buildHist(v) {
+    const dims = v.map(r => r.dim);
+    const { edges, w } = state.bins;
+    const centers = edges.slice(0, -1).map(e => Math.round((e + w / 2) * 10000) / 10000);
+    const layout = Object.assign(baseLayout(), {
+      barmode: 'overlay', bargap: 0.15,
+      xaxis: axis('측정 치수 (mm)', { tickformat: '.2f' }),
+      yaxis: axis('개수', { rangemode: 'tozero' }),
+      showlegend: true,
+      legend: { orientation: 'h', x: 0, y: 1.12, font: { size: 11.5 } },
+      margin: { l: 54, r: 14, t: 26, b: 42 },
+    });
+    if (!v.length) { layout.annotations = emptyNote('데이터 없음'); return { data: [], layout }; }
+
+    const counts = histogram(dims, edges);
+    // 규격 내/밖을 별도 트레이스로 — 범례 스와치가 정직해진다
+    // (단일 트레이스 + 색 배열이면 범례가 첫 빈 색(적색)을 물려받는다)
+    const inSpec = (c) => c > SPEC.LSL && c < SPEC.USL;
+    const mask = (pred) => counts.map((n, i) => (pred(centers[i]) && n > 0) ? n : null);
+    const mkBar = (name, y, color) => ({
+      type: 'bar', name, x: centers, y,
+      marker: { color, line: { color: C.surface, width: 1 } },
+      hovertemplate: '%{x:.4f} mm 부근 · %{y}개<extra>' + name + '</extra>',
+    });
+    const data = [
+      mkBar('규격 내', mask(inSpec), '#3987e5'),
+      mkBar('규격 밖', mask(c => !inSpec(c)), C.critical),
+    ];
+
+    // 선택 오버레이 (같은 빈 경계 공유)
+    if (state.selection) {
+      const selDims = v.filter(r => state.selection.has(r.id)).map(r => r.dim);
+      data.push({
+        type: 'bar', name: '선택', x: centers, y: histogram(selDims, edges),
+        marker: { color: C.selDark },
+        hovertemplate: '선택 %{y}개<extra></extra>',
+      });
+    }
+
+    const cap = processCapability(dims);
+    const annotations = [];
+    if (cap) {
+      // 정규 피팅 곡선 (개수 스케일: N × binW × pdf)
+      const xs = [], ys = [];
+      const lo = edges[0], hi = edges[edges.length - 1];
+      for (let i = 0; i <= 120; i++) {
+        const x = lo + (hi - lo) * i / 120;
+        xs.push(x); ys.push(dims.length * w * normalPdf(x, cap.mean, cap.sd));
+      }
+      data.push({
+        type: 'scatter', mode: 'lines', name: '정규 피팅', x: xs, y: ys,
+        line: { color: C.ink2, width: 2 }, hoverinfo: 'skip',
+      });
+      annotations.push({
+        text: `<b>Cp ${cap.cp.toFixed(2)} · Cpk ${cap.cpk.toFixed(2)}</b>`,
+        xref: 'paper', yref: 'paper', x: 0.02, y: 0.97, showarrow: false,
+        font: { size: 13, color: C.ink }, bgcolor: 'rgba(252,252,251,.85)',
+      });
+      if (cap.oos > 0) {
+        annotations.push({
+          text: `규격 밖 ${cap.oos}건`,
+          xref: 'paper', yref: 'paper', x: 0.98, y: 0.97, showarrow: false,
+          font: { size: 12.5, color: C.critical }, bgcolor: 'rgba(252,252,251,.85)',
+        });
+      }
+    } else {
+      annotations.push({
+        text: '표본 부족 (n<8) — Cp/Cpk 생략',
+        xref: 'paper', yref: 'paper', x: 0.02, y: 0.97, showarrow: false,
+        font: { size: 12.5, color: C.muted },
+      });
+    }
+    // 규격선
+    layout.shapes = [SPEC.LSL, SPEC.USL].map(sx => ({
+      type: 'line', x0: sx, x1: sx, y0: 0, y1: 1, yref: 'paper',
+      line: { color: C.critical, width: 1.6, dash: 'dot' },
+    }));
+    annotations.push(
+      { text: 'LSL', x: SPEC.LSL, yref: 'paper', y: 1.03, showarrow: false, font: { size: 11, color: C.critical } },
+      { text: 'USL', x: SPEC.USL, yref: 'paper', y: 1.03, showarrow: false, font: { size: 11, color: C.critical } },
+    );
+    layout.annotations = annotations;
+    return { data, layout };
+  }
+
+  /* ── ② 라인별 박스플롯 ───────────────────── */
+  function buildBox() {
+    // 라인 비교 차트: 로트 필터만 적용하고 4개 라인을 항상 보여준다.
+    // 비활성 라인은 흐리게 — 맥락 비교 + 클릭 격리 대상 유지.
+    const lot = state.filters.lot;
+    const layout = Object.assign(baseLayout(), {
+      yaxis: axis('측정 치수 (mm)', { tickformat: '.2f', zeroline: false }),
+      xaxis: axis('', {}),
+      margin: { l: 54, r: 14, t: 18, b: 30 },
+    });
+    const data = LINES.map(L => {
+      const ys = state.raw.filter(r => r.line === L && (!lot || r.lot === lot)).map(r => r.dim);
+      const active = state.filters.lines.has(L);
+      return {
+        type: 'box', name: L, y: ys,
+        boxpoints: 'outliers', boxmean: true, hoveron: 'boxes+points',
+        marker: { color: C.line[L], size: 4.5, opacity: 0.8 },
+        line: { color: C.line[L], width: 1.8 },
+        fillcolor: C.line[L] + (active ? '2e' : '10'),
+        opacity: active ? 1 : 0.28,
+        hovertemplate: L + ' · %{y:.4f} mm<extra></extra>',
+      };
+    });
+    layout.shapes = [SPEC.LSL, SPEC.USL].map(sy => ({
+      type: 'line', y0: sy, y1: sy, x0: 0, x1: 1, xref: 'paper',
+      line: { color: C.critical, width: 1.4, dash: 'dot' },
+    }));
+    layout.annotations = [
+      { text: 'USL', xref: 'paper', x: 1, y: SPEC.USL, showarrow: false, xanchor: 'right', yanchor: 'bottom', font: { size: 10.5, color: C.critical } },
+      { text: 'LSL', xref: 'paper', x: 1, y: SPEC.LSL, showarrow: false, xanchor: 'right', yanchor: 'top', font: { size: 10.5, color: C.critical } },
+    ];
+    if (lot) {
+      layout.annotations.push({
+        text: `로트 <b>${lot}</b> — ${lot.split('-')[0]} 라인만 해당`,
+        xref: 'paper', yref: 'paper', x: 0.02, y: 0.97, showarrow: false,
+        font: { size: 12, color: C.ink2 }, bgcolor: 'rgba(252,252,251,.85)',
+      });
+    }
+    return { data, layout };
+  }
+
+  /* ── ③ 산점도 + 회귀 + CI 밴드 ───────────── */
+  function buildScatter(v) {
+    const layout = Object.assign(baseLayout(), {
+      dragmode: 'select',
+      // uirevision(줌·팬)은 seed 고정으로 유지하되, 선택 상태는 필터 세대에 키잉 —
+      // v3에서 selectionrevision이 uirevision을 상속해 필터 변경 후에도
+      // GUI 드래그 선택이 react를 넘어 복원되는 것을 끊는다.
+      selectionrevision: state.seed + '|' + filterRev,
+      xaxis: axis('공정 온도 (°C)'),
+      yaxis: axis('단차 (µm)'),
+      showlegend: true,
+      legend: { orientation: 'h', x: 0, y: 1.12, font: { size: 11.5 } },
+      margin: { l: 54, r: 14, t: 26, b: 42 },
+    });
+    if (!v.length) { layout.annotations = emptyNote('데이터 없음'); return { data: [], layout }; }
+
+    const good = v.filter(r => !r.defect), bad = v.filter(r => r.defect);
+    const reg = linreg(v.map(r => r.temp), v.map(r => r.step));
+    const data = [];
+
+    if (reg) {
+      const [t0, t1] = state.params.tempRange;
+      const xs = [], up = [], lo = [];
+      for (let i = 0; i <= 60; i++) {
+        const x = t0 + (t1 - t0) * i / 60;
+        const yc = reg.intercept + reg.slope * x, b = reg.band(x);
+        xs.push(x); up.push(yc + b); lo.push(yc - b);
+      }
+      data.push({   // 95% CI 밴드
+        type: 'scatter', mode: 'lines', name: 'CI',
+        x: xs.concat([...xs].reverse()), y: up.concat([...lo].reverse()),
+        fill: 'toself', fillcolor: 'rgba(42,120,214,.14)',
+        line: { width: 0 }, hoverinfo: 'skip', showlegend: false,
+      });
+      data.push({   // 회귀선
+        type: 'scatter', mode: 'lines', name: '회귀선',
+        x: [xs[0], xs[xs.length - 1]],
+        y: [reg.intercept + reg.slope * xs[0], reg.intercept + reg.slope * xs[xs.length - 1]],
+        line: { color: C.accentDeep, width: 2 }, hoverinfo: 'skip', showlegend: false,
+      });
+    }
+
+    const mkPts = (recs, name, marker) => ({
+      type: 'scatter', mode: 'markers', name,
+      x: recs.map(r => r.temp), y: recs.map(r => r.step),
+      customdata: recs.map(r => r.id),
+      marker,
+      selected: { marker: { opacity: 0.95 } },
+      unselected: { marker: { opacity: 0.12 } },
+      hovertemplate: '%{customdata} · %{x:.1f}°C · %{y:.1f}µm<extra>' + name + '</extra>',
+    });
+    // 양품 = 원, 불량 = X 심볼 (색 + 모양 이중 부호화)
+    const goodTrace = mkPts(good, '양품', { color: C.accent, size: 5, opacity: 0.5 });
+    const badTrace = mkPts(bad, '불량', { color: C.critical, size: 6.5, opacity: 0.85, symbol: 'x' });
+    if (state.selection) {
+      goodTrace.selectedpoints = good.map((r, i) => state.selection.has(r.id) ? i : -1).filter(i => i >= 0);
+      badTrace.selectedpoints = bad.map((r, i) => state.selection.has(r.id) ? i : -1).filter(i => i >= 0);
+    }
+    data.push(goodTrace, badTrace);
+
+    layout.annotations = reg ? [{
+      text: `<b>r = ${reg.r.toFixed(2)}</b> · 기울기 ${reg.slope >= 0 ? '+' : ''}${reg.slope.toFixed(2)} µm/°C`,
+      xref: 'paper', yref: 'paper', x: 0.98, y: 0.03, xanchor: 'right', showarrow: false,
+      font: { size: 12.5, color: C.ink }, bgcolor: 'rgba(252,252,251,.85)',
+    }] : emptyNote('표본 부족 — 회귀 생략');
+    return { data, layout };
+  }
+
+  /* ── ④ 불량 위치 히트맵 ──────────────────── */
+  function buildHeat(v) {
+    const g = defectGrid(v);
+    const cw = AREA.w / g.bx, ch = AREA.h / g.by;
+    const xc = Array.from({ length: g.bx }, (_, i) => cw * (i + 0.5));
+    const yc = Array.from({ length: g.by }, (_, j) => ch * (j + 0.5));
+    const layout = Object.assign(baseLayout(), {
+      xaxis: axis('X (mm)', { range: [0, AREA.w], constrain: 'domain' }),
+      yaxis: axis('Y (mm)', { range: [0, AREA.h], scaleanchor: 'x', scaleratio: 1, constrain: 'domain' }),
+      margin: { l: 54, r: 8, t: 12, b: 42 },
+    });
+    if (!g.total) {
+      layout.annotations = emptyNote(v.length ? '현재 필터에 불량 없음' : '데이터 없음');
+      return { data: [], layout };
+    }
+    const hoverText = yc.map((y, j) => xc.map((x, i) =>
+      `X ${Math.round(x - cw / 2)}–${Math.round(x + cw / 2)} · Y ${Math.round(y - ch / 2)}–${Math.round(y + ch / 2)}mm<br>불량 ${g.z[j][i]}건`));
+    const zPeak = Math.max(...g.z.flat());
+    const data = [{
+      type: 'heatmap', x: xc, y: yc, z: g.z,
+      // zmin·zmax를 쌍으로 명시해야 zauto가 꺼진다 (zmin 단독은 무시됨)
+      colorscale: SEQ, zmin: 0, zmax: Math.max(1, zPeak),
+      xgap: 2, ygap: 2,
+      text: hoverText, hovertemplate: '%{text}<extra></extra>',
+      colorbar: { thickness: 10, len: 0.85, outlinewidth: 0, tickfont: { size: 11, color: C.ink2 }, title: { text: '건', font: { size: 11, color: C.muted } } },
+    }];
+    // 피크 셀 직접 라벨
+    let pj = 0, pi = 0;
+    for (let j = 0; j < g.by; j++) for (let i = 0; i < g.bx; i++) {
+      if (g.z[j][i] > g.z[pj][pi]) { pj = j; pi = i; }
+    }
+    layout.annotations = [{
+      text: `<b>${g.z[pj][pi]}</b>`, x: xc[pi], y: yc[pj], showarrow: false,
+      font: { size: 13, color: '#ffffff' },
+    }];
+    // 선택 위치 오버레이
+    if (state.selection) {
+      const sel = v.filter(r => state.selection.has(r.id));
+      data.push({
+        type: 'scatter', mode: 'markers', name: '선택 위치',
+        x: sel.map(r => r.x), y: sel.map(r => r.y),
+        marker: { color: C.ink, size: 3, opacity: 0.45 },
+        hoverinfo: 'skip',
+      });
+    }
+    return { data, layout };
+  }
+
+  /* ── ⑤ 3D 단차 서피스 ────────────────────── */
+  function buildSurface() {
+    const s = state.surfaceData;
+    const zAll = s.z.flat();
+    const m = Math.max(Math.abs(Math.min(...zAll)), Math.abs(Math.max(...zAll)));
+    const ax3 = (title) => ({
+      title: { text: title, font: { size: 11.5, color: C.muted } },
+      gridcolor: C.grid, zerolinecolor: C.baseline,
+      tickfont: { size: 10.5, color: C.ink2 }, nticks: 5,
+      backgroundcolor: C.surface, showbackground: true,
+    });
+    return {
+      data: [{
+        type: 'surface', x: s.x, y: s.y, z: s.z,
+        colorscale: DIV, cmin: -m, cmax: m, cmid: 0,
+        lighting: { ambient: 0.75, diffuse: 0.5, specular: 0.15, roughness: 0.85 },
+        contours: { z: { show: true, usecolormap: true, project: { z: true }, width: 1 } },
+        colorbar: { thickness: 10, len: 0.75, outlinewidth: 0, tickfont: { size: 11, color: C.ink2 }, title: { text: 'µm', font: { size: 11, color: C.muted } } },
+        hovertemplate: 'X %{x:.0f}mm · Y %{y:.0f}mm<br>단차 %{z:.1f}µm<extra></extra>',
+      }],
+      layout: Object.assign(baseLayout(), {
+        margin: { l: 0, r: 0, t: 0, b: 0 },
+        scene: {
+          uirevision: state.seed,
+          xaxis: ax3('X (mm)'), yaxis: ax3('Y (mm)'), zaxis: ax3('단차 (µm)'),
+          aspectmode: 'manual', aspectratio: { x: 1, y: 0.8, z: 0.45 },
+          camera: { eye: { x: 1.45, y: -1.5, z: 0.85 } },
+        },
+      }),
+    };
+  }
+
+  /* ── ⑥ 불량 유형 파레토 (단일 0~100% 축) ──── */
+  function buildPareto(v) {
+    const p = pareto(v);
+    const layout = Object.assign(baseLayout(), {
+      xaxis: axis('', {}),
+      yaxis: axis('점유율 · 누적 (%)', { range: [0, 112], tickvals: [0, 20, 40, 60, 80, 100] }),
+      margin: { l: 54, r: 14, t: 18, b: 30 },
+    });
+    if (!p) {
+      layout.annotations = emptyNote(v.length ? '현재 필터에 불량 없음' : '데이터 없음');
+      return { data: [], layout };
+    }
+    const data = [
+      {
+        type: 'bar', name: '점유율',
+        x: p.map(d => d.name), y: p.map(d => d.share),
+        marker: { color: '#3987e5' },
+        text: p.map(d => `${d.count}건`), textposition: 'outside',
+        textfont: { size: 11.5, color: C.ink2 },
+        hovertemplate: '%{x} · %{y:.1f}% (%{text})<extra></extra>',
+      },
+      {
+        type: 'scatter', mode: 'lines+markers+text', name: '누적',
+        x: p.map(d => d.name), y: p.map(d => d.cum),
+        line: { color: C.ink2, width: 2 }, marker: { size: 6, color: C.ink2 },
+        text: p.map((d, i) => i === 0 ? '' : `${d.cum.toFixed(0)}%`),
+        textposition: 'top center', textfont: { size: 11, color: C.muted },
+        hovertemplate: '누적 %{y:.1f}%<extra></extra>',
+      },
+    ];
+    layout.shapes = [{
+      type: 'line', x0: 0, x1: 1, xref: 'paper', y0: 80, y1: 80,
+      line: { color: C.baseline, width: 1, dash: 'dash' },
+    }];
+    layout.annotations = [{
+      text: '80%', xref: 'paper', x: 1, y: 80, xanchor: 'right', yanchor: 'bottom',
+      showarrow: false, font: { size: 10.5, color: C.muted },
+    }];
+    return { data, layout };
+  }
+
+  /* ── KPI · 진단 · 컨트롤 ─────────────────── */
+  function tweenValue(el, to, fmt) {
+    const from = parseFloat(el.dataset.v || 'NaN');
+    el.dataset.v = to;
+    if (!isFinite(to)) { el.firstChild.textContent = '–'; return; }
+    if (!isFinite(from) || from === to) { el.firstChild.textContent = fmt(to); return; }
+    const t0 = performance.now(), dur = 320;
+    (function step(t) {
+      const k = Math.min(1, (t - t0) / dur), e = 1 - (1 - k) ** 3;
+      el.firstChild.textContent = fmt(from + (to - from) * e);
+      if (k < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+  function setKpiValue(tile, to, fmt, suffixHtml) {
+    const el = tile.querySelector('.k-value');
+    if (el.childNodes.length === 0 || el.firstChild.nodeType !== 3) el.prepend(document.createTextNode('–'));
+    tweenValue(el, to, fmt);
+    // 텍스트 노드 뒤 장식(단위·배지) 갱신 — 값이 없으면 장식도 뺀다 ('– %' 방지)
+    while (el.childNodes.length > 1) el.removeChild(el.lastChild);
+    if (suffixHtml && isFinite(to)) el.insertAdjacentHTML('beforeend', suffixHtml);
+  }
+
+  function updateKpis(v) {
+    const selN = state.selection ? state.selection.size : 0;
+    const selRecs = state.selection ? v.filter(r => state.selection.has(r.id)) : [];
+
+    const tN = $('kpi-n');
+    setKpiValue(tN, v.length, (x) => fmtN(Math.round(x)));
+    tN.querySelector('.k-sub').textContent = selN
+      ? `선택 ${fmtN(selN)}개` : `전체 ${fmtN(state.raw.length)}개 중`;
+    tN.querySelector('.k-sub').classList.toggle('sel', !!selN);
+
+    const cap = processCapability(v.map(r => r.dim));
+    const tM = $('kpi-mean');
+    if (cap) setKpiValue(tM, cap.mean, (x) => x.toFixed(3), ` <small>· σ ${cap.sd.toFixed(3)}</small>`);
+    else setKpiValue(tM, NaN, () => '–');
+
+    const tC = $('kpi-cpk');
+    tC.classList.remove('st-good', 'st-warning', 'st-critical');
+    if (cap) {
+      const st = cap.cpk >= 1.33 ? ['st-good', '✓ 양호'] : cap.cpk >= 1.0 ? ['st-warning', '! 주의'] : ['st-critical', '✕ 개선 필요'];
+      tC.classList.add(st[0]);
+      setKpiValue(tC, cap.cpk, (x) => x.toFixed(2), ` <span class="badge">${st[1]}</span>`);
+      tC.querySelector('.k-sub').textContent = `Cp ${cap.cp.toFixed(2)}`;
+    } else {
+      setKpiValue(tC, NaN, () => '–');
+      tC.querySelector('.k-sub').textContent = '표본 부족';
+    }
+
+    const defN = v.filter(r => r.defect).length;
+    const tD = $('kpi-def');
+    setKpiValue(tD, v.length ? 100 * defN / v.length : NaN, (x) => x.toFixed(1), ' <small>%</small>');
+    tD.querySelector('.k-sub').textContent = selN
+      ? `선택 내 불량 ${selRecs.filter(r => r.defect).length}건`
+      : `불량 ${fmtN(defN)}건`;
+    tD.querySelector('.k-sub').classList.toggle('sel', !!selN);
+
+    setKpiValue($('kpi-oos'), cap ? cap.oos : NaN, (x) => fmtN(Math.round(x)));
+  }
+
+  // 자동 진단: 파라미터가 아니라 "데이터에서" 계산 (재생성 시에만 갱신)
+  function updateInsight() {
+    const perLine = LINES.map(L => {
+      const cap = processCapability(state.raw.filter(r => r.line === L).map(r => r.dim));
+      return { L, cpk: cap ? cap.cpk : Infinity, mean: cap ? cap.mean : NaN };
+    });
+    const worst = perLine.reduce((a, b) => (b.cpk < a.cpk ? b : a));
+    const off = (worst.mean - SPEC.nominal) * 1000; // µm
+    const g = defectGrid(state.raw);
+    let pj = 0, pi = 0;
+    for (let j = 0; j < g.by; j++) for (let i = 0; i < g.bx; i++) {
+      if (g.z[j][i] > g.z[pj][pi]) { pj = j; pi = i; }
+    }
+    const reg = linreg(state.raw.map(r => r.temp), state.raw.map(r => r.step));
+    const cw = AREA.w / g.bx, ch = AREA.h / g.by;
+    $('insight-text').innerHTML =
+      `<b>${worst.L}</b> 평균 ${off >= 0 ? '+' : ''}${off.toFixed(0)}µm 치우침 (라인 Cpk ${worst.cpk.toFixed(2)}) · ` +
+      `불량 집중 <b>X ${Math.round(pi * cw)}–${Math.round((pi + 1) * cw)} / Y ${Math.round(pj * ch)}–${Math.round((pj + 1) * ch)}mm</b> (${g.z[pj][pi]}건) · ` +
+      `온도↑ → 단차${reg && reg.slope >= 0 ? '↑' : '↓'} (r ${reg ? reg.r.toFixed(2) : '–'})`;
+  }
+
+  function updateControls() {
+    for (const L of LINES) {
+      $('chip-' + L).setAttribute('aria-pressed', String(state.filters.lines.has(L)));
+    }
+    $('lot').value = state.filters.lot;
+    $('seed-tag').textContent = 'seed ' + state.seed;
+  }
+  function rebuildLotOptions() {
+    const sel = $('lot');
+    const lots = [...new Set(state.raw.map(r => r.lot))];
+    sel.innerHTML = '<option value="">전체 로트</option>' +
+      lots.map(l => `<option value="${l}">${l}</option>`).join('');
+  }
+
+  /* ── 렌더 ────────────────────────────────── */
+  const inited = new Set();
+  function draw(id, built, cfg) {
+    const gd = $(id);
+    if (!inited.has(id)) {
+      inited.add(id);
+      return Plotly.newPlot(gd, built.data, built.layout, cfg).then(() => bindChartEvents(id, gd));
+    }
+    return Plotly.react(gd, built.data, built.layout, cfg);
+  }
+
+  function render(scope) {
+    const v = view();
+    updateKpis(v);
+    updateControls();
+    const jobs = [
+      draw('chart-hist', buildHist(v), CFG_2D),
+      draw('chart-heat', buildHeat(v), CFG_2D),
+      draw('chart-pareto', buildPareto(v), CFG_2D),
+    ];
+    if (scope === 'data') {
+      jobs.push(draw('chart-box', buildBox(), CFG_2D));
+      jobs.push(draw('chart-scatter', buildScatter(v), CFG_SCATTER));
+      if (lastSurfaceSeed !== state.seed) {   // 서피스는 재생성 때만
+        lastSurfaceSeed = state.seed;
+        jobs.push(draw('chart-surface', buildSurface(), CFG_3D));
+      }
+    } else {
+      // selection 스코프: 산점도는 restyle만 — 선택 UI를 지우지 않는다
+      jobs.push(applyScatterSelection(v));
+    }
+    return Promise.all(jobs);
+  }
+
+  function applyScatterSelection(v) {
+    const gd = $('chart-scatter');
+    if (!gd.data) return Promise.resolve();
+    const good = v.filter(r => !r.defect), bad = v.filter(r => r.defect);
+    const idxOf = (recs) => state.selection
+      ? recs.map((r, i) => state.selection.has(r.id) ? i : -1).filter(i => i >= 0)
+      : null;
+    // 트레이스 순서: [CI밴드, 회귀선,] 양품, 불량 — 이름으로 찾는다
+    const tGood = gd.data.findIndex(t => t.name === '양품');
+    const tBad = gd.data.findIndex(t => t.name === '불량');
+    if (tGood < 0) return Promise.resolve();
+    return Plotly.restyle(gd, { selectedpoints: [idxOf(good), idxOf(bad)] }, [tGood, tBad]);
+  }
+
+  /* ── 이벤트 배선 (init에서 div당 1회만) ──── */
+  function bindChartEvents(id, gd) {
+    if (id === 'chart-scatter') {
+      gd.on('plotly_selected', (ev) => {
+        if (!ev || !ev.points) return;   // 빈 클릭 시 undefined (가드 필수)
+        const ids = new Set(ev.points.map(p => p.customdata).filter(Boolean));
+        if (!ids.size) {                 // 빈 영역 드래그: 상태와 GUI 사각형을 함께 비운다
+          setSelection(null);
+          setTimeout(() => Plotly.relayout(gd, { selections: [] }), 0);
+          return;
+        }
+        setSelection(ids);
+      });
+      gd.on('plotly_deselect', () => setSelection(null));
+    }
+    if (id === 'chart-box') {
+      gd.on('plotly_click', (ev) => {
+        const name = ev && ev.points && ev.points[0] && ev.points[0].data.name;
+        if (!name || !LINES.includes(name)) return;
+        setFilters(f => {
+          if (f.lines.size === 1 && f.lines.has(name)) f.lines = new Set(LINES); // 재클릭 = 전체
+          else f.lines = new Set([name]);                                        // 격리
+        });
+      });
+    }
+  }
+
+  function bindControls() {
+    for (const L of LINES) {
+      $('chip-' + L).addEventListener('click', () => setFilters(f => {
+        if (f.lines.has(L)) f.lines.delete(L); else f.lines.add(L);
+      }));
+    }
+    $('lot').addEventListener('change', (e) => setFilters(f => { f.lot = e.target.value; }));
+    $('btn-reset').addEventListener('click', () => setFilters(f => {
+      f.lines = new Set(LINES); f.lot = '';
+    }));
+    $('btn-regen').addEventListener('click', () => regenerate());
+  }
+
+  /* ── 리사이즈: ResizeObserver + debounce ── */
+  function bindResize() {
+    let t = 0;
+    const ro = new ResizeObserver(() => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        document.querySelectorAll('.chart').forEach(el => {
+          if (el._fullLayout) Plotly.Plots.resize(el);
+        });
+      }, 120);
+    });
+    document.querySelectorAll('.chart').forEach(el => ro.observe(el));
+  }
+
+  /* ── 셀프테스트 (?selftest) — 헤드리스 검증 훅 ── */
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  async function selftest() {
+    const out = [];
+    const assert = (name, cond) => out.push({ name, pass: !!cond });
+    await sleep(600);
+
+    assert('charts-drawn', ['chart-hist', 'chart-box', 'chart-scatter', 'chart-heat', 'chart-surface', 'chart-pareto']
+      .every(id => $(id).data && $(id).data.length >= 1 && $(id)._fullLayout));
+    assert('raw-4000', state.raw.length === 4000);
+
+    // 라인 격리
+    setFilters(f => { f.lines = new Set(['L2']); });
+    await sleep(500);
+    const v1 = view();
+    assert('filter-line', v1.length === 1000 && v1.every(r => r.line === 'L2'));
+    const histSum = $('chart-hist').data
+      .filter(t => t.type === 'bar' && t.name !== '선택')
+      .reduce((s, t) => s + t.y.reduce((a, b) => a + (b || 0), 0), 0);
+    assert('hist-follows-filter', histSum === 1000);
+
+    // 박스선택 시뮬레이션
+    const ids = new Set(v1.slice(0, 200).map(r => r.id));
+    setSelection(ids);
+    await sleep(500);
+    const gd = $('chart-scatter');
+    const selCount = gd.data.filter(t => t.selectedpoints).reduce((s, t) => s + t.selectedpoints.length, 0);
+    assert('scatter-selection', selCount === 200);
+    assert('hist-overlay', $('chart-hist').data.some(t => t.name === '선택'));
+
+    // 선택 해제 + 로트 필터
+    setSelection(null);
+    setFilters(f => { f.lines = new Set(LINES); f.lot = 'L1-01'; });
+    await sleep(500);
+    assert('filter-lot', view().length === 200);
+
+    // 재생성 (고정 시드)
+    const prevFirst = state.raw[0].dim;
+    regenerate(777);
+    await sleep(700);
+    assert('regen-changes-data', state.raw[0].dim !== prevFirst && state.seed === 777);
+    assert('regen-resets-filters', view().length === 4000);
+    assert('surface-redrawn', lastSurfaceSeed === 777);
+
+    // 빈 뷰 가드: 존재하지 않는 로트 → placeholder, 크래시 없음
+    setFilters(f => { f.lot = 'ZZ-99'; });
+    await sleep(400);
+    assert('empty-view-guard', view().length === 0 && $('chart-hist')._fullLayout !== undefined);
+    setFilters(f => { f.lot = ''; });
+    await sleep(300);
+
+    const pass = out.every(o => o.pass) && !(window.__qlabErrors || []).length;
+    $('selftest-out').textContent = JSON.stringify({ pass, results: out, errors: window.__qlabErrors || [] });
+    document.title = (pass ? 'SELFTEST-PASS' : 'SELFTEST-FAIL') + ' — Quality Lab';
+  }
+
+  /* ── 시작 ────────────────────────────────── */
+  window.addEventListener('error', (e) => {
+    (window.__qlabErrors = window.__qlabErrors || []).push(String(e.message || e.type));
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    (window.__qlabErrors = window.__qlabErrors || []).push('rejection: ' + String(e.reason));
+  });
+
+  function init() {
+    if (window.__plotlyFailed || typeof Plotly === 'undefined') {
+      document.querySelector('main').style.display = 'none';
+      document.querySelector('.controls').style.display = 'none';
+      $('offline').style.display = 'block';
+      return;
+    }
+    const q = new URLSearchParams(location.search);
+    const seed = q.has('seed') ? (parseInt(q.get('seed'), 10) >>> 0) : 20260811;
+    bindControls();
+    regenerate(seed);
+    bindResize();
+    window.__qlab = { state, view, setFilters, setSelection, regenerate };  // 디버그·검증용
+    if (q.has('selftest')) selftest();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
 </body>
 </html>

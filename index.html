@@ -30,6 +30,7 @@
     --tint-a:  #1d7a43;  --tint-a-soft:  #e0f3e7;  /* A — 레트로 그린 */
     --tint-b:  #6540d8;  --tint-b-soft:  #efeafd;  /* B — 3D 바이올렛 */
     --tint-c:  #b62b7e;  --tint-c-soft:  #fbe9f3;  /* C — 네온 마젠타 */
+    --tint-d:  #1c5fae;  --tint-d-soft:  #e4eefb;  /* D — 애널리틱스 블루 */
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -54,6 +55,7 @@
       --tint-a:  #5bd68d;  --tint-a-soft:  #11291b;
       --tint-b:  #a992ff;  --tint-b-soft:  #251d3e;
       --tint-c:  #ff77c2;  --tint-c-soft:  #331728;
+      --tint-d:  #7fb0f2;  --tint-d-soft:  #142440;
     }
   }
 
@@ -181,6 +183,7 @@
   .t-a  { --tint: var(--tint-a);  --tint-soft: var(--tint-a-soft); }
   .t-b  { --tint: var(--tint-b);  --tint-soft: var(--tint-b-soft); }
   .t-c  { --tint: var(--tint-c);  --tint-soft: var(--tint-c-soft); }
+  .t-d  { --tint: var(--tint-d);  --tint-soft: var(--tint-d-soft); }
   .is-ready:hover {
     border-color: var(--border-strong);
     border-color: color-mix(in srgb, var(--tint) 40%, var(--border));
@@ -368,11 +371,11 @@
         <h3>인터랙티브 아트</h3>
         <p>브라우저 파일 하나로 만든 비주얼 데모 5종. 심야 전시실 선택 화면입니다.</p>
       </a>
-      <a class="card is-soon" href="apps/app-d/index.html">
+      <a class="card is-ready t-d" href="apps/app-d/index.html">
         <span class="arrow">→</span>
-        <span class="badge">D</span><span class="chip chip-soon">준비 중</span>
-        <h3>예제 D</h3>
-        <p>내용 준비 중입니다.</p>
+        <span class="badge">D</span><span class="chip chip-ready">공개</span>
+        <h3>Quality Lab</h3>
+        <p>품질 데이터 분석 대시보드. 통계 차트 6종이 실시간 연동됩니다.</p>
       </a>
       <a class="card is-soon" href="apps/app-e/index.html">
         <span class="arrow">→</span>

@@ -47,13 +47,14 @@
 │   │       ├── 03-particle-typography.html 파티클 모프 타이포그래피
 │   │       ├── 04-fluid-simulation.html    유체 시뮬레이션 (WebGL Stable Fluids)
 │   │       └── 05-solar-system.html        3D 태양계 (three.js r147 인라인)
-│   ├── app-d/index.html
+│   ├── app-d/index.html        Quality Lab (품질 데이터 분석 대시보드)
 │   ├── app-e/index.html
 │   ├── app-f/index.html
 │   ├── app-g/index.html
 │   └── app-h/index.html
 ├── tools/
-│   └── pixel-font/         app-a용 픽셀 폰트 생성기 (사이트 실행에는 불필요)
+│   ├── pixel-font/         app-a용 픽셀 폰트 생성기 (사이트 실행에는 불필요)
+│   └── qlab-check/         app-d 데이터 생성기 검증 스크립트 (사이트 실행에는 불필요)
 ├── README.md
 └── CLAUDE.md               작업 규칙 (Claude Code용)
 ```
@@ -68,7 +69,7 @@
 - `app-a`는 8비트 레트로(CRT·픽셀 아트), `app-b`는 실시간 3D(글래스·네온),
   `app-c`는 인터랙티브 아트(심야 전시실·다크 고정) 콘셉트입니다.
 
-`lecture-01`, `app-a`, `app-b`, `app-c`를 제외한 하위 페이지는 아직 자리표시자(placeholder)입니다. 내용은 차차 채웁니다.
+`lecture-01`, `app-a`, `app-b`, `app-c`, `app-d`를 제외한 하위 페이지는 아직 자리표시자(placeholder)입니다. 내용은 차차 채웁니다.
 `app-a`는 게임 4종(너구리·벽돌깨기·갤러그·격투)이 모두 플레이 가능합니다.
 하이스코어는 실제 플레이로 얻은 값만 sessionStorage에 세션 한정으로 기록합니다(조작된 초기값 없음).
 `app-b`는 게임 4종(블록 월드·제로 프론트·인형뽑기·뉴럴 리듬)이 모두 플레이 가능합니다.
@@ -77,6 +78,12 @@
 `app-c`는 비주얼 데모 5종(인생 달력·모래 샌드박스·파티클 타이포·유체 시뮬·3D 태양계)이 모두 동작합니다.
 프로젝터 대비를 위해 다크 고정 테마(규칙 4의 의도적 예외)이며, `05-solar-system.html`에는
 three.js r147(MIT)이 통째로 인라인되어 있어 실행 시 외부 요청이 없습니다.
+`app-d`(Quality Lab)는 부품 측정 더미 데이터를 통계 차트 6종(히스토그램+Cp/Cpk·박스플롯·
+산점도+회귀·불량 히트맵·3D 단차 서피스·파레토)이 연동 해부하는 품질 분석 대시보드입니다.
+시드 RNG 기반 제약 샘플링으로 "재생성"마다 스토리가 바뀌되 항상 통계적으로 그럴듯한
+데이터가 나옵니다. **Plotly.js 3.7.0 CDN에 의존하는 유일한 앱**이라 인터넷 연결이 필요하고
+(규칙 2의 의도적 예외), 프로젝터 대비 라이트 고정 테마(규칙 4의 예외)입니다.
+`?seed=N`으로 데이터 고정, `?selftest`로 연동 자가 검증이 됩니다.
 
 ### app-b의 3D 엔진 (`lib/ax3d.js`)
 
