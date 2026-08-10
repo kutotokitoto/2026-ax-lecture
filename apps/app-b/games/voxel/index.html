@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>블록 월드 — 요즘 오락실</title>
+<style>
+  :root {
+    --hall: #eef0f7;
+    --hall-2: #e2e6f2;
+    --hall-line: rgba(18, 20, 32, .07);
+    --surface: rgba(255, 255, 255, .78);
+    --surface-2: #ffffff;
+    --stroke: rgba(18, 20, 32, .10);
+    --stroke-2: rgba(18, 20, 32, .20);
+    --text: #0f111a;
+    --text-soft: #4c5364;
+    --text-faint: #858c9d;
+    --screen: #080a12;
+    --screen-soft: #98a0bb;
+    --v-violet: #6d5bff;
+    --v-cyan: #00d0ff;
+    --v-pink: #ff4d8f;
+    --accent: #4a3bff;
+    --glow: rgba(109, 91, 255, .22);
+    --shadow: 0 1px 2px rgba(12, 14, 26, .06), 0 18px 48px rgba(12, 14, 26, .10);
+    --tint: #7bd45a;
+    --font-ui: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
+               "Malgun Gothic", system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --hall: #05060b;
+      --hall-2: #0a0c16;
+      --hall-line: rgba(255, 255, 255, .05);
+      --surface: rgba(255, 255, 255, .045);
+      --surface-2: #0f1220;
+      --stroke: rgba(255, 255, 255, .10);
+      --stroke-2: rgba(255, 255, 255, .22);
+      --text: #eef0f8;
+      --text-soft: #a3aabd;
+      --text-faint: #6e7589;
+      --screen: #05070e;
+      --accent: #9b8dff;
+      --glow: rgba(109, 91, 255, .38);
+      --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 18px 48px rgba(0, 0, 0, .45);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--hall);
+    color: var(--text);
+    font-family: var(--font-ui);
+    line-height: 1.65;
+    letter-spacing: -0.01em;
+  }
+  .stage {
+    position: fixed; inset: 0; z-index: -1; overflow: hidden;
+    background:
+      radial-gradient(60% 45% at 12% 0%, var(--glow), transparent 70%),
+      radial-gradient(50% 40% at 92% 8%, rgba(0, 208, 255, .16), transparent 70%),
+      linear-gradient(180deg, var(--hall), var(--hall-2));
+  }
+  .floor {
+    position: absolute; left: -20%; right: -20%; bottom: -12%; height: 58%;
+    background-image:
+      linear-gradient(var(--hall-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--hall-line) 1px, transparent 1px);
+    background-size: 64px 64px, 64px 64px;
+    transform: perspective(420px) rotateX(62deg);
+    transform-origin: 50% 100%;
+    mask-image: linear-gradient(180deg, transparent, #000 45%);
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 45%);
+  }
+
+  .wrap { max-width: 820px; margin: 0 auto; padding: 0 22px; }
+  .navs { display: flex; gap: 18px; flex-wrap: wrap; padding: 20px 0 16px; }
+  .navs a { font-size: 14px; color: var(--text-soft); text-decoration: none; }
+  .navs a:hover, .navs a:focus-visible { color: var(--accent); outline: none; }
+
+  .panel {
+    overflow: hidden;
+    border: 1px solid var(--stroke);
+    border-radius: 22px;
+    background: var(--surface-2);
+    box-shadow: var(--shadow);
+  }
+  .shot { position: relative; aspect-ratio: 16 / 10; background: var(--screen); }
+  .shot svg { display: block; width: 100%; height: 100%; }
+  .shot::after {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, transparent 60%, rgba(5, 6, 12, .6)),
+      linear-gradient(112deg, rgba(255, 255, 255, .09) 0 22%, transparent 42%);
+  }
+  .info { padding: 26px 26px 30px; }
+  .title-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  h1 { margin: 0; font-size: clamp(26px, 5vw, 36px); font-weight: 800; letter-spacing: -0.035em; }
+  .en {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tint);
+  }
+  .desc { margin: 0 0 22px; max-width: 52ch; font-size: 15px; color: var(--text-soft); }
+
+  .bar-label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em;
+    color: var(--text-faint); margin-bottom: 8px;
+  }
+  .bar-label b {
+    font-family: var(--font-ui); font-size: 13px; letter-spacing: -0.01em;
+    color: var(--tint); font-weight: 600;
+  }
+  .bar { height: 6px; border-radius: 999px; background: var(--stroke); overflow: hidden; }
+  .bar span {
+    display: block; height: 100%; width: 34%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--v-violet), var(--tint));
+  }
+
+  .specs {
+    display: flex; gap: 12px 30px; flex-wrap: wrap;
+    margin: 26px 0 0; padding-top: 20px; border-top: 1px solid var(--stroke);
+  }
+  .spec { min-width: 100px; }
+  .spec dt {
+    margin: 0 0 2px; font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--text-faint);
+  }
+  .spec dd { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
+
+  footer {
+    margin-top: 26px; padding: 20px 0 52px;
+    font-size: 13px; color: var(--text-faint); text-align: center;
+  }
+  footer p { margin: 0; }
+</style>
+</head>
+<body>
+
+<div class="stage" aria-hidden="true"><div class="floor"></div></div>
+
+<div class="wrap">
+  <nav class="navs">
+    <a href="../../index.html">← 오락실로</a>
+    <a href="../../../../index.html">← 목록으로</a>
+  </nav>
+
+  <div class="panel">
+    <div class="shot">
+      <svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="vx-sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1a2a5c"/>
+            <stop offset="1" stop-color="#070a16"/>
+          </linearGradient>
+          <radialGradient id="vx-sun" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stop-color="#ffd98a" stop-opacity=".9"/>
+            <stop offset="1" stop-color="#ffd98a" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <rect width="320" height="200" fill="url(#vx-sky)"/>
+        <circle cx="252" cy="46" r="52" fill="url(#vx-sun)"/>
+        <rect x="240" y="34" width="24" height="24" fill="#ffe6a8"/>
+        <g fill="#8fa5d8" opacity=".35">
+          <rect x="40" y="30" width="26" height="10"/><rect x="56" y="22" width="30" height="10"/>
+          <rect x="110" y="44" width="22" height="8"/>
+        </g>
+        <g>
+          <polygon points="160,86 184,98 160,110 136,98" fill="#7bd45a"/>
+          <polygon points="136,98 160,110 160,130 136,118" fill="#4a8f39"/>
+          <polygon points="184,98 160,110 160,130 184,118" fill="#37702a"/>
+          <polygon points="184,98 208,110 184,122 160,110" fill="#7bd45a"/>
+          <polygon points="160,110 184,122 184,142 160,130" fill="#4a8f39"/>
+          <polygon points="208,110 184,122 184,142 208,130" fill="#37702a"/>
+          <polygon points="136,98 160,110 136,122 112,110" fill="#82db60"/>
+          <polygon points="112,110 136,122 136,142 112,130" fill="#4a8f39"/>
+          <polygon points="160,110 136,122 136,142 160,130" fill="#37702a"/>
+          <polygon points="208,110 232,122 208,134 184,122" fill="#7bd45a"/>
+          <polygon points="184,122 208,134 208,154 184,142" fill="#4a8f39"/>
+          <polygon points="232,122 208,134 208,154 232,142" fill="#37702a"/>
+          <polygon points="160,110 184,122 160,134 136,122" fill="#7bd45a"/>
+          <polygon points="136,122 160,134 160,154 136,142" fill="#4a8f39"/>
+          <polygon points="184,122 160,134 160,154 184,142" fill="#37702a"/>
+          <polygon points="112,110 136,122 112,134 88,122" fill="#82db60"/>
+          <polygon points="88,122 112,134 112,154 88,142" fill="#4a8f39"/>
+          <polygon points="136,122 112,134 112,154 136,142" fill="#37702a"/>
+          <polygon points="184,122 208,134 184,146 160,134" fill="#7bd45a"/>
+          <polygon points="160,134 184,146 184,166 160,154" fill="#4a8f39"/>
+          <polygon points="208,134 184,146 184,166 208,154" fill="#37702a"/>
+          <polygon points="136,122 160,134 136,146 112,134" fill="#7bd45a"/>
+          <polygon points="112,134 136,146 136,166 112,154" fill="#4a8f39"/>
+          <polygon points="160,134 136,146 136,166 160,154" fill="#37702a"/>
+          <polygon points="160,134 184,146 160,158 136,146" fill="#82db60"/>
+          <polygon points="136,146 160,158 160,178 136,166" fill="#4a8f39"/>
+          <polygon points="184,146 160,158 160,178 184,166" fill="#37702a"/>
+        </g>
+        <g>
+          <polygon points="112,90 136,102 112,114 88,102" fill="#a7b0c4"/>
+          <polygon points="88,102 112,114 112,134 88,122" fill="#6d7689"/>
+          <polygon points="136,102 112,114 112,134 136,122" fill="#525a6c"/>
+          <polygon points="112,70 136,82 112,94 88,82" fill="#b7c0d4"/>
+          <polygon points="88,82 112,94 112,114 88,102" fill="#6d7689"/>
+          <polygon points="136,82 112,94 112,114 136,102" fill="#525a6c"/>
+        </g>
+        <g>
+          <polygon points="208,88 232,100 208,112 184,100" fill="#7cf0f7"/>
+          <polygon points="184,100 208,112 208,132 184,120" fill="#2ab4cc"/>
+          <polygon points="232,100 208,112 208,132 232,120" fill="#1a86a4"/>
+          <polygon points="208,88 232,100 208,112 184,100" fill="#ffffff" opacity=".25"/>
+        </g>
+        <ellipse cx="208" cy="106" rx="46" ry="26" fill="#7cf0f7" opacity=".16"/>
+      </svg>
+    </div>
+
+    <div class="info">
+      <div class="title-row">
+        <h1>블록 월드</h1>
+        <span class="en">Voxel World</span>
+      </div>
+      <p class="desc">
+        블록을 캐고 쌓아 지형을 바꾸는 오픈 월드 샌드박스입니다.
+        지형은 시드값으로 무한히 생성되고, 파괴한 블록은 그대로 인벤토리에 들어갑니다.
+        게임 본체는 아직 준비 중입니다.
+      </p>
+
+      <div class="bar-label"><span>BUILD PROGRESS</span><b>준비 중</b></div>
+      <div class="bar"><span></span></div>
+
+      <dl class="specs">
+        <div class="spec"><dt>Genre</dt><dd>샌드박스</dd></div>
+        <div class="spec"><dt>Renderer</dt><dd>Voxel · WebGL 2</dd></div>
+        <div class="spec"><dt>Players</dt><dd>1 – 8인</dd></div>
+        <div class="spec"><dt>Control</dt><dd>키보드 · 마우스</dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <footer><p>2026 AX 강의 · 요즘 오락실</p></footer>
+</div>
+
+</body>
+</html>

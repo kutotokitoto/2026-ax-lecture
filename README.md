@@ -9,7 +9,9 @@
 .
 ├── index.html              랜딩 페이지 (강의본 6개 + 예제 8개 링크)
 ├── lectures/
-│   ├── lecture-01/index.html   AI 전사의 모험 1일차
+│   ├── lecture-01/              AI 전사의 모험 1일차 (76장면 슬라이드)
+│   │   ├── index.html               dc 문서 (템플릿 + 로직)
+│   │   └── support.js               dc 런타임
 │   ├── lecture-02/index.html
 │   ├── lecture-03/index.html
 │   ├── lecture-04/index.html
@@ -23,7 +25,13 @@
 │   │       ├── breakout/index.html     벽돌깨기
 │   │       ├── galaga/index.html       갤러그
 │   │       └── fighter/index.html      격투 게임
-│   ├── app-b/index.html
+│   ├── app-b/                  요즘 오락실 (실시간 3D 아케이드)
+│   │   ├── index.html              게임 선택 화면
+│   │   └── games/
+│   │       ├── voxel/index.html        블록 월드 (복셀 샌드박스)
+│   │       ├── claw/index.html         인형뽑기
+│   │       ├── fps/index.html          제로 프론트 (1인칭 슈팅)
+│   │       └── rhythm/index.html       뉴럴 리듬 (손 추적 리듬)
 │   ├── app-c/index.html
 │   ├── app-d/index.html
 │   ├── app-e/index.html
@@ -37,13 +45,16 @@
 - **강의본(lectures)**: `lecture-01` ~ `lecture-06`. 바이브 코딩 강의 자료.
 - **예제(apps)**: `app-a` ~ `app-h`. 강의에서 다루는 예제 웹앱.
 - 각 폴더는 `index.html` 하나로 완결되며, 상단의 `← 목록으로` 링크로 랜딩 페이지에 돌아옵니다.
-- `app-a`만 예외로 하위에 `games/`를 둡니다. `app-a/index.html`이 오락실 선택 화면이고,
-  각 게임은 `games/<이름>/index.html` 한 파일로 완결됩니다.
+- `app-a`와 `app-b`만 예외로 하위에 `games/`를 둡니다. 각 앱의 `index.html`이 오락실 선택 화면이고,
+  게임은 `games/<이름>/index.html` 한 파일로 완결됩니다.
+- `app-a`는 8비트 레트로(CRT·픽셀 아트), `app-b`는 실시간 3D(글래스·네온) 콘셉트입니다.
 
-`lecture-01`과 `app-a`를 제외한 하위 페이지는 아직 자리표시자(placeholder)입니다. 내용은 차차 채웁니다.
-`app-a`도 선택 화면만 완성했고 게임 본체 4종은 준비 중입니다.
+`lecture-01`, `app-a`, `app-b`를 제외한 하위 페이지는 아직 자리표시자(placeholder)입니다. 내용은 차차 채웁니다.
+`app-a`와 `app-b`도 선택 화면만 완성했고 게임 본체 8종은 준비 중입니다.
 
 ### 오락실에 게임을 추가하려면
+
+**app-a (옛날 오락실)**
 
 1. `apps/app-a/games/<이름>/index.html`을 만듭니다 (기존 게임 페이지를 복사해서 시작).
 2. `apps/app-a/index.html`의 `.cabs` 안에 `.cab` 링크를 하나 추가합니다.
@@ -51,11 +62,31 @@
 3. 게임이 완성되면 그 카드의 `<span class="status" data-state="soon">준비 중</span>` 을
    `data-state="ready"`와 `READY`로 바꿉니다.
 
-### 번들 페이지에 대하여
+**app-b (요즘 오락실)**
 
-`lecture-01/index.html`처럼 외부에서 만들어 온 standalone 번들 파일은 원본 그대로 둡니다.
-번들은 로딩 시 문서 전체를 교체하므로, 상단에 `← 목록으로` 링크를 끼워 넣어도 지워집니다.
-번들 페이지에서는 브라우저 뒤로 가기로 랜딩에 돌아갑니다.
+1. `apps/app-b/games/<이름>/index.html`을 만듭니다 (기존 게임 페이지를 복사해서 시작).
+2. `apps/app-b/index.html`의 `.rack` 안에 `.card` 링크를 하나 추가합니다.
+   `style="--tint: …"`로 카드 색을 정하고, `320×200` viewBox의 SVG를 `.shot` 안에 넣습니다.
+   SVG `<defs>`의 그라디언트 `id`는 문서 안에서 겹치지 않게 접두어를 붙입니다.
+3. 상태 표시는 app-a와 같은 규칙(`data-state="soon"` → `"ready"`)을 씁니다.
+
+### lecture-01의 dc 문서 형식
+
+`lecture-01`만 다른 페이지와 형식이 다릅니다. 15MB짜리 standalone 번들 대신
+편집 가능한 dc 문서(`index.html` + `support.js`)로 두었습니다.
+
+- `index.html`은 `<x-dc>` 블록 안에 템플릿(`{{ }}` 보간, `<sc-if>` 등)을 담고,
+  문서 끝의 `<script type="text/x-dc">`에 상태와 로직을 담습니다. 텍스트라 그대로 고치면 됩니다.
+- `support.js`가 이를 읽어 React로 렌더합니다. React·ReactDOM·Babel은 실행 시
+  unpkg에서, 픽셀 폰트(Galmuri11, Press Start 2P)는 jsdelivr·Google Fonts에서 받습니다.
+  **즉 이 페이지만은 인터넷 연결이 필요합니다.**
+- `← 목록으로` 버튼은 `<body>` 직속 자식으로 두었습니다. 런타임이 `<x-dc>` 엘리먼트만
+  교체하기 때문에 마운트 후에도 남습니다.
+- 이 영역에 dc 루트 여는 태그와 같은 문자열을 쓰면 안 됩니다(주석 안이라도).
+  런타임이 원본을 다시 받아 파싱할 때 첫 매칭을 템플릿 시작점으로 잡아 화면이 깨집니다.
+
+원본은 `K:\NEW K\다운로드\인터랙티브 AI 교육 슬라이드`에 있고, 인쇄용 변형본
+(`-print.dc.html` + `print-assets/`)은 아직 저장소에 넣지 않았습니다.
 
 ## 실행
 
@@ -67,9 +98,10 @@ python -m http.server 8000
 ```
 
 이후 `http://localhost:8000` 으로 접속합니다.
+`lecture-01`은 `file://`로도 뜨지만, 서버로 여는 쪽이 안정적입니다.
 
 ## 기술 스택
 
 - 순수 HTML + CSS (프레임워크·빌드 단계 없음)
 - CSS 변수 기반 테마, `prefers-color-scheme`로 라이트/다크 모두 대응
-- 외부 리소스 없음 — 각 파일이 자체 완결형
+- 외부 리소스 없음 — 각 파일이 자체 완결형. 단 `lecture-01`은 예외입니다(위 참고).

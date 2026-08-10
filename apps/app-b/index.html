@@ -3,71 +3,1038 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>예제 B — 2026 AX 강의</title>
+<title>요즘 오락실 — 2026 AX 강의</title>
+<meta name="description" content="실시간 3D 아케이드 게임 선택 화면">
 <style>
+  /* ── Theme tokens ─────────────────────────── */
   :root {
-    --bg: #ffffff; --bg-soft: #f6f7f9; --border: #e4e6ea;
-    --text: #16181d; --text-soft: #5c626c; --text-faint: #8b919b;
-    --accent: #2f5cff; --accent-soft: #eef2ff;
+    /* 오락실 '홀' — 밝은 쇼룸 */
+    --hall: #eef0f7;
+    --hall-2: #e2e6f2;
+    --hall-line: rgba(18, 20, 32, .07);
+    --surface: rgba(255, 255, 255, .78);
+    --surface-2: #ffffff;
+    --stroke: rgba(18, 20, 32, .10);
+    --stroke-2: rgba(18, 20, 32, .20);
+    --text: #0f111a;
+    --text-soft: #4c5364;
+    --text-faint: #858c9d;
+
+    /* 게임 화면 — 라이트/다크 공통으로 늘 어둡습니다 */
+    --screen: #080a12;
+    --screen-2: #121732;
+    --screen-ink: #f2f4fb;
+    --screen-soft: #98a0bb;
+
+    /* 네온 */
+    --v-violet: #6d5bff;
+    --v-cyan: #00d0ff;
+    --v-pink: #ff4d8f;
+    --v-mint: #3ce8b0;
+    --v-amber: #ffc44d;
+    --accent: #4a3bff;
+
+    /* 제목 그라디언트 — 배경 밝기에 맞춰 다크에서 다시 정의합니다 */
+    --grad-a: #5b47ff;
+    --grad-b: #0a9fd4;
+    --grad-c: #ff2f7a;
+
+    --glow: rgba(109, 91, 255, .22);
+    --shadow: 0 1px 2px rgba(12, 14, 26, .06), 0 18px 48px rgba(12, 14, 26, .10);
+    --shadow-lift: 0 2px 4px rgba(12, 14, 26, .08), 0 28px 64px rgba(12, 14, 26, .16);
+
+    --font-ui: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
+               "Malgun Gothic", system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #0e1013; --bg-soft: #14171c; --border: #262a32;
-      --text: #eceef2; --text-soft: #a2a9b5; --text-faint: #737b88;
-      --accent: #7f9bff; --accent-soft: #1b2237;
+      --hall: #05060b;
+      --hall-2: #0a0c16;
+      --hall-line: rgba(255, 255, 255, .05);
+      --surface: rgba(255, 255, 255, .045);
+      --surface-2: #0f1220;
+      --stroke: rgba(255, 255, 255, .10);
+      --stroke-2: rgba(255, 255, 255, .22);
+      --text: #eef0f8;
+      --text-soft: #a3aabd;
+      --text-faint: #6e7589;
+
+      --screen: #05070e;
+      --screen-2: #0e1330;
+      --screen-ink: #f6f8ff;
+      --screen-soft: #8f97b4;
+
+      --accent: #9b8dff;
+      --grad-a: #9b8dff;
+      --grad-b: #3ddcff;
+      --grad-c: #ff6ba6;
+      --glow: rgba(109, 91, 255, .38);
+      --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 18px 48px rgba(0, 0, 0, .45);
+      --shadow-lift: 0 2px 4px rgba(0, 0, 0, .55), 0 28px 64px rgba(0, 0, 0, .6);
     }
   }
+
   * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
-                 "Malgun Gothic", system-ui, sans-serif;
-    line-height: 1.65; letter-spacing: -0.01em;
+    margin: 0;
+    background: var(--hall);
+    color: var(--text);
+    font-family: var(--font-ui);
+    line-height: 1.65;
+    letter-spacing: -0.01em;
+    overflow-x: hidden;
   }
-  .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px; }
-  header { border-bottom: 1px solid var(--border); background: var(--bg-soft); }
+
+  /* 홀 조명 — 네온 블롭 + 원근 바닥 격자 */
+  .stage {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    background:
+      radial-gradient(60% 45% at 12% 0%, var(--glow), transparent 70%),
+      radial-gradient(50% 40% at 92% 8%, rgba(0, 208, 255, .18), transparent 70%),
+      radial-gradient(70% 50% at 50% 105%, rgba(255, 77, 143, .14), transparent 70%),
+      linear-gradient(180deg, var(--hall), var(--hall-2));
+  }
+  .floor {
+    position: absolute;
+    left: -20%; right: -20%; bottom: -12%;
+    height: 58%;
+    background-image:
+      linear-gradient(var(--hall-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--hall-line) 1px, transparent 1px);
+    background-size: 64px 64px, 64px 64px;
+    transform: perspective(420px) rotateX(62deg);
+    transform-origin: 50% 100%;
+    mask-image: linear-gradient(180deg, transparent, #000 45%);
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 45%);
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 22px; }
+
+  /* ── 상단 바 ──────────────────────────────── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 20px 0 6px;
+  }
   .back {
-    display: inline-block; margin-bottom: 24px; padding-top: 28px;
-    font-size: 14px; color: var(--text-soft); text-decoration: none;
+    font-size: 14px;
+    color: var(--text-soft);
+    text-decoration: none;
+    transition: color .15s ease;
   }
-  .back:hover { color: var(--accent); }
-  .head-inner { padding-bottom: 44px; }
-  .badge {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-width: 34px; height: 26px; padding: 0 9px; margin-bottom: 12px;
-    border-radius: 7px; background: var(--accent-soft); color: var(--accent);
-    font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;
+  .back:hover, .back:focus-visible { color: var(--accent); outline: none; }
+
+  .pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    border: 1px solid var(--stroke);
+    border-radius: 999px;
+    background: var(--surface);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    font-size: 12px;
+    color: var(--text-soft);
   }
-  h1 { margin: 0 0 10px; font-size: clamp(26px, 4vw, 34px); font-weight: 700; letter-spacing: -0.03em; }
-  .kind { margin: 0; font-size: 14px; color: var(--text-faint); }
-  main { padding: 44px 0 72px; }
-  .placeholder {
-    border: 1px dashed var(--border); border-radius: 14px;
-    padding: 40px 24px; text-align: center; color: var(--text-soft); font-size: 15px;
+  .pill b { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--v-mint);
+    box-shadow: 0 0 0 0 rgba(60, 232, 176, .55);
+    animation: pulse 2.2s ease-out infinite;
   }
-  .placeholder p { margin: 0; }
-  .placeholder p + p { margin-top: 8px; font-size: 13px; color: var(--text-faint); }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(60, 232, 176, .5); }
+    70%  { box-shadow: 0 0 0 7px rgba(60, 232, 176, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(60, 232, 176, 0); }
+  }
+
+  /* ── 히어로 ───────────────────────────────── */
+  .hero { padding: 44px 0 34px; }
+  .eyebrow {
+    display: inline-block;
+    margin: 0 0 16px;
+    padding: 5px 13px;
+    border: 1px solid var(--stroke);
+    border-radius: 999px;
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    margin: 0 0 14px;
+    font-size: clamp(38px, 7.5vw, 76px);
+    font-weight: 800;
+    letter-spacing: -0.045em;
+    line-height: 1.02;
+    color: var(--text);
+    background: linear-gradient(96deg, var(--grad-a), var(--grad-b) 46%, var(--grad-c) 92%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .lede {
+    margin: 0 0 26px;
+    max-width: 54ch;
+    font-size: 16px;
+    color: var(--text-soft);
+  }
+  .specs {
+    display: flex;
+    gap: 10px 28px;
+    flex-wrap: wrap;
+    padding-top: 20px;
+    border-top: 1px solid var(--stroke);
+  }
+  .spec { min-width: 96px; }
+  .spec dt {
+    margin: 0 0 2px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .spec dd {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── 섹션 머리 ────────────────────────────── */
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+  .hint {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+  kbd {
+    display: inline-block;
+    min-width: 20px;
+    padding: 1px 6px;
+    border: 1px solid var(--stroke-2);
+    border-radius: 5px;
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-soft);
+    text-align: center;
+  }
+
+  /* ── 게임 카드 ────────────────────────────── */
+  .rack {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  }
+  .card {
+    --rx: 0deg; --ry: 0deg; --ty: 0px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--stroke);
+    border-radius: 20px;
+    background: var(--surface-2);
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    color: inherit;
+    transform: perspective(1000px) rotateX(var(--rx)) rotateY(var(--ry)) translateY(var(--ty));
+    transform-style: preserve-3d;
+    transition: box-shadow .25s ease, border-color .25s ease, transform .12s ease;
+  }
+  .card:hover, .card:focus-visible {
+    --ty: -4px;
+    border-color: var(--stroke-2);
+    box-shadow: var(--shadow-lift), 0 0 0 1px var(--tint), 0 24px 60px -20px var(--tint);
+    outline: none;
+  }
+  /* 커서를 따라다니는 스포트라이트 */
+  .card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(280px circle at var(--mx, 50%) var(--my, 0%),
+                                color-mix(in srgb, var(--tint) 22%, transparent), transparent 70%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease;
+  }
+  .card:hover::after, .card:focus-visible::after { opacity: 1; }
+
+  /* 카드 상단 — 게임 화면 */
+  .shot {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    background: var(--screen);
+    border-bottom: 1px solid var(--stroke);
+    overflow: hidden;
+  }
+  .shot svg { display: block; width: 100%; height: 100%; }
+  .shot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, transparent 55%, rgba(5, 6, 12, .55)),
+      linear-gradient(112deg, rgba(255, 255, 255, .10) 0 22%, transparent 42%);
+    pointer-events: none;
+  }
+  .shot-tag {
+    position: absolute;
+    left: 14px; top: 13px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border: 1px solid color-mix(in srgb, var(--tint) 45%, transparent);
+    border-radius: 999px;
+    background: rgba(5, 7, 14, .6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--tint);
+  }
+  .shot-fps {
+    position: absolute;
+    right: 14px; top: 13px;
+    z-index: 2;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .1em;
+    color: var(--screen-soft);
+  }
+
+  /* 카드 본문 */
+  .body { padding: 18px 18px 0; flex: 1; }
+  .title-row {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .card h3 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+  .en {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--tint);
+  }
+  .card p {
+    margin: 0 0 14px;
+    font-size: 14px;
+    color: var(--text-soft);
+  }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  .chip {
+    padding: 3px 9px;
+    border: 1px solid var(--stroke);
+    border-radius: 7px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .05em;
+    color: var(--text-faint);
+  }
+
+  /* 카드 바닥 */
+  .foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 18px;
+    padding: 13px 0 16px;
+    border-top: 1px solid var(--stroke);
+  }
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+  .status::before {
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--text-faint);
+  }
+  .status[data-state="ready"] { color: var(--v-mint); }
+  .status[data-state="ready"]::before { background: var(--v-mint); }
+  .play {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 15px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--tint) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--tint) 40%, transparent);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    color: var(--tint);
+    transition: background .2s ease, gap .2s ease;
+  }
+  .card:hover .play, .card:focus-visible .play {
+    background: color-mix(in srgb, var(--tint) 26%, transparent);
+    gap: 11px;
+  }
+
+  /* ── 크레딧 패널 ──────────────────────────── */
+  .credit {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin: 26px 0 0;
+    padding: 20px 22px;
+    border: 1px solid var(--stroke);
+    border-radius: 18px;
+    background: var(--surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .credit-info { display: flex; gap: 26px; flex-wrap: wrap; }
+  .credit-num {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .credit-label {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+  .tag-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 20px;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(96deg, var(--v-violet), var(--v-cyan));
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 8px 24px -8px var(--v-violet);
+    transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+  }
+  .tag-btn:hover, .tag-btn:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 32px -10px var(--v-violet);
+    filter: saturate(1.15);
+    outline: none;
+  }
+  .tag-btn:active { transform: translateY(0); }
+  .wave {
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, .9);
+    border-left-color: transparent;
+    animation: spin 2.4s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 토스트 */
+  .toast {
+    position: fixed;
+    left: 50%; bottom: 28px;
+    transform: translate(-50%, 18px);
+    padding: 11px 20px;
+    border: 1px solid var(--stroke-2);
+    border-radius: 999px;
+    background: var(--surface-2);
+    box-shadow: var(--shadow-lift);
+    font-size: 13px;
+    color: var(--text);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  .toast[data-show="1"] { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ── Footer ───────────────────────────────── */
+  footer {
+    margin-top: 34px;
+    padding: 22px 0 52px;
+    border-top: 1px solid var(--stroke);
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+  footer p { margin: 0; }
+
+  @media (max-width: 620px) {
+    .hero { padding: 32px 0 26px; }
+    .credit { padding: 18px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dot, .wave { animation: none; }
+    .card, .tag-btn, .toast { transition: none; }
+  }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="wrap">
+<!-- 홀 조명 -->
+<div class="stage" aria-hidden="true"><div class="floor"></div></div>
+
+<div class="wrap">
+
+  <div class="topbar">
     <a class="back" href="../../index.html">← 목록으로</a>
-    <div class="head-inner">
-      <span class="badge">B</span>
-      <h1>예제 B</h1>
-      <p class="kind">예제 웹앱</p>
+    <div class="pills">
+      <span class="pill"><span class="dot" aria-hidden="true"></span>서버 정상</span>
+      <span class="pill">접속 <b>128</b>명</span>
+      <span class="pill">4K · 120FPS</span>
     </div>
   </div>
-</header>
 
-<main class="wrap">
-  <div class="placeholder">
-    <p>내용 준비 중입니다.</p>
-    <p>이 자리에 예제 웹앱 내용이 들어갑니다.</p>
-  </div>
-</main>
+  <!-- 히어로 -->
+  <header class="hero">
+    <p class="eyebrow">Modern Arcade · Realtime 3D</p>
+    <h1>요즘 오락실</h1>
+    <p class="lede">
+      전부 실시간 3D입니다. 복셀 샌드박스부터 손 추적 리듬 게임까지,
+      네 대의 캐비닛 중 하나를 골라 들어가면 됩니다.
+    </p>
+    <dl class="specs">
+      <div class="spec"><dt>Cabinets</dt><dd>4대</dd></div>
+      <div class="spec"><dt>Renderer</dt><dd>WebGL 2</dd></div>
+      <div class="spec"><dt>Resolution</dt><dd>3840 × 2160</dd></div>
+      <div class="spec"><dt>Latency</dt><dd>8.3 ms</dd></div>
+    </dl>
+  </header>
+
+  <main>
+    <div class="sec-head">
+      <h2>게임 선택</h2>
+      <p class="hint"><kbd>←</kbd> <kbd>→</kbd> 이동 · <kbd>Enter</kbd> 입장 · 마우스로 눌러도 됩니다</p>
+    </div>
+
+    <div class="rack" id="rack">
+
+      <!-- 1. 블록 월드 (마인크래프트) -->
+      <a class="card" href="games/voxel/index.html" style="--tint: #7bd45a;">
+        <div class="shot">
+          <span class="shot-tag">Voxel</span>
+          <span class="shot-fps">120 FPS</span>
+          <svg viewBox="0 0 320 200" aria-hidden="true">
+            <defs>
+              <linearGradient id="vx-sky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#1a2a5c"/>
+                <stop offset="1" stop-color="#070a16"/>
+              </linearGradient>
+              <radialGradient id="vx-sun" cx="0.5" cy="0.5" r="0.5">
+                <stop offset="0" stop-color="#ffd98a" stop-opacity=".9"/>
+                <stop offset="1" stop-color="#ffd98a" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <rect width="320" height="200" fill="url(#vx-sky)"/>
+            <circle cx="252" cy="46" r="52" fill="url(#vx-sun)"/>
+            <rect x="240" y="34" width="24" height="24" fill="#ffe6a8"/>
+            <!-- 구름 복셀 -->
+            <g fill="#8fa5d8" opacity=".35">
+              <rect x="40" y="30" width="26" height="10"/><rect x="56" y="22" width="30" height="10"/>
+              <rect x="110" y="44" width="22" height="8"/>
+            </g>
+
+            <!-- 지형 (아이소메트릭 3×3 + 적층) -->
+            <g>
+              <!-- (0,0) -->
+              <polygon points="160,86 184,98 160,110 136,98" fill="#7bd45a"/>
+              <polygon points="136,98 160,110 160,130 136,118" fill="#4a8f39"/>
+              <polygon points="184,98 160,110 160,130 184,118" fill="#37702a"/>
+              <!-- (1,0) (0,1) -->
+              <polygon points="184,98 208,110 184,122 160,110" fill="#7bd45a"/>
+              <polygon points="160,110 184,122 184,142 160,130" fill="#4a8f39"/>
+              <polygon points="208,110 184,122 184,142 208,130" fill="#37702a"/>
+              <polygon points="136,98 160,110 136,122 112,110" fill="#82db60"/>
+              <polygon points="112,110 136,122 136,142 112,130" fill="#4a8f39"/>
+              <polygon points="160,110 136,122 136,142 160,130" fill="#37702a"/>
+              <!-- (2,0) (1,1) (0,2) -->
+              <polygon points="208,110 232,122 208,134 184,122" fill="#7bd45a"/>
+              <polygon points="184,122 208,134 208,154 184,142" fill="#4a8f39"/>
+              <polygon points="232,122 208,134 208,154 232,142" fill="#37702a"/>
+              <polygon points="160,110 184,122 160,134 136,122" fill="#7bd45a"/>
+              <polygon points="136,122 160,134 160,154 136,142" fill="#4a8f39"/>
+              <polygon points="184,122 160,134 160,154 184,142" fill="#37702a"/>
+              <polygon points="112,110 136,122 112,134 88,122" fill="#82db60"/>
+              <polygon points="88,122 112,134 112,154 88,142" fill="#4a8f39"/>
+              <polygon points="136,122 112,134 112,154 136,142" fill="#37702a"/>
+              <!-- (2,1) (1,2) -->
+              <polygon points="184,122 208,134 184,146 160,134" fill="#7bd45a"/>
+              <polygon points="160,134 184,146 184,166 160,154" fill="#4a8f39"/>
+              <polygon points="208,134 184,146 184,166 208,154" fill="#37702a"/>
+              <polygon points="136,122 160,134 136,146 112,134" fill="#7bd45a"/>
+              <polygon points="112,134 136,146 136,166 112,154" fill="#4a8f39"/>
+              <polygon points="160,134 136,146 136,166 160,154" fill="#37702a"/>
+              <!-- (2,2) -->
+              <polygon points="160,134 184,146 160,158 136,146" fill="#82db60"/>
+              <polygon points="136,146 160,158 160,178 136,166" fill="#4a8f39"/>
+              <polygon points="184,146 160,158 160,178 184,166" fill="#37702a"/>
+            </g>
+
+            <!-- 돌 블록 적층 -->
+            <g>
+              <polygon points="112,90 136,102 112,114 88,102" fill="#a7b0c4"/>
+              <polygon points="88,102 112,114 112,134 88,122" fill="#6d7689"/>
+              <polygon points="136,102 112,114 112,134 136,122" fill="#525a6c"/>
+              <polygon points="112,70 136,82 112,94 88,82" fill="#b7c0d4"/>
+              <polygon points="88,82 112,94 112,114 88,102" fill="#6d7689"/>
+              <polygon points="136,82 112,94 112,114 136,102" fill="#525a6c"/>
+            </g>
+
+            <!-- 광석 블록 (발광) -->
+            <g>
+              <polygon points="208,88 232,100 208,112 184,100" fill="#7cf0f7"/>
+              <polygon points="184,100 208,112 208,132 184,120" fill="#2ab4cc"/>
+              <polygon points="232,100 208,112 208,132 232,120" fill="#1a86a4"/>
+              <polygon points="208,88 232,100 208,112 184,100" fill="#ffffff" opacity=".25"/>
+            </g>
+            <ellipse cx="208" cy="106" rx="46" ry="26" fill="#7cf0f7" opacity=".16"/>
+          </svg>
+        </div>
+        <div class="body">
+          <div class="title-row">
+            <h3>블록 월드</h3>
+            <span class="en">Voxel World</span>
+          </div>
+          <p>블록을 캐고 쌓아 지형을 바꾸는 오픈 월드 샌드박스. 무한 지형이 실시간으로 생성됩니다.</p>
+          <div class="chips">
+            <span class="chip">Voxel Engine</span>
+            <span class="chip">Procedural Terrain</span>
+            <span class="chip">Dynamic Lighting</span>
+          </div>
+        </div>
+        <div class="foot">
+          <span class="status" data-state="soon">준비 중</span>
+          <span class="play">PLAY →</span>
+        </div>
+      </a>
+
+      <!-- 2. 인형뽑기 -->
+      <a class="card" href="games/claw/index.html" style="--tint: #ff4d8f;">
+        <div class="shot">
+          <span class="shot-tag">Physics</span>
+          <span class="shot-fps">144 FPS</span>
+          <svg viewBox="0 0 320 200" aria-hidden="true">
+            <defs>
+              <linearGradient id="cw-bg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#2a0f3d"/>
+                <stop offset="1" stop-color="#0a0512"/>
+              </linearGradient>
+              <linearGradient id="cw-glass" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#ffffff" stop-opacity=".14"/>
+                <stop offset="0.45" stop-color="#ffffff" stop-opacity=".03"/>
+                <stop offset="1" stop-color="#ff4d8f" stop-opacity=".10"/>
+              </linearGradient>
+              <linearGradient id="cw-frame" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#ff7ab0"/>
+                <stop offset="1" stop-color="#7a2bff"/>
+              </linearGradient>
+            </defs>
+            <rect width="320" height="200" fill="url(#cw-bg)"/>
+            <ellipse cx="160" cy="184" rx="130" ry="26" fill="#ff4d8f" opacity=".14"/>
+
+            <!-- 캐비닛 -->
+            <rect x="62" y="14" width="196" height="172" rx="14" fill="#160a24" stroke="url(#cw-frame)" stroke-width="2.5"/>
+            <rect x="74" y="26" width="172" height="118" rx="8" fill="url(#cw-glass)"/>
+            <!-- 상단 레일 -->
+            <rect x="86" y="36" width="148" height="4" rx="2" fill="#4b3a6e"/>
+            <rect x="150" y="34" width="22" height="8" rx="3" fill="#9a7fd6"/>
+
+            <!-- 집게 -->
+            <line x1="161" y1="42" x2="161" y2="70" stroke="#cbb8f5" stroke-width="2"/>
+            <rect x="149" y="70" width="24" height="12" rx="4" fill="#d7c9ff"/>
+            <path d="M152 82 C144 92 141 102 145 112" stroke="#e6dcff" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path d="M170 82 C178 92 181 102 177 112" stroke="#e6dcff" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path d="M161 84 C161 96 161 104 161 114" stroke="#bda9ef" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+
+            <!-- 인형 더미 -->
+            <g>
+              <circle cx="104" cy="120" r="9" fill="#ffd66e"/><circle cx="96" cy="112" r="4" fill="#ffd66e"/><circle cx="112" cy="112" r="4" fill="#ffd66e"/>
+              <circle cx="128" cy="128" r="11" fill="#69d5ff"/><circle cx="119" cy="119" r="4.5" fill="#69d5ff"/><circle cx="137" cy="119" r="4.5" fill="#69d5ff"/>
+              <circle cx="160" cy="124" r="10" fill="#ff9ec4"/><circle cx="152" cy="115" r="4" fill="#ff9ec4"/><circle cx="168" cy="115" r="4" fill="#ff9ec4"/>
+              <circle cx="188" cy="129" r="11" fill="#a8f0c4"/><circle cx="179" cy="120" r="4.5" fill="#a8f0c4"/><circle cx="197" cy="120" r="4.5" fill="#a8f0c4"/>
+              <circle cx="214" cy="121" r="9" fill="#c8a4ff"/><circle cx="206" cy="113" r="4" fill="#c8a4ff"/><circle cx="222" cy="113" r="4" fill="#c8a4ff"/>
+              <g fill="#2b1636">
+                <circle cx="101" cy="119" r="1.4"/><circle cx="107" cy="119" r="1.4"/>
+                <circle cx="124" cy="127" r="1.6"/><circle cx="132" cy="127" r="1.6"/>
+                <circle cx="157" cy="123" r="1.5"/><circle cx="163" cy="123" r="1.5"/>
+                <circle cx="184" cy="128" r="1.6"/><circle cx="192" cy="128" r="1.6"/>
+                <circle cx="211" cy="120" r="1.4"/><circle cx="217" cy="120" r="1.4"/>
+              </g>
+            </g>
+
+            <!-- 유리 반사 -->
+            <polygon points="80,140 118,26 142,26 104,140" fill="#ffffff" opacity=".07"/>
+
+            <!-- 조작부 -->
+            <rect x="74" y="150" width="172" height="28" rx="7" fill="#20112f"/>
+            <circle cx="100" cy="164" r="8" fill="#3a2154"/><circle cx="100" cy="161" r="5" fill="#ff4d8f"/>
+            <rect x="126" y="158" width="34" height="12" rx="6" fill="#3a2154"/>
+            <g fill="#6d5b8f">
+              <rect x="176" y="160" width="30" height="3" rx="1.5"/>
+              <rect x="176" y="167" width="18" height="3" rx="1.5"/>
+            </g>
+            <rect x="216" y="156" width="20" height="16" rx="4" fill="#0d0616" stroke="#4b3a6e"/>
+          </svg>
+        </div>
+        <div class="body">
+          <div class="title-row">
+            <h3>인형뽑기</h3>
+            <span class="en">Claw Master</span>
+          </div>
+          <p>집게의 장력과 인형 더미가 전부 물리 연산입니다. 각도와 타이밍이 결과를 바꿉니다.</p>
+          <div class="chips">
+            <span class="chip">Rigid-body Physics</span>
+            <span class="chip">Soft-body Cloth</span>
+            <span class="chip">Haptic Feedback</span>
+          </div>
+        </div>
+        <div class="foot">
+          <span class="status" data-state="soon">준비 중</span>
+          <span class="play">PLAY →</span>
+        </div>
+      </a>
+
+      <!-- 3. 1인칭 FPS -->
+      <a class="card" href="games/fps/index.html" style="--tint: #00d0ff;">
+        <div class="shot">
+          <span class="shot-tag">Ray Traced</span>
+          <span class="shot-fps">165 FPS</span>
+          <svg viewBox="0 0 320 200" aria-hidden="true">
+            <defs>
+              <linearGradient id="fp-bg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#0b1830"/>
+                <stop offset="1" stop-color="#04060e"/>
+              </linearGradient>
+              <linearGradient id="fp-door" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#8ff0ff"/>
+                <stop offset="1" stop-color="#0a6b8c"/>
+              </linearGradient>
+              <linearGradient id="fp-gun" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#4a5468"/>
+                <stop offset="1" stop-color="#151a26"/>
+              </linearGradient>
+            </defs>
+            <rect width="320" height="200" fill="url(#fp-bg)"/>
+
+            <!-- 복도 -->
+            <polygon points="0,0 96,74 96,132 0,200" fill="#111c33"/>
+            <polygon points="320,0 224,74 224,132 320,200" fill="#0d1729"/>
+            <polygon points="0,200 96,132 224,132 320,200" fill="#0a1224"/>
+            <polygon points="0,0 96,74 224,74 320,0" fill="#0c1428"/>
+            <!-- 원근 라인 -->
+            <g stroke="#2a4470" stroke-width="1" opacity=".8">
+              <line x1="0" y1="200" x2="128" y2="118"/><line x1="320" y1="200" x2="192" y2="118"/>
+              <line x1="0" y1="160" x2="106" y2="122"/><line x1="320" y1="160" x2="214" y2="122"/>
+              <line x1="96" y1="74" x2="96" y2="132"/><line x1="224" y1="74" x2="224" y2="132"/>
+            </g>
+            <!-- 천장 조명 -->
+            <g fill="#8ff0ff" opacity=".55">
+              <rect x="140" y="76" width="40" height="3" rx="1.5"/>
+              <rect x="128" y="60" width="64" height="3" rx="1.5" opacity=".7"/>
+              <rect x="112" y="38" width="96" height="4" rx="2" opacity=".45"/>
+            </g>
+            <polygon points="140,79 180,79 200,132 120,132" fill="#8ff0ff" opacity=".10"/>
+
+            <!-- 출구 -->
+            <rect x="146" y="94" width="28" height="38" fill="url(#fp-door)" opacity=".85"/>
+            <rect x="146" y="94" width="28" height="38" fill="none" stroke="#bff6ff" stroke-width="1"/>
+            <ellipse cx="160" cy="118" rx="46" ry="30" fill="#8ff0ff" opacity=".12"/>
+
+            <!-- 적 실루엣 -->
+            <g fill="#050810">
+              <rect x="196" y="98" width="9" height="10" rx="3"/>
+              <rect x="193" y="108" width="15" height="17" rx="3"/>
+              <rect x="195" y="125" width="4" height="12"/><rect x="202" y="125" width="4" height="12"/>
+            </g>
+            <rect x="192" y="92" width="17" height="2.5" rx="1.25" fill="#ff4d6b"/>
+
+            <!-- 총기 (1인칭) -->
+            <g>
+              <polygon points="214,200 236,158 300,150 320,200" fill="url(#fp-gun)"/>
+              <polygon points="236,158 300,150 306,142 246,148" fill="#5d697f"/>
+              <rect x="222" y="140" width="58" height="10" rx="3" fill="#2b3242" transform="rotate(-8 251 145)"/>
+              <rect x="228" y="130" width="34" height="6" rx="3" fill="#39435a"/>
+              <polygon points="196,200 226,164 244,176 214,200" fill="#232b3a"/>
+              <line x1="240" y1="146" x2="300" y2="140" stroke="#00d0ff" stroke-width="1.5" opacity=".8"/>
+            </g>
+
+            <!-- 크로스헤어 -->
+            <g stroke="#3ce8b0" stroke-width="1.6" opacity=".95">
+              <line x1="160" y1="102" x2="160" y2="110"/>
+              <line x1="160" y1="126" x2="160" y2="134"/>
+              <line x1="140" y1="118" x2="148" y2="118"/>
+              <line x1="172" y1="118" x2="180" y2="118"/>
+            </g>
+            <circle cx="160" cy="118" r="1.6" fill="#3ce8b0"/>
+
+            <!-- HUD -->
+            <g font-family="monospace" font-size="9" fill="#8ff0ff">
+              <rect x="18" y="176" width="70" height="5" rx="2.5" fill="#0d2438"/>
+              <rect x="18" y="176" width="48" height="5" rx="2.5" fill="#3ce8b0"/>
+              <text x="18" y="170" fill="#6f8ba8">HP 68</text>
+              <text x="256" y="180">24 / 90</text>
+            </g>
+          </svg>
+        </div>
+        <div class="body">
+          <div class="title-row">
+            <h3>제로 프론트</h3>
+            <span class="en">Zero Front · FPS</span>
+          </div>
+          <p>버려진 정거장을 무대로 한 1인칭 슈팅. 광원과 반사가 전부 실시간으로 계산됩니다.</p>
+          <div class="chips">
+            <span class="chip">Ray-traced GI</span>
+            <span class="chip">Spatial Audio</span>
+            <span class="chip">Netcode 128Hz</span>
+          </div>
+        </div>
+        <div class="foot">
+          <span class="status" data-state="soon">준비 중</span>
+          <span class="play">PLAY →</span>
+        </div>
+      </a>
+
+      <!-- 4. 뉴럴 리듬 (추천작) -->
+      <a class="card" href="games/rhythm/index.html" style="--tint: #ffc44d;">
+        <div class="shot">
+          <span class="shot-tag">Hand Tracking</span>
+          <span class="shot-fps">240 FPS</span>
+          <svg viewBox="0 0 320 200" aria-hidden="true">
+            <defs>
+              <linearGradient id="rh-bg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#160a2e"/>
+                <stop offset="1" stop-color="#05030d"/>
+              </linearGradient>
+              <linearGradient id="rh-road" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#7a5bff" stop-opacity=".05"/>
+                <stop offset="1" stop-color="#ffc44d" stop-opacity=".22"/>
+              </linearGradient>
+            </defs>
+            <rect width="320" height="200" fill="url(#rh-bg)"/>
+            <ellipse cx="160" cy="52" rx="120" ry="46" fill="#7a5bff" opacity=".16"/>
+
+            <!-- 노트 하이웨이 -->
+            <polygon points="132,52 188,52 292,200 28,200" fill="url(#rh-road)"/>
+            <g stroke="#8b7bff" stroke-width="1" opacity=".55">
+              <line x1="146" y1="52" x2="94" y2="200"/>
+              <line x1="160" y1="52" x2="160" y2="200"/>
+              <line x1="174" y1="52" x2="226" y2="200"/>
+            </g>
+            <!-- 원근 가로선 -->
+            <g stroke="#5b4bb8" stroke-width="1" opacity=".45">
+              <line x1="139" y1="70" x2="181" y2="70"/>
+              <line x1="147" y1="98" x2="196" y2="98"/>
+              <line x1="115" y1="132" x2="222" y2="132"/>
+            </g>
+
+            <!-- 노트 -->
+            <g>
+              <rect x="140" y="66" width="18" height="6" rx="2" fill="#00d0ff" opacity=".7"/>
+              <rect x="166" y="88" width="24" height="8" rx="3" fill="#ff4d8f" opacity=".85"/>
+              <rect x="126" y="112" width="32" height="10" rx="4" fill="#3ce8b0"/>
+              <rect x="176" y="134" width="42" height="13" rx="5" fill="#ffc44d"/>
+              <rect x="176" y="134" width="42" height="13" rx="5" fill="#ffffff" opacity=".25"/>
+            </g>
+
+            <!-- 판정선 -->
+            <line x1="52" y1="168" x2="268" y2="168" stroke="#ffc44d" stroke-width="2.5"/>
+            <rect x="52" y="164" width="216" height="9" fill="#ffc44d" opacity=".2"/>
+
+            <!-- 판정 텍스트 -->
+            <text x="196" y="120" font-family="monospace" font-size="12" fill="#3ce8b0" letter-spacing="2">PERFECT</text>
+            <text x="196" y="132" font-family="monospace" font-size="8" fill="#98a0bb" letter-spacing="1">x 128 COMBO</text>
+
+            <!-- 추적된 손 (랜드마크) -->
+            <g stroke="#00d0ff" stroke-width="1.6" fill="none" opacity=".95">
+              <path d="M84 190 L80 168 L78 152"/>
+              <path d="M84 190 L88 166 L89 148"/>
+              <path d="M84 190 L96 168 L99 152"/>
+              <path d="M84 190 L104 172 L109 160"/>
+              <path d="M84 190 L70 178 L64 170"/>
+              <path d="M78 152 L89 148 L99 152 L109 160"/>
+            </g>
+            <g fill="#8ff0ff">
+              <circle cx="84" cy="190" r="3"/>
+              <circle cx="78" cy="152" r="2.4"/><circle cx="89" cy="148" r="2.4"/>
+              <circle cx="99" cy="152" r="2.4"/><circle cx="109" cy="160" r="2.4"/>
+              <circle cx="64" cy="170" r="2.4"/>
+              <circle cx="80" cy="168" r="1.8"/><circle cx="88" cy="166" r="1.8"/>
+              <circle cx="96" cy="168" r="1.8"/><circle cx="104" cy="172" r="1.8"/>
+              <circle cx="70" cy="178" r="1.8"/>
+            </g>
+            <circle cx="88" cy="168" r="26" fill="#00d0ff" opacity=".10"/>
+
+            <!-- 파형 -->
+            <g fill="#b9a8ff" opacity=".7">
+              <rect x="252" y="30" width="3" height="10" rx="1.5"/>
+              <rect x="258" y="24" width="3" height="22" rx="1.5"/>
+              <rect x="264" y="16" width="3" height="38" rx="1.5"/>
+              <rect x="270" y="26" width="3" height="18" rx="1.5"/>
+              <rect x="276" y="20" width="3" height="30" rx="1.5"/>
+              <rect x="282" y="30" width="3" height="10" rx="1.5"/>
+            </g>
+          </svg>
+        </div>
+        <div class="body">
+          <div class="title-row">
+            <h3>뉴럴 리듬</h3>
+            <span class="en">Neural Rhythm</span>
+          </div>
+          <p>컨트롤러가 없습니다. 카메라가 손을 추적해, 날아오는 노트를 직접 손으로 쳐서 넘깁니다.</p>
+          <div class="chips">
+            <span class="chip">Hand Tracking</span>
+            <span class="chip">On-device AI</span>
+            <span class="chip">Beat Sync</span>
+          </div>
+        </div>
+        <div class="foot">
+          <span class="status" data-state="soon">준비 중</span>
+          <span class="play">PLAY →</span>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- 크레딧 -->
+    <div class="credit">
+      <div class="credit-info">
+        <div>
+          <p class="credit-label">보유 크레딧</p>
+          <p class="credit-num" id="credit">04</p>
+        </div>
+        <div>
+          <p class="credit-label">누적 점수</p>
+          <p class="credit-num" id="score">128,400</p>
+        </div>
+        <div>
+          <p class="credit-label">등급</p>
+          <p class="credit-num" id="rank">GOLD</p>
+        </div>
+      </div>
+      <button class="tag-btn" id="tag" type="button">
+        <span class="wave" aria-hidden="true"></span>카드 태그
+      </button>
+    </div>
+  </main>
+
+  <footer>
+    <p>2026 AX 강의 · 예제 B — 요즘 오락실</p>
+  </footer>
+
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  var cards = Array.prototype.slice.call(document.querySelectorAll('#rack .card'));
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* 방향키로 캐비닛 사이를 옮겨 다닙니다. Enter는 링크 기본 동작입니다. */
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' &&
+        e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    if (document.activeElement && document.activeElement.tagName === 'BUTTON') return;
+    var i = cards.indexOf(document.activeElement);
+    var step = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1;
+    var next = i === -1 ? (step > 0 ? 0 : cards.length - 1)
+                        : (i + step + cards.length) % cards.length;
+    cards[next].focus();
+    cards[next].scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+    e.preventDefault();
+  });
+
+  /* 커서를 따라 기울어지는 카드 + 스포트라이트 */
+  cards.forEach(function (card) {
+    if (reduce) return;
+    card.addEventListener('pointermove', function (e) {
+      var r = card.getBoundingClientRect();
+      var px = (e.clientX - r.left) / r.width;
+      var py = (e.clientY - r.top) / r.height;
+      card.style.setProperty('--mx', (px * 100).toFixed(1) + '%');
+      card.style.setProperty('--my', (py * 100).toFixed(1) + '%');
+      card.style.setProperty('--ry', ((px - 0.5) * 7).toFixed(2) + 'deg');
+      card.style.setProperty('--rx', ((0.5 - py) * 5).toFixed(2) + 'deg');
+    });
+    card.addEventListener('pointerleave', function () {
+      card.style.setProperty('--rx', '0deg');
+      card.style.setProperty('--ry', '0deg');
+    });
+  });
+
+  /* 카드 태그 — 크레딧과 점수만 올라갑니다. */
+  var credit = 4, score = 128400;
+  var creditEl = document.getElementById('credit');
+  var scoreEl = document.getElementById('score');
+  var rankEl = document.getElementById('rank');
+  var toast = document.getElementById('toast');
+  var timer;
+
+  document.getElementById('tag').addEventListener('click', function () {
+    credit = Math.min(credit + 1, 99);
+    score += 2400;
+    creditEl.textContent = String(credit).padStart(2, '0');
+    scoreEl.textContent = score.toLocaleString('ko-KR');
+    rankEl.textContent = score >= 200000 ? 'PLATINUM' : score >= 150000 ? 'DIAMOND' : 'GOLD';
+
+    toast.textContent = '크레딧 1 충전 — 남은 크레딧 ' + credit;
+    toast.setAttribute('data-show', '1');
+    clearTimeout(timer);
+    timer = setTimeout(function () { toast.removeAttribute('data-show'); }, 1800);
+  });
+})();
+</script>
 
 </body>
 </html>

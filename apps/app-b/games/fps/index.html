@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>제로 프론트 — 요즘 오락실</title>
+<style>
+  :root {
+    --hall: #eef0f7;
+    --hall-2: #e2e6f2;
+    --hall-line: rgba(18, 20, 32, .07);
+    --surface: rgba(255, 255, 255, .78);
+    --surface-2: #ffffff;
+    --stroke: rgba(18, 20, 32, .10);
+    --stroke-2: rgba(18, 20, 32, .20);
+    --text: #0f111a;
+    --text-soft: #4c5364;
+    --text-faint: #858c9d;
+    --screen: #080a12;
+    --screen-soft: #98a0bb;
+    --v-violet: #6d5bff;
+    --v-cyan: #00d0ff;
+    --v-pink: #ff4d8f;
+    --accent: #4a3bff;
+    --glow: rgba(109, 91, 255, .22);
+    --shadow: 0 1px 2px rgba(12, 14, 26, .06), 0 18px 48px rgba(12, 14, 26, .10);
+    --tint: #00d0ff;
+    --font-ui: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
+               "Malgun Gothic", system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --hall: #05060b;
+      --hall-2: #0a0c16;
+      --hall-line: rgba(255, 255, 255, .05);
+      --surface: rgba(255, 255, 255, .045);
+      --surface-2: #0f1220;
+      --stroke: rgba(255, 255, 255, .10);
+      --stroke-2: rgba(255, 255, 255, .22);
+      --text: #eef0f8;
+      --text-soft: #a3aabd;
+      --text-faint: #6e7589;
+      --screen: #05070e;
+      --accent: #9b8dff;
+      --glow: rgba(109, 91, 255, .38);
+      --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 18px 48px rgba(0, 0, 0, .45);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--hall);
+    color: var(--text);
+    font-family: var(--font-ui);
+    line-height: 1.65;
+    letter-spacing: -0.01em;
+  }
+  .stage {
+    position: fixed; inset: 0; z-index: -1; overflow: hidden;
+    background:
+      radial-gradient(60% 45% at 12% 0%, var(--glow), transparent 70%),
+      radial-gradient(50% 40% at 92% 8%, rgba(0, 208, 255, .18), transparent 70%),
+      linear-gradient(180deg, var(--hall), var(--hall-2));
+  }
+  .floor {
+    position: absolute; left: -20%; right: -20%; bottom: -12%; height: 58%;
+    background-image:
+      linear-gradient(var(--hall-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--hall-line) 1px, transparent 1px);
+    background-size: 64px 64px, 64px 64px;
+    transform: perspective(420px) rotateX(62deg);
+    transform-origin: 50% 100%;
+    mask-image: linear-gradient(180deg, transparent, #000 45%);
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 45%);
+  }
+
+  .wrap { max-width: 820px; margin: 0 auto; padding: 0 22px; }
+  .navs { display: flex; gap: 18px; flex-wrap: wrap; padding: 20px 0 16px; }
+  .navs a { font-size: 14px; color: var(--text-soft); text-decoration: none; }
+  .navs a:hover, .navs a:focus-visible { color: var(--accent); outline: none; }
+
+  .panel {
+    overflow: hidden;
+    border: 1px solid var(--stroke);
+    border-radius: 22px;
+    background: var(--surface-2);
+    box-shadow: var(--shadow);
+  }
+  .shot { position: relative; aspect-ratio: 16 / 10; background: var(--screen); }
+  .shot svg { display: block; width: 100%; height: 100%; }
+  .shot::after {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, transparent 60%, rgba(5, 6, 12, .6)),
+      linear-gradient(112deg, rgba(255, 255, 255, .09) 0 22%, transparent 42%);
+  }
+  .info { padding: 26px 26px 30px; }
+  .title-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  h1 { margin: 0; font-size: clamp(26px, 5vw, 36px); font-weight: 800; letter-spacing: -0.035em; }
+  .en {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--tint);
+  }
+  .desc { margin: 0 0 22px; max-width: 52ch; font-size: 15px; color: var(--text-soft); }
+
+  .bar-label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em;
+    color: var(--text-faint); margin-bottom: 8px;
+  }
+  .bar-label b {
+    font-family: var(--font-ui); font-size: 13px; letter-spacing: -0.01em;
+    color: var(--tint); font-weight: 600;
+  }
+  .bar { height: 6px; border-radius: 999px; background: var(--stroke); overflow: hidden; }
+  .bar span {
+    display: block; height: 100%; width: 34%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--v-violet), var(--tint));
+  }
+
+  .specs {
+    display: flex; gap: 12px 30px; flex-wrap: wrap;
+    margin: 26px 0 0; padding-top: 20px; border-top: 1px solid var(--stroke);
+  }
+  .spec { min-width: 100px; }
+  .spec dt {
+    margin: 0 0 2px; font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--text-faint);
+  }
+  .spec dd { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
+
+  footer {
+    margin-top: 26px; padding: 20px 0 52px;
+    font-size: 13px; color: var(--text-faint); text-align: center;
+  }
+  footer p { margin: 0; }
+</style>
+</head>
+<body>
+
+<div class="stage" aria-hidden="true"><div class="floor"></div></div>
+
+<div class="wrap">
+  <nav class="navs">
+    <a href="../../index.html">← 오락실로</a>
+    <a href="../../../../index.html">← 목록으로</a>
+  </nav>
+
+  <div class="panel">
+    <div class="shot">
+      <svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="fp-bg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#0b1830"/>
+            <stop offset="1" stop-color="#04060e"/>
+          </linearGradient>
+          <linearGradient id="fp-door" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#8ff0ff"/>
+            <stop offset="1" stop-color="#0a6b8c"/>
+          </linearGradient>
+          <linearGradient id="fp-gun" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#4a5468"/>
+            <stop offset="1" stop-color="#151a26"/>
+          </linearGradient>
+        </defs>
+        <rect width="320" height="200" fill="url(#fp-bg)"/>
+        <polygon points="0,0 96,74 96,132 0,200" fill="#111c33"/>
+        <polygon points="320,0 224,74 224,132 320,200" fill="#0d1729"/>
+        <polygon points="0,200 96,132 224,132 320,200" fill="#0a1224"/>
+        <polygon points="0,0 96,74 224,74 320,0" fill="#0c1428"/>
+        <g stroke="#2a4470" stroke-width="1" opacity=".8">
+          <line x1="0" y1="200" x2="128" y2="118"/><line x1="320" y1="200" x2="192" y2="118"/>
+          <line x1="0" y1="160" x2="106" y2="122"/><line x1="320" y1="160" x2="214" y2="122"/>
+          <line x1="96" y1="74" x2="96" y2="132"/><line x1="224" y1="74" x2="224" y2="132"/>
+        </g>
+        <g fill="#8ff0ff" opacity=".55">
+          <rect x="140" y="76" width="40" height="3" rx="1.5"/>
+          <rect x="128" y="60" width="64" height="3" rx="1.5" opacity=".7"/>
+          <rect x="112" y="38" width="96" height="4" rx="2" opacity=".45"/>
+        </g>
+        <polygon points="140,79 180,79 200,132 120,132" fill="#8ff0ff" opacity=".10"/>
+        <rect x="146" y="94" width="28" height="38" fill="url(#fp-door)" opacity=".85"/>
+        <rect x="146" y="94" width="28" height="38" fill="none" stroke="#bff6ff" stroke-width="1"/>
+        <ellipse cx="160" cy="118" rx="46" ry="30" fill="#8ff0ff" opacity=".12"/>
+        <g fill="#050810">
+          <rect x="196" y="98" width="9" height="10" rx="3"/>
+          <rect x="193" y="108" width="15" height="17" rx="3"/>
+          <rect x="195" y="125" width="4" height="12"/><rect x="202" y="125" width="4" height="12"/>
+        </g>
+        <rect x="192" y="92" width="17" height="2.5" rx="1.25" fill="#ff4d6b"/>
+        <g>
+          <polygon points="214,200 236,158 300,150 320,200" fill="url(#fp-gun)"/>
+          <polygon points="236,158 300,150 306,142 246,148" fill="#5d697f"/>
+          <rect x="222" y="140" width="58" height="10" rx="3" fill="#2b3242" transform="rotate(-8 251 145)"/>
+          <rect x="228" y="130" width="34" height="6" rx="3" fill="#39435a"/>
+          <polygon points="196,200 226,164 244,176 214,200" fill="#232b3a"/>
+          <line x1="240" y1="146" x2="300" y2="140" stroke="#00d0ff" stroke-width="1.5" opacity=".8"/>
+        </g>
+        <g stroke="#3ce8b0" stroke-width="1.6" opacity=".95">
+          <line x1="160" y1="102" x2="160" y2="110"/>
+          <line x1="160" y1="126" x2="160" y2="134"/>
+          <line x1="140" y1="118" x2="148" y2="118"/>
+          <line x1="172" y1="118" x2="180" y2="118"/>
+        </g>
+        <circle cx="160" cy="118" r="1.6" fill="#3ce8b0"/>
+        <g font-family="monospace" font-size="9" fill="#8ff0ff">
+          <rect x="18" y="176" width="70" height="5" rx="2.5" fill="#0d2438"/>
+          <rect x="18" y="176" width="48" height="5" rx="2.5" fill="#3ce8b0"/>
+          <text x="18" y="170" fill="#6f8ba8">HP 68</text>
+          <text x="256" y="180">24 / 90</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="info">
+      <div class="title-row">
+        <h1>제로 프론트</h1>
+        <span class="en">Zero Front · FPS</span>
+      </div>
+      <p class="desc">
+        버려진 궤도 정거장을 무대로 한 1인칭 슈팅입니다.
+        광원과 반사가 실시간으로 계산되어, 어두운 통로에서는 총구 불빛이 그대로 위치를 알려줍니다.
+        게임 본체는 아직 준비 중입니다.
+      </p>
+
+      <div class="bar-label"><span>BUILD PROGRESS</span><b>준비 중</b></div>
+      <div class="bar"><span></span></div>
+
+      <dl class="specs">
+        <div class="spec"><dt>Genre</dt><dd>1인칭 슈팅</dd></div>
+        <div class="spec"><dt>Renderer</dt><dd>Ray-traced GI</dd></div>
+        <div class="spec"><dt>Players</dt><dd>1 – 10인</dd></div>
+        <div class="spec"><dt>Control</dt><dd>키보드 · 마우스</dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <footer><p>2026 AX 강의 · 요즘 오락실</p></footer>
+</div>
+
+</body>
+</html>
