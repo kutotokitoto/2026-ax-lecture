@@ -4,7 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
+<meta name="description" content="부품 측정 더미 데이터를 통계 차트 7종이 연동 해부하는 품질 분석 대시보드">
 <title>Quality Lab — 품질 데이터 분석 대시보드</title>
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="%232a78d6"/><path d="M7 20v5h4v-5zM14 12v13h4V12zM21 7v18h4V7z" fill="%23fff"/></svg>'>
 <script src="https://cdn.plot.ly/plotly-3.7.0.min.js" charset="utf-8"
         onerror="window.__plotlyFailed=true"></script>
 <style>
@@ -63,11 +65,15 @@
   }
   .brand .back:hover { color: var(--accent); }
   .brand h1 {
-    margin: 1px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 2px 0 0;
     font-size: 19px;
     font-weight: 700;
     letter-spacing: -0.02em;
   }
+  .brand .logo { width: 22px; height: 22px; flex: 0 0 auto; border-radius: 5px; }
   .brand h1 small {
     font-size: 12px;
     font-weight: 500;
@@ -101,6 +107,7 @@
     font-weight: 700;
     line-height: 1.25;
     letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
   .kpi .k-value small { font-size: 13px; font-weight: 600; color: var(--ink-2); }
@@ -235,13 +242,20 @@
   }
   .insight b { color: var(--ink); font-weight: 600; }
 
+  /* ── 관리도 스트립 (전폭) ───────────────── */
+  .strip {
+    flex: 0 0 auto;
+    margin: 12px 20px 0;
+    height: 180px;
+  }
+
   /* ── 차트 그리드 ────────────────────────── */
   main {
     flex: 1 1 auto;
-    min-height: 700px;
+    min-height: 620px;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(2, minmax(300px, 1fr));
+    grid-template-rows: repeat(2, minmax(280px, 1fr));
     gap: 12px;
     padding: 12px 20px 16px;
   }
@@ -273,6 +287,17 @@
     color: var(--ink-2);   /* 프로젝터 가독성: 조작 안내가 가장 잘 보여야 한다 */
   }
   .chart { flex: 1 1 auto; min-height: 0; min-width: 0; }
+  /* Plotly가 그리기 전 로딩 안내 (CDN 지연 시 빈 카드 방지) */
+  .chart:empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .chart:empty::before {
+    content: '차트 로딩 중…';
+    font-size: 12.5px;
+    color: var(--muted);
+  }
 
   @media (max-width: 1500px) {
     body { height: auto; min-height: 100vh; }
@@ -310,7 +335,10 @@
 <header>
   <div class="brand">
     <a class="back" href="../../index.html">← 목록으로</a>
-    <h1>Quality Lab <small>부품 측정 품질 분석 · 시뮬레이션 데모</small></h1>
+    <h1>
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#2a78d6"/><path d="M7 20v5h4v-5zM14 12v13h4V12zM21 7v18h4V7z" fill="#fff"/></svg>
+      Quality Lab <small>부품 측정 품질 분석 · 시뮬레이션 데모</small>
+    </h1>
   </div>
   <div class="kpis">
     <div class="kpi" id="kpi-n">
@@ -351,10 +379,16 @@
   <select id="lot"><option value="">전체 로트</option></select>
   <div class="spacer"></div>
   <span class="seed-tag" id="seed-tag">seed –</span>
+  <button class="btn" id="btn-csv" title="현재 필터 상태의 데이터를 CSV로 저장">CSV 내보내기</button>
   <button class="btn" id="btn-reset">필터 초기화</button>
   <button class="btn primary" id="btn-regen">데이터 재생성</button>
   <div class="insight"><span class="tag">자동 진단</span><span id="insight-text">–</span></div>
 </div>
+
+<section class="card strip">
+  <h2>공정 관리도 X̄ <span class="hint">군 크기 n=5 · 로트당 2군, 투입 순서 · 관리한계 ±3σ̂/√5 · 점 클릭 = 로트 격리</span></h2>
+  <div class="chart" id="chart-control"></div>
+</section>
 
 <main>
   <section class="card">
@@ -636,8 +670,10 @@ function histogram(dims, edges) {
   const counts = new Array(edges.length - 1).fill(0);
   for (const d of dims) {
     // +1e-9: 규격 경계값(예: 정확히 9.8500)이 부동소수점 오차로 아래 빈에
-    // 떨어지지 않게 스냅 — oos의 엄격 부등호 규약과 빈 색이 일치한다
+    // 떨어지지 않게 스냅. USL 정확값은 규격 내(oos 엄격 부등호)이므로 아래 빈으로 —
+    // 이 두 규칙으로 빈 색 합계와 '규격 밖 N건' 카운트가 항상 일치한다.
     let i = Math.floor((d - edges[0]) / (edges[1] - edges[0]) + 1e-9);
+    if (d === SPEC.USL) i -= 1;
     if (i < 0) i = 0; if (i > counts.length - 1) i = counts.length - 1;
     counts[i]++;
   }
@@ -1103,8 +1139,11 @@ function pareto(records) {
         type: 'scatter', mode: 'lines+markers+text', name: '누적',
         x: p.map(d => d.name), y: p.map(d => d.cum),
         line: { color: C.ink2, width: 2 }, marker: { size: 6, color: C.ink2 },
+        // 첫 포인트 라벨은 생략 — 막대 높이가 곧 누적 시작값이라 중복이고,
+        // 어디에 놓아도 건수 라벨·상승선과 겹친다 (호버로 확인 가능)
         text: p.map((d, i) => i === 0 ? '' : `${d.cum.toFixed(0)}%`),
-        textposition: 'top center', textfont: { size: 11, color: C.muted },
+        textposition: 'top center',
+        textfont: { size: 11, color: C.muted },
         hovertemplate: '누적 %{y:.1f}%<extra></extra>',
       },
     ];
@@ -1117,6 +1156,118 @@ function pareto(records) {
       showarrow: false, font: { size: 10.5, color: C.muted },
     }];
     return { data, layout };
+  }
+
+  /* ── ⑦ 로트별 X̄ 관리도 (전폭 스트립) ─────── */
+  function lotOrder() {
+    // 생산 투입 순서처럼 인터리브: L1-01, L2-01, L3-01, L4-01, L1-02, …
+    const lots = [];
+    for (let k = 1; k <= 5; k++) for (const L of LINES) lots.push(`${L}-${String(k).padStart(2, '0')}`);
+    return lots;
+  }
+  function buildControl() {
+    // 고전 X̄ 관리도: 군 크기 n=5, 로트당 앞 2개 군을 투입 순서로 표시 (총 40점).
+    // 군내 변동(s̄/c4) 기반 한계라 로트 단위 X̄(n=200)와 달리 "나쁜 라인"의
+    // 군들만 주로 걸린다 — 정상 라인의 ±15µm 이내 치우침은 공통원인으로 남는다.
+    const nSub = 5, subsPerLot = 2, c4 = 0.94;   // c4: n=5 불편화 계수
+    const lots = lotOrder();
+    const byLot = new Map(lots.map(l => [l, []]));
+    for (const r of state.raw) byLot.get(r.lot).push(r.dim);
+    const pts = [];
+    for (const l of lots) {
+      const d = byLot.get(l);
+      for (let s = 0; s < subsPerLot; s++) {
+        const grp = d.slice(s * nSub, (s + 1) * nSub);
+        pts.push({ lot: l, line: l.slice(0, 2), mean: mean(grp), s: sd(grp) });
+      }
+    }
+    const xs = pts.map((p, i) => i + 1);
+    const grand = mean(pts.map(p => p.mean));
+    const sigmaHat = mean(pts.map(p => p.s)) / c4;
+    const half = 3 * sigmaHat / Math.sqrt(nSub);
+    const UCL = grand + half, LCL = grand - half;
+    const violIdx = pts.map((p, i) => (p.mean > UCL || p.mean < LCL) ? i : -1).filter(i => i >= 0);
+
+    const layout = Object.assign(baseLayout(), {
+      margin: { l: 54, r: 46, t: 6, b: 24 },
+      xaxis: axis('', {
+        tickfont: { size: 10.5, color: C.ink2 }, showgrid: false,
+        tickvals: xs.filter((x, i) => i % subsPerLot === 0),
+        ticktext: pts.filter((p, i) => i % subsPerLot === 0).map(p => p.lot),
+        range: [0.2, pts.length + 0.8],
+      }),
+      yaxis: axis('X̄ (mm)', { tickformat: '.2f', nticks: 4 }),
+      shapes: [
+        { type: 'line', x0: 0, x1: 1, xref: 'paper', y0: grand, y1: grand, line: { color: C.ink2, width: 1.2 } },
+        { type: 'line', x0: 0, x1: 1, xref: 'paper', y0: UCL, y1: UCL, line: { color: C.critical, width: 1.2, dash: 'dash' } },
+        { type: 'line', x0: 0, x1: 1, xref: 'paper', y0: LCL, y1: LCL, line: { color: C.critical, width: 1.2, dash: 'dash' } },
+      ],
+      annotations: [
+        { text: 'UCL', xref: 'paper', x: 1.002, y: UCL, xanchor: 'left', showarrow: false, font: { size: 10, color: C.critical } },
+        { text: 'CL', xref: 'paper', x: 1.002, y: grand, xanchor: 'left', showarrow: false, font: { size: 10, color: C.ink2 } },
+        { text: 'LCL', xref: 'paper', x: 1.002, y: LCL, xanchor: 'left', showarrow: false, font: { size: 10, color: C.critical } },
+      ],
+    });
+    if (violIdx.length) {
+      const violLines = [...new Set(violIdx.map(i => pts[i].line))].join('·');
+      layout.annotations.push({
+        text: `관리 이탈 <b>${violIdx.length}</b>군 (${violLines})`,
+        xref: 'paper', yref: 'paper', x: 0.005, y: 0.97, xanchor: 'left', showarrow: false,
+        font: { size: 11.5, color: C.critical }, bgcolor: 'rgba(252,252,251,.85)',
+      });
+    }
+    const data = [
+      { // 연결선 (시간 축 감각)
+        type: 'scatter', mode: 'lines', x: xs, y: pts.map(p => p.mean),
+        line: { color: C.baseline, width: 1.2 }, hoverinfo: 'skip',
+      },
+      { // 군 평균 — 색은 라인(엔티티) 고정 맵
+        type: 'scatter', mode: 'markers', x: xs, y: pts.map(p => p.mean),
+        marker: {
+          size: 8, color: pts.map(p => C.line[p.line]),
+          opacity: pts.map(p => state.filters.lines.has(p.line) ? 0.95 : 0.22),
+          line: { color: C.surface, width: 1 },
+        },
+        customdata: pts.map(p => p.lot),
+        hovertemplate: '%{customdata} · X̄ %{y:.4f} mm · n=' + nSub + '<extra></extra>',
+      },
+    ];
+    if (violIdx.length) {  // 관리 이탈 군: 적색 링 (색+모양 이중 부호화)
+      data.push({
+        type: 'scatter', mode: 'markers',
+        x: violIdx.map(i => xs[i]), y: violIdx.map(i => pts[i].mean),
+        marker: { symbol: 'circle-open', size: 14, color: C.critical, line: { width: 2 } },
+        hoverinfo: 'skip',
+      });
+    }
+    if (state.filters.lot) {  // 격리 중인 로트의 군들: 잉크 링
+      const sel = pts.map((p, i) => p.lot === state.filters.lot ? i : -1).filter(i => i >= 0);
+      if (sel.length) data.push({
+        type: 'scatter', mode: 'markers',
+        x: sel.map(i => xs[i]), y: sel.map(i => pts[i].mean),
+        marker: { symbol: 'circle-open', size: 18, color: C.ink, line: { width: 2 } },
+        hoverinfo: 'skip',
+      });
+    }
+    return { data, layout };
+  }
+
+  /* ── CSV 내보내기 (현재 필터 상태 기준) ──── */
+  function buildCsv() {
+    const v = view();
+    const head = 'id,line,lot,dim_mm,step_um,x_mm,y_mm,temp_c,defect,defect_type';
+    const rows = v.map(r => [r.id, r.line, r.lot, r.dim, r.step, r.x, r.y, r.temp,
+      r.defect ? 1 : 0, r.defectType || ''].join(','));
+    return head + '\n' + rows.join('\n');
+  }
+  function exportCsv() {
+    const filtered = state.filters.lot || state.filters.lines.size < LINES.length;
+    const blob = new Blob(['﻿' + buildCsv()], { type: 'text/csv;charset=utf-8' });  // BOM: 엑셀 한글 대비
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `quality-lab_seed${state.seed}${filtered ? '_filtered' : ''}.csv`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 500);
   }
 
   /* ── KPI · 진단 · 컨트롤 ─────────────────── */
@@ -1144,6 +1295,7 @@ function pareto(records) {
   function updateKpis(v) {
     const selN = state.selection ? state.selection.size : 0;
     const selRecs = state.selection ? v.filter(r => state.selection.has(r.id)) : [];
+    const isFiltered = v.length !== state.raw.length;
 
     const tN = $('kpi-n');
     setKpiValue(tN, v.length, (x) => fmtN(Math.round(x)));
@@ -1152,6 +1304,7 @@ function pareto(records) {
     tN.querySelector('.k-sub').classList.toggle('sel', !!selN);
 
     const cap = processCapability(v.map(r => r.dim));
+    const capAll = isFiltered ? processCapability(state.raw.map(r => r.dim)) : cap;
     const tM = $('kpi-mean');
     if (cap) setKpiValue(tM, cap.mean, (x) => x.toFixed(3), ` <small>· σ ${cap.sd.toFixed(3)}</small>`);
     else setKpiValue(tM, NaN, () => '–');
@@ -1162,21 +1315,34 @@ function pareto(records) {
       const st = cap.cpk >= 1.33 ? ['st-good', '✓ 양호'] : cap.cpk >= 1.0 ? ['st-warning', '! 주의'] : ['st-critical', '✕ 개선 필요'];
       tC.classList.add(st[0]);
       setKpiValue(tC, cap.cpk, (x) => x.toFixed(2), ` <span class="badge">${st[1]}</span>`);
-      tC.querySelector('.k-sub').textContent = `Cp ${cap.cp.toFixed(2)}`;
+      // 필터 중엔 전체와의 비교가 더 유용하다
+      tC.querySelector('.k-sub').textContent = isFiltered && capAll
+        ? `전체 Cpk ${capAll.cpk.toFixed(2)}` : `Cp ${cap.cp.toFixed(2)}`;
     } else {
       setKpiValue(tC, NaN, () => '–');
       tC.querySelector('.k-sub').textContent = '표본 부족';
     }
 
     const defN = v.filter(r => r.defect).length;
+    const defRate = v.length ? 100 * defN / v.length : NaN;
     const tD = $('kpi-def');
-    setKpiValue(tD, v.length ? 100 * defN / v.length : NaN, (x) => x.toFixed(1), ' <small>%</small>');
-    tD.querySelector('.k-sub').textContent = selN
-      ? `선택 내 불량 ${selRecs.filter(r => r.defect).length}건`
-      : `불량 ${fmtN(defN)}건`;
-    tD.querySelector('.k-sub').classList.toggle('sel', !!selN);
+    setKpiValue(tD, defRate, (x) => x.toFixed(1), ' <small>%</small>');
+    const dSub = tD.querySelector('.k-sub');
+    if (selN) {
+      dSub.textContent = `선택 내 불량 ${selRecs.filter(r => r.defect).length}건`;
+    } else if (isFiltered && v.length) {
+      const allRate = 100 * state.raw.filter(r => r.defect).length / state.raw.length;
+      const dr = Math.round((defRate - allRate) * 10) / 10;   // 반올림 후 부호 판정 ('-0.0' 방지)
+      dSub.textContent = `전체 ${allRate.toFixed(1)}% 대비 ${dr > 0 ? '+' : ''}${dr.toFixed(1)}%p`;
+    } else {
+      dSub.textContent = `불량 ${fmtN(defN)}건`;
+    }
+    dSub.classList.toggle('sel', !!selN);
 
-    setKpiValue($('kpi-oos'), cap ? cap.oos : NaN, (x) => fmtN(Math.round(x)));
+    const tO = $('kpi-oos');
+    setKpiValue(tO, cap ? cap.oos : NaN, (x) => fmtN(Math.round(x)));
+    tO.querySelector('.k-sub').textContent = (isFiltered && cap && capAll)
+      ? `전체 ${fmtN(capAll.oos)}건 중` : 'USL/LSL 초과';
   }
 
   // 자동 진단: 파라미터가 아니라 "데이터에서" 계산 (재생성 시에만 갱신)
@@ -1236,6 +1402,7 @@ function pareto(records) {
     ];
     if (scope === 'data') {
       jobs.push(draw('chart-box', buildBox(), CFG_2D));
+      jobs.push(draw('chart-control', buildControl(), CFG_2D));
       jobs.push(draw('chart-scatter', buildScatter(v), CFG_SCATTER));
       if (lastSurfaceSeed !== state.seed) {   // 서피스는 재생성 때만
         lastSurfaceSeed = state.seed;
@@ -1287,6 +1454,13 @@ function pareto(records) {
         });
       });
     }
+    if (id === 'chart-control') {
+      gd.on('plotly_click', (ev) => {
+        const lot = ev && ev.points && ev.points[0] && ev.points[0].customdata;
+        if (!lot) return;   // 연결선·링 트레이스 클릭은 무시 (customdata 없음)
+        setFilters(f => { f.lot = (f.lot === lot) ? '' : lot; });   // 재클릭 = 해제
+      });
+    }
   }
 
   function bindControls() {
@@ -1300,6 +1474,7 @@ function pareto(records) {
       f.lines = new Set(LINES); f.lot = '';
     }));
     $('btn-regen').addEventListener('click', () => regenerate());
+    $('btn-csv').addEventListener('click', exportCsv);
   }
 
   /* ── 리사이즈: ResizeObserver + debounce ── */
@@ -1323,9 +1498,13 @@ function pareto(records) {
     const assert = (name, cond) => out.push({ name, pass: !!cond });
     await sleep(600);
 
-    assert('charts-drawn', ['chart-hist', 'chart-box', 'chart-scatter', 'chart-heat', 'chart-surface', 'chart-pareto']
+    assert('charts-drawn', ['chart-hist', 'chart-box', 'chart-scatter', 'chart-heat', 'chart-surface', 'chart-pareto', 'chart-control']
       .every(id => $(id).data && $(id).data.length >= 1 && $(id)._fullLayout));
     assert('raw-4000', state.raw.length === 4000);
+    assert('csv-integrity', (() => {
+      const lines = buildCsv().split('\n');
+      return lines.length === view().length + 1 && lines[0].startsWith('id,line,lot');
+    })());
 
     // 라인 격리
     setFilters(f => { f.lines = new Set(['L2']); });
@@ -1351,6 +1530,10 @@ function pareto(records) {
     setFilters(f => { f.lines = new Set(LINES); f.lot = 'L1-01'; });
     await sleep(500);
     assert('filter-lot', view().length === 200);
+    // 로트↔라인 종속: 로트의 라인을 끄면 다시 켜져 빈 교집합이 안 생긴다
+    setFilters(f => { f.lines = new Set(['L2']); });   // lot=L1-01 유지 중
+    await sleep(400);
+    assert('lot-line-guard', state.filters.lines.has('L1') && view().length === 200);
 
     // 재생성 (고정 시드)
     const prevFirst = state.raw[0].dim;
@@ -1391,6 +1574,15 @@ function pareto(records) {
     const seed = q.has('seed') ? (parseInt(q.get('seed'), 10) >>> 0) : 20260811;
     bindControls();
     regenerate(seed);
+    // 딥링크: ?line=L3 / ?lot=L3-01 — 강의 슬라이드에서 특정 상태로 바로 연다
+    // (셀프테스트는 정해진 초기 상태를 전제하므로 딥링크와 조합하지 않는다)
+    const qLine = (q.get('line') || '').toUpperCase(), qLot = (q.get('lot') || '').toUpperCase();
+    if (!q.has('selftest') && (LINES.includes(qLine) || /^L[1-4]-0[1-5]$/.test(qLot))) {
+      setFilters(f => {
+        if (LINES.includes(qLine)) f.lines = new Set([qLine]);
+        if (/^L[1-4]-0[1-5]$/.test(qLot)) f.lot = qLot;
+      });
+    }
     bindResize();
     window.__qlab = { state, view, setFilters, setSelection, regenerate };  // 디버그·검증용
     if (q.has('selftest')) selftest();
