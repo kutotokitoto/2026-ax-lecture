@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2026 AX 강의 — 바이브 코딩</title>
+<meta name="description" content="바이브 코딩 강의본과 예제 웹앱 모음">
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-soft: #f6f7f9;
+    --card: #ffffff;
+    --border: #e4e6ea;
+    --border-strong: #d2d6dc;
+    --text: #16181d;
+    --text-soft: #5c626c;
+    --text-faint: #8b919b;
+    --accent: #2f5cff;
+    --accent-soft: #eef2ff;
+    --shadow: 0 1px 2px rgba(16, 18, 24, .04), 0 8px 24px rgba(16, 18, 24, .06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1013;
+      --bg-soft: #14171c;
+      --card: #171a20;
+      --border: #262a32;
+      --border-strong: #343a44;
+      --text: #eceef2;
+      --text-soft: #a2a9b5;
+      --text-faint: #737b88;
+      --accent: #7f9bff;
+      --accent-soft: #1b2237;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
+                 "Malgun Gothic", system-ui, sans-serif;
+    line-height: 1.65;
+    letter-spacing: -0.01em;
+  }
+
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Header ───────────────────────────────── */
+  header {
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-soft);
+  }
+  .head-inner { padding: 72px 0 56px; }
+  .eyebrow {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 999px;
+    padding: 5px 12px;
+    margin: 0 0 20px;
+  }
+  h1 {
+    margin: 0 0 14px;
+    font-size: clamp(30px, 5vw, 44px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.25;
+  }
+  .lede {
+    margin: 0;
+    max-width: 60ch;
+    font-size: 16px;
+    color: var(--text-soft);
+  }
+
+  /* ── Sections ─────────────────────────────── */
+  section { padding: 56px 0; }
+  section + section { border-top: 1px solid var(--border); }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .sec-note { margin: 0; font-size: 14px; color: var(--text-faint); }
+
+  /* ── Cards ────────────────────────────────── */
+  .grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+  .card {
+    display: block;
+    position: relative;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--card);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+  }
+  .card:hover, .card:focus-visible {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    outline: none;
+  }
+  .card:focus-visible { border-color: var(--accent); }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 26px;
+    padding: 0 9px;
+    margin-bottom: 12px;
+    border-radius: 7px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+  }
+  .card h3 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .card p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-soft);
+  }
+  .arrow {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: var(--text-faint);
+    font-size: 15px;
+    transition: transform .15s ease, color .15s ease;
+  }
+  .card:hover .arrow { transform: translateX(3px); color: var(--accent); }
+
+  /* ── Footer ───────────────────────────────── */
+  footer {
+    border-top: 1px solid var(--border);
+    background: var(--bg-soft);
+    padding: 28px 0 40px;
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+  footer p { margin: 0; }
+
+  @media (max-width: 560px) {
+    .head-inner { padding: 48px 0 40px; }
+    section { padding: 40px 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap head-inner">
+    <p class="eyebrow">2026 AX Lecture</p>
+    <h1>바이브 코딩 강의본과 예제</h1>
+    <p class="lede">
+      강의본 6개와 예제 웹앱 8개로 구성했습니다. 각 항목은 독립된 페이지이며,
+      아래에서 바로 열 수 있습니다.
+    </p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section id="lectures">
+    <div class="sec-head">
+      <h2>강의본</h2>
+      <p class="sec-note">Lecture 01 – 06</p>
+    </div>
+    <div class="grid">
+      <a class="card" href="lectures/lecture-01/index.html">
+        <span class="arrow">→</span>
+        <span class="badge">01</span>
+        <h3>강의 01</h3>
+        <p>내용 준비 중입니다.</p>
+      </a>
+      <a class="card" href="lectures/lecture-02/index.html">
+        <span class="arrow">→</span>
+        <span class="badge">02</span>
+        <h3>강의 02</h3>
+        <p>내용 준비 중입니다.</p>
+      </a>
+      <a class="card" href="lectures/lecture-03/index.html">
+        <span class="arrow">→</span>
+        <span class="badge">03</span>
+        <h3>강의 03</h3>
+        <p>내용 준비 중입니다.</p>
+      </a>
+      <a class="card" href="lectures/lecture-04/index.html">
+        <span class="arrow">→</span>
+        <span class="badge">04</span>
+        <h3>강의 04</h3>
+        <p>내용 준비 중입니다.</p>
+      </a>
+      <a class="card" href="lectures/lecture-05/index.html">
+        <span class="arrow">→</span>
+        <span class="badge">05</span>
+        <h3>강의 05</h3>
+        <p>내용 준비 중입니다.</p>
+      </a>
+      <a class="card" href="lectures/lecture-06/index.html">
+        <span class="arrow">→</span>
+        <span class="badge">06</span>
+        <h3>강의 06</h3>
+        <p>내용 준비 중입니다.</p>
+      </a>
+    </div>
+  </section>
+
+  <section id="apps">
+    <div class="sec-head">
+      <h2>예제 웹앱</h2>
+      <p class="sec-note">App A – H</p>
+    </div>
+    <div class="grid">
+      <a class="card" href="apps/app-a/index.html">
+        <span class="arrow">→</span>
+        <span class="badge">A</span>
+        <h3>예제 A</h3>
+        <p>내용 준비 중입니다.</p>
+      </a>
+      <a class="card" href="apps/app-b/index.html">
+        <span class="arrow">→</span>
+        <span class="badge">B</span>
+        <h3>예제 B</h3>
+        <p>내용 준비 중입니다.</p>
+      </a>
+      <a class="card" href="apps/app-c/index.html">
+        <span class="arrow">→</span>
+        <span class="badge">C</span>
+        <h3>예제 C</h3>
+        <p>내용 준비 중입니다.</p>
+      </a>
+      <a class="card" href="apps/app-d/index.html">
+        <span class="arrow">→</span>
+        <span class="badge">D</span>
+        <h3>예제 D</h3>
+        <p>내용 준비 중입니다.</p>
+      </a>
+      <a class="card" href="apps/app-e/index.html">
+        <span class="arrow">→</span>
+        <span class="badge">E</span>
+        <h3>예제 E</h3>
+        <p>내용 준비 중입니다.</p>
+      </a>
+      <a class="card" href="apps/app-f/index.html">
+        <span class="arrow">→</span>
+        <span class="badge">F</span>
+        <h3>예제 F</h3>
+        <p>내용 준비 중입니다.</p>
+      </a>
+      <a class="card" href="apps/app-g/index.html">
+        <span class="arrow">→</span>
+        <span class="badge">G</span>
+        <h3>예제 G</h3>
+        <p>내용 준비 중입니다.</p>
+      </a>
+      <a class="card" href="apps/app-h/index.html">
+        <span class="arrow">→</span>
+        <span class="badge">H</span>
+        <h3>예제 H</h3>
+        <p>내용 준비 중입니다.</p>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>2026 AX 강의 · 바이브 코딩</p>
+  </div>
+</footer>
+
+</body>
+</html>
