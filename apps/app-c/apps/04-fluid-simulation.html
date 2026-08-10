@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<!-- 04 · 유체 시뮬레이션 — Stable Fluids GPU (단일 파일, 외부 요청 0)
+     다크 단일 룩 고정: 저장소 규칙 4의 의도적 예외(프로젝터 대비) -->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>04 · 유체 시뮬레이션 — 인터랙티브 아트</title>
+<style>
+  :root{
+    --bg0:#05060d; --bg1:#0c0f1a; --line:rgba(255,255,255,.10);
+    --text:#edf1ff; --text-soft:#9aa4c2;
+    --c4:#ff4fa0; /* 04 유체 — 마젠타 시그니처 */
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ width:100%; height:100%; overflow:hidden; }
+  body{
+    background:var(--bg0); color:var(--text);
+    font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+    user-select:none; -webkit-user-select:none;
+  }
+  #view{ position:fixed; inset:0; width:100%; height:100%; display:block;
+         background:var(--bg0); touch-action:none; cursor:crosshair; }
+  /* 프로젝터용 미세 비네트 */
+  .vignette{ position:fixed; inset:0; pointer-events:none; z-index:1;
+    background:radial-gradient(ellipse at 50% 46%, transparent 58%, rgba(0,0,0,.38) 100%); }
+
+  .ui{ position:fixed; z-index:3; transition:opacity .5s ease; }
+  body.ui-idle .ui.fadeable{ opacity:0; }
+
+  .title{ top:18px; left:22px; font-size:15px; letter-spacing:.02em; color:var(--text-soft); }
+  .title b{ color:var(--c4); font-weight:800; margin-right:8px; }
+  .title span{ color:var(--text); font-weight:600; }
+
+  .hub{ bottom:16px; left:22px; }
+  .hub a{
+    color:var(--text-soft); text-decoration:none; font-size:13.5px;
+    padding:7px 12px; border:1px solid var(--line); border-radius:999px;
+    background:rgba(12,15,26,.6); backdrop-filter:blur(4px);
+  }
+  .hub a:hover{ color:var(--text); border-color:var(--c4); }
+
+  .badge{
+    bottom:16px; right:22px; display:none; text-align:right;
+    font-size:12.5px; color:var(--text-soft); font-variant-numeric:tabular-nums;
+    background:rgba(12,15,26,.72); border:1px solid var(--line);
+    border-radius:10px; padding:7px 11px; line-height:1.5;
+  }
+  .badge b{ color:var(--text); }
+  .badge .q{ color:var(--c4); font-weight:700; }
+  body.show-badge .badge{ display:block; }
+
+  .modebadge{
+    top:18px; right:22px; display:none; font-size:12.5px; color:#ffd7e9;
+    background:rgba(255,79,160,.14); border:1px solid rgba(255,79,160,.45);
+    border-radius:999px; padding:6px 12px;
+  }
+  .modebadge.on{ display:block; }
+
+  .toast{
+    left:50%; bottom:64px; transform:translateX(-50%) translateY(8px);
+    background:rgba(12,15,26,.88); border:1px solid var(--line); border-radius:12px;
+    color:var(--text); font-size:14px; padding:10px 18px; opacity:0;
+    pointer-events:none; transition:opacity .35s ease, transform .35s ease;
+    white-space:nowrap; z-index:6;
+  }
+  .toast.on{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast em{ color:var(--c4); font-style:normal; font-weight:700; }
+
+  .help{
+    inset:0; display:none; place-items:center; z-index:7;
+    background:rgba(5,6,13,.72); backdrop-filter:blur(3px);
+  }
+  .help.on{ display:grid; }
+  .help .card{
+    min-width:300px; max-width:420px; background:var(--bg1);
+    border:1px solid var(--line); border-top:3px solid var(--c4);
+    border-radius:14px; padding:22px 26px 18px;
+    box-shadow:0 18px 60px rgba(0,0,0,.6);
+  }
+  .help h2{ font-size:16px; margin-bottom:14px; }
+  .help h2 b{ color:var(--c4); margin-right:8px; }
+  .help table{ border-collapse:collapse; width:100%; font-size:13.5px; }
+  .help td{ padding:4.5px 0; color:var(--text-soft); }
+  .help td:first-child{ width:92px; color:var(--text); }
+  .help kbd{
+    display:inline-block; min-width:22px; text-align:center;
+    border:1px solid var(--line); border-bottom-width:2px; border-radius:5px;
+    padding:1px 6px; font-size:12px; font-family:inherit; background:rgba(255,255,255,.05);
+  }
+  .help .foot{ margin-top:14px; font-size:12px; color:var(--text-soft); }
+
+  .errcard{
+    inset:0; display:none; place-items:center; z-index:9; background:rgba(5,6,13,.9);
+  }
+  .errcard.on{ display:grid; }
+  .errcard .card{
+    max-width:520px; margin:20px; background:var(--bg1); border:1px solid var(--line);
+    border-top:3px solid var(--c4); border-radius:14px; padding:24px 28px;
+  }
+  .errcard h2{ font-size:17px; margin-bottom:10px; }
+  .errcard p{ font-size:13.5px; color:var(--text-soft); line-height:1.6; margin-bottom:12px; }
+  .errcard pre{
+    max-height:140px; overflow:auto; font-size:11px; line-height:1.45;
+    background:rgba(0,0,0,.4); border:1px solid var(--line); border-radius:8px;
+    padding:10px; color:#ffb3d1; white-space:pre-wrap; word-break:break-all; margin-bottom:14px;
+  }
+  .errcard button{
+    font:inherit; font-size:13.5px; color:var(--text); background:rgba(255,79,160,.16);
+    border:1px solid rgba(255,79,160,.5); border-radius:9px; padding:8px 16px; cursor:pointer;
+  }
+  .errcard button:hover{ background:rgba(255,79,160,.28); }
+</style>
+</head>
+<body>
+<canvas id="view"></canvas>
+<div class="vignette"></div>
+
+<div class="ui fadeable title"><b>04</b><span>유체 시뮬레이션</span></div>
+<div class="ui fadeable hub"><a href="../index.html">← 허브</a></div>
+<div class="ui badge" id="badge"><b id="bdFps">--</b> fps · <span class="q" id="bdTier">--</span><br><span id="bdBack">--</span></div>
+<div class="ui modebadge" id="modeBadge">간이 모드 · Canvas2D</div>
+<div class="ui toast" id="toast"></div>
+
+<div class="help ui" id="help">
+  <div class="card">
+    <h2><b>04</b>유체 시뮬레이션 — 조작법</h2>
+    <table>
+      <tr><td>드래그</td><td>무지개 잉크 리본</td></tr>
+      <tr><td>휠</td><td>브러시 반경 조절</td></tr>
+      <tr><td><kbd>C</kbd></td><td>다색 버스트</td></tr>
+      <tr><td><kbd>B</kbd></td><td>블룸 켜기/끄기</td></tr>
+      <tr><td><kbd>Q</kbd></td><td>품질 수동 순환</td></tr>
+      <tr><td><kbd>R</kbd></td><td>화면 지우기(리셋)</td></tr>
+      <tr><td><kbd>Space</kbd></td><td>일시정지</td></tr>
+      <tr><td><kbd>F</kbd></td><td>전체화면</td></tr>
+      <tr><td><kbd>P</kbd></td><td>FPS/품질 배지</td></tr>
+      <tr><td><kbd>H</kbd></td><td>이 도움말</td></tr>
+    </table>
+    <div class="foot">4초간 가만히 두면 유체가 스스로 그림을 그립니다.</div>
+  </div>
+</div>
+
+<div class="errcard ui" id="errcard">
+  <div class="card">
+    <h2>그래픽 초기화에 실패했습니다</h2>
+    <p id="errMsg">이 기기의 그래픽 드라이버가 필요한 기능을 지원하지 않는 것으로 보입니다.
+       아래 버튼을 누르면 파티클 간이 모드로 계속 볼 수 있습니다.</p>
+    <pre id="errLog"></pre>
+    <button id="errFallback" type="button">간이 모드로 계속</button>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ========== 공용 유틸 · UI ========== */
+var canvas = document.getElementById('view');
+var toastEl = document.getElementById('toast');
+var helpEl = document.getElementById('help');
+var badgeFps = document.getElementById('bdFps');
+var badgeTier = document.getElementById('bdTier');
+var badgeBack = document.getElementById('bdBack');
+var modeBadge = document.getElementById('modeBadge');
+var reducedMotion = false;
+try{ reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+
+var toastTimer = 0;
+function showToast(html, ms){
+  toastEl.innerHTML = html;
+  toastEl.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ toastEl.classList.remove('on'); }, ms || 2000);
+}
+function hideToast(){ clearTimeout(toastTimer); toastEl.classList.remove('on'); }
+
+function storageGet(key){ try{ return localStorage.getItem(key); }catch(e){ return null; } }
+function storageSet(key, val){ try{ localStorage.setItem(key, val); }catch(e){} }
+
+/* HSV(0~1) → RGB 0~1 */
+function hsv2rgb(h, s, v){
+  var i = Math.floor(h * 6), f = h * 6 - i;
+  var p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
+  switch(i % 6){
+    case 0: return [v, t, p]; case 1: return [q, v, p]; case 2: return [p, v, t];
+    case 3: return [p, q, v]; case 4: return [t, p, v]; default: return [v, p, q];
+  }
+}
+
+/* 에러 카드 — 빈 화면 금지: 셰이더/컨텍스트 실패를 반드시 표면화 */
+function showErrorCard(logText){
+  var card = document.getElementById('errcard');
+  document.getElementById('errLog').textContent = (logText || '').slice(0, 1200) || '(로그 없음)';
+  card.classList.add('on');
+  document.getElementById('errFallback').onclick = function(){
+    card.classList.remove('on');
+    startCanvas2D();
+  };
+}
+
+/* UI 유휴 페이드 */
+var uiIdleTimer = 0;
+function wakeUi(){
+  document.body.classList.remove('ui-idle');
+  clearTimeout(uiIdleTimer);
+  uiIdleTimer = setTimeout(function(){ document.body.classList.add('ui-idle'); }, 3000);
+}
+window.addEventListener('pointermove', wakeUi);
+window.addEventListener('pointerdown', wakeUi);
+wakeUi();
+
+/* 프레임 중앙값 기반 품질 자동 하향(공통 패턴) — 워밍업 1.2s 버림, 26ms 초과 시 1단 하향, 자동 상향 없음 */
+function makeAutoQuality(onDowngrade){
+  var startTime = performance.now(), samples = [], settled = false;
+  return {
+    frame: function(frameMs){
+      if (settled) return;
+      var now = performance.now();
+      if (now - startTime < 1200) return;       /* 워밍업 */
+      if (frameMs > 250) return;                /* 탭 복귀 등 스파이크 제외 */
+      samples.push(frameMs);
+      if (samples.length < 72) return;
+      samples.sort(function(a, b){ return a - b; });
+      var median = samples[36];
+      samples = [];
+      if (median > 26){
+        var more = onDowngrade();               /* true면 더 내릴 여지 있음 */
+        startTime = performance.now();          /* 재측정 (워밍업 재시작) */
+        if (!more) settled = true;
+      } else {
+        settled = true;
+      }
+    },
+    restart: function(){ settled = false; samples = []; startTime = performance.now(); }
+  };
+}
+
+/* FPS 배지 */
+var fpsAcc = 0, fpsCnt = 0, fpsLast = performance.now();
+function fpsTick(frameMs){
+  fpsAcc += frameMs; fpsCnt++;
+  var now = performance.now();
+  if (now - fpsLast > 500 && fpsCnt > 0){
+    badgeFps.textContent = Math.round(1000 / (fpsAcc / fpsCnt));
+    fpsAcc = 0; fpsCnt = 0; fpsLast = now;
+  }
+}
+
+/* ========== 셰이더 소스 (GLSL ES 1.00 — WebGL1/2 공용) ========== */
+var SRC_BASE_VERT = [
+  'precision highp float;',
+  'attribute vec2 aPosition;',
+  'varying vec2 vUv; varying vec2 vL; varying vec2 vR; varying vec2 vT; varying vec2 vB;',
+  'uniform vec2 texelSize;',
+  'void main(){',
+  '  vUv = aPosition * 0.5 + 0.5;',
+  '  vL = vUv - vec2(texelSize.x, 0.0);',
+  '  vR = vUv + vec2(texelSize.x, 0.0);',
+  '  vT = vUv + vec2(0.0, texelSize.y);',
+  '  vB = vUv - vec2(0.0, texelSize.y);',
+  '  gl_Position = vec4(aPosition, 0.0, 1.0);',
+  '}'
+].join('\n');
+
+var SRC_COPY = [
+  'precision mediump float; precision mediump sampler2D;',
+  'varying vec2 vUv; uniform sampler2D uTexture;',
+  'void main(){ gl_FragColor = texture2D(uTexture, vUv); }'
+].join('\n');
+
+var SRC_CLEAR = [
+  'precision mediump float; precision mediump sampler2D;',
+  'varying vec2 vUv; uniform sampler2D uTexture; uniform float value;',
+  'void main(){ gl_FragColor = value * texture2D(uTexture, vUv); }'
+].join('\n');
+
+var SRC_SPLAT = [
+  'precision highp float; precision highp sampler2D;',
+  'varying vec2 vUv; uniform sampler2D uTarget;',
+  'uniform float aspectRatio; uniform vec3 color; uniform vec2 point; uniform float radius;',
+  'void main(){',
+  '  vec2 p = vUv - point; p.x *= aspectRatio;',
+  '  vec3 s = exp(-dot(p, p) / radius) * color;',
+  '  vec3 base = texture2D(uTarget, vUv).xyz;',
+  '  gl_FragColor = vec4(base + s, 1.0);',
+  '}'
+].join('\n');
+
+/* 이류 — 선형 필터 미지원(WebGL1 일부)이면 MANUAL_FILTERING로 수동 4탭 바이리니어 */
+var SRC_ADVECTION = [
+  'precision highp float; precision highp sampler2D;',
+  'varying vec2 vUv;',
+  'uniform sampler2D uVelocity; uniform sampler2D uSource;',
+  'uniform vec2 texelSize; uniform vec2 dyeTexelSize;',
+  'uniform float dt; uniform float dissipation;',
+  '#ifdef MANUAL_FILTERING',
+  'vec4 bilerp(sampler2D sam, vec2 uv, vec2 tsize){',
+  '  vec2 st = uv / tsize - 0.5;',
+  '  vec2 iuv = floor(st); vec2 fuv = fract(st);',
+  '  vec4 a = texture2D(sam, (iuv + vec2(0.5, 0.5)) * tsize);',
+  '  vec4 b = texture2D(sam, (iuv + vec2(1.5, 0.5)) * tsize);',
+  '  vec4 c = texture2D(sam, (iuv + vec2(0.5, 1.5)) * tsize);',
+  '  vec4 d = texture2D(sam, (iuv + vec2(1.5, 1.5)) * tsize);',
+  '  return mix(mix(a, b, fuv.x), mix(c, d, fuv.x), fuv.y);',
+  '}',
+  'void main(){',
+  '  vec2 coord = vUv - dt * bilerp(uVelocity, vUv, texelSize).xy * texelSize;',
+  '  vec4 result = bilerp(uSource, coord, dyeTexelSize);',
+  '#else',
+  'void main(){',
+  '  vec2 coord = vUv - dt * texture2D(uVelocity, vUv).xy * texelSize;',
+  '  vec4 result = texture2D(uSource, coord);',
+  '#endif',
+  '  float decay = 1.0 + dissipation * dt;',
+  '  gl_FragColor = result / decay;',
+  '}'
+].join('\n');
+
+var SRC_DIVERGENCE = [
+  'precision mediump float; precision mediump sampler2D;',
+  'varying vec2 vUv; varying vec2 vL; varying vec2 vR; varying vec2 vT; varying vec2 vB;',
+  'uniform sampler2D uVelocity;',
+  'void main(){',
+  '  float L = texture2D(uVelocity, vL).x;',
+  '  float R = texture2D(uVelocity, vR).x;',
+  '  float T = texture2D(uVelocity, vT).y;',
+  '  float B = texture2D(uVelocity, vB).y;',
+  '  vec2 C = texture2D(uVelocity, vUv).xy;',
+  '  if (vL.x < 0.0){ L = -C.x; }',
+  '  if (vR.x > 1.0){ R = -C.x; }',
+  '  if (vT.y > 1.0){ T = -C.y; }',
+  '  if (vB.y < 0.0){ B = -C.y; }',
+  '  float div = 0.5 * (R - L + T - B);',
+  '  gl_FragColor = vec4(div, 0.0, 0.0, 1.0);',
+  '}'
+].join('\n');
+
+var SRC_CURL = [
+  'precision mediump float; precision mediump sampler2D;',
+  'varying vec2 vUv; varying vec2 vL; varying vec2 vR; varying vec2 vT; varying vec2 vB;',
+  'uniform sampler2D uVelocity;',
+  'void main(){',
+  '  float L = texture2D(uVelocity, vL).y;',
+  '  float R = texture2D(uVelocity, vR).y;',
+  '  float T = texture2D(uVelocity, vT).x;',
+  '  float B = texture2D(uVelocity, vB).x;',
+  '  float vort = R - L - T + B;',
+  '  gl_FragColor = vec4(0.5 * vort, 0.0, 0.0, 1.0);',
+  '}'
+].join('\n');
+
+/* 소용돌이 강화 — CURL 30이 "우와" 담당 */
+var SRC_VORTICITY = [
+  'precision highp float; precision highp sampler2D;',
+  'varying vec2 vUv; varying vec2 vL; varying vec2 vR; varying vec2 vT; varying vec2 vB;',
+  'uniform sampler2D uVelocity; uniform sampler2D uCurl;',
+  'uniform float curl; uniform float dt;',
+  'void main(){',
+  '  float L = texture2D(uCurl, vL).x;',
+  '  float R = texture2D(uCurl, vR).x;',
+  '  float T = texture2D(uCurl, vT).x;',
+  '  float B = texture2D(uCurl, vB).x;',
+  '  float C = texture2D(uCurl, vUv).x;',
+  '  vec2 force = 0.5 * vec2(abs(T) - abs(B), abs(R) - abs(L));',
+  '  force /= length(force) + 0.0001;',
+  '  force *= curl * C; force.y *= -1.0;',
+  '  vec2 velocity = texture2D(uVelocity, vUv).xy;',
+  '  velocity += force * dt;',
+  '  velocity = min(max(velocity, -1000.0), 1000.0);',
+  '  gl_FragColor = vec4(velocity, 0.0, 1.0);',
+  '}'
+].join('\n');
+
+var SRC_PRESSURE = [
+  'precision mediump float; precision mediump sampler2D;',
+  'varying vec2 vUv; varying vec2 vL; varying vec2 vR; varying vec2 vT; varying vec2 vB;',
+  'uniform sampler2D uPressure; uniform sampler2D uDivergence;',
+  'void main(){',
+  '  float L = texture2D(uPressure, vL).x;',
+  '  float R = texture2D(uPressure, vR).x;',
+  '  float T = texture2D(uPressure, vT).x;',
+  '  float B = texture2D(uPressure, vB).x;',
+  '  float divergence = texture2D(uDivergence, vUv).x;',
+  '  float pressure = (L + R + B + T - divergence) * 0.25;',
+  '  gl_FragColor = vec4(pressure, 0.0, 0.0, 1.0);',
+  '}'
+].join('\n');
+
+var SRC_GRADIENT_SUBTRACT = [
+  'precision mediump float; precision mediump sampler2D;',
+  'varying vec2 vUv; varying vec2 vL; varying vec2 vR; varying vec2 vT; varying vec2 vB;',
+  'uniform sampler2D uPressure; uniform sampler2D uVelocity;',
+  'void main(){',
+  '  float L = texture2D(uPressure, vL).x;',
+  '  float R = texture2D(uPressure, vR).x;',
+  '  float T = texture2D(uPressure, vT).x;',
+  '  float B = texture2D(uPressure, vB).x;',
+  '  vec2 velocity = texture2D(uVelocity, vUv).xy;',
+  '  velocity.xy -= vec2(R - L, T - B);',
+  '  gl_FragColor = vec4(velocity, 0.0, 1.0);',
+  '}'
+].join('\n');
+
+var SRC_BLOOM_PREFILTER = [
+  'precision mediump float; precision mediump sampler2D;',
+  'varying vec2 vUv; uniform sampler2D uTexture;',
+  'uniform vec3 curve; uniform float threshold;',
+  'void main(){',
+  '  vec3 c = texture2D(uTexture, vUv).rgb;',
+  '  float br = max(c.r, max(c.g, c.b));',
+  '  float rq = clamp(br - curve.x, 0.0, curve.y);',
+  '  rq = curve.z * rq * rq;',
+  '  c *= max(rq, br - threshold) / max(br, 0.0001);',
+  '  gl_FragColor = vec4(c, 0.0);',
+  '}'
+].join('\n');
+
+var SRC_BLOOM_BLUR = [
+  'precision mediump float; precision mediump sampler2D;',
+  'varying vec2 vL; varying vec2 vR; varying vec2 vT; varying vec2 vB;',
+  'uniform sampler2D uTexture;',
+  'void main(){',
+  '  vec4 sum = texture2D(uTexture, vL) + texture2D(uTexture, vR)',
+  '           + texture2D(uTexture, vT) + texture2D(uTexture, vB);',
+  '  gl_FragColor = sum * 0.25;',
+  '}'
+].join('\n');
+
+var SRC_BLOOM_FINAL = [
+  'precision mediump float; precision mediump sampler2D;',
+  'varying vec2 vL; varying vec2 vR; varying vec2 vT; varying vec2 vB;',
+  'uniform sampler2D uTexture; uniform float intensity;',
+  'void main(){',
+  '  vec4 sum = texture2D(uTexture, vL) + texture2D(uTexture, vR)',
+  '           + texture2D(uTexture, vT) + texture2D(uTexture, vB);',
+  '  gl_FragColor = sum * 0.25 * intensity;',
+  '}'
+].join('\n');
+
+/* 표시 — 의사 노멀 셰이딩 + 블룸 합성 */
+var SRC_DISPLAY = [
+  'precision highp float; precision highp sampler2D;',
+  'varying vec2 vUv; varying vec2 vL; varying vec2 vR; varying vec2 vT; varying vec2 vB;',
+  'uniform sampler2D uTexture; uniform sampler2D uBloom;',
+  'uniform vec2 texelSize; uniform float uBloomIntensity;',
+  'void main(){',
+  '  vec3 c = texture2D(uTexture, vUv).rgb;',
+  '  vec3 lc = texture2D(uTexture, vL).rgb;',
+  '  vec3 rc = texture2D(uTexture, vR).rgb;',
+  '  vec3 tc = texture2D(uTexture, vT).rgb;',
+  '  vec3 bc = texture2D(uTexture, vB).rgb;',
+  '  float dx = length(rc) - length(lc);',
+  '  float dy = length(tc) - length(bc);',
+  '  vec3 n = normalize(vec3(dx, dy, length(texelSize)));',
+  '  float diffuse = clamp(dot(n, vec3(0.0, 0.0, 1.0)) + 0.7, 0.7, 1.0);',
+  '  c *= diffuse;',
+  '  vec3 bloom = texture2D(uBloom, vUv).rgb;',
+  '  bloom = pow(bloom, vec3(0.9)) * uBloomIntensity;',
+  '  c += bloom;',
+  '  gl_FragColor = vec4(c, 1.0);',
+  '}'
+].join('\n');
+
+/* ========== 컨텍스트 검사 사다리 ==========
+   1) WebGL2 + EXT_color_buffer_float
+   2) WebGL1 + OES_texture_half_float (±_linear — 없으면 수동 바이리니어)
+   3) 각 포맷은 1×1 테스트 FBO로 실검증 (확장만 광고하는 드라이버 방어)
+   4) 전부 실패 → Canvas2D 간이 모드 */
+var gl = null, isWebGL2 = false, supportLinear = false;
+var halfFloatType = 0, fmtRGBA = null, fmtRG = null, fmtR = null;
+
+/* 같은 캔버스에서 다른 종류 컨텍스트를 다시 얻을 수 없어 캔버스를 교체 */
+function freshCanvas(){
+  var nc = canvas.cloneNode(false);
+  canvas.parentNode.replaceChild(nc, canvas);
+  canvas = nc;
+  return nc;
+}
+
+function testRenderFormat(ctx, internalFormat, format, type){
+  var tex = ctx.createTexture();
+  ctx.bindTexture(ctx.TEXTURE_2D, tex);
+  ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST);
+  ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST);
+  ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE);
+  ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE);
+  ctx.texImage2D(ctx.TEXTURE_2D, 0, internalFormat, 1, 1, 0, format, type, null);
+  var fb = ctx.createFramebuffer();
+  ctx.bindFramebuffer(ctx.FRAMEBUFFER, fb);
+  ctx.framebufferTexture2D(ctx.FRAMEBUFFER, ctx.COLOR_ATTACHMENT0, ctx.TEXTURE_2D, tex, 0);
+  var ok = ctx.checkFramebufferStatus(ctx.FRAMEBUFFER) === ctx.FRAMEBUFFER_COMPLETE;
+  ctx.bindFramebuffer(ctx.FRAMEBUFFER, null);
+  ctx.deleteFramebuffer(fb); ctx.deleteTexture(tex);
+  return ok;
+}
+
+function pickFormat(ctx, internalFormat, format, type){
+  if (testRenderFormat(ctx, internalFormat, format, type))
+    return { internalFormat: internalFormat, format: format };
+  /* WebGL2 폴백 사다리: R16F→RG16F→RGBA16F */
+  if (isWebGL2){
+    if (internalFormat === ctx.R16F)  return pickFormat(ctx, ctx.RG16F, ctx.RG, type);
+    if (internalFormat === ctx.RG16F) return pickFormat(ctx, ctx.RGBA16F, ctx.RGBA, type);
+  }
+  return null;
+}
+
+function initGLContext(){
+  var attrs = { alpha: false, depth: false, stencil: false, antialias: false, preserveDrawingBuffer: false };
+  var ctx = null;
+  try{ ctx = canvas.getContext('webgl2', attrs); }catch(e){ ctx = null; }
+  if (ctx){
+    isWebGL2 = true;
+    var extCBF = ctx.getExtension('EXT_color_buffer_float');
+    halfFloatType = ctx.HALF_FLOAT;
+    supportLinear = true; /* ES3 코어에서 16F는 필터링 가능 */
+    if (extCBF){
+      fmtRGBA = pickFormat(ctx, ctx.RGBA16F, ctx.RGBA, halfFloatType);
+      fmtRG   = pickFormat(ctx, ctx.RG16F, ctx.RG, halfFloatType);
+      fmtR    = pickFormat(ctx, ctx.R16F, ctx.RED, halfFloatType);
+    }
+    if (fmtRGBA && fmtRG && fmtR){ gl = ctx; return 'WebGL2'; }
+    /* WebGL2인데 float 렌더 불가 → WebGL1 경로로 재시도 */
+    isWebGL2 = false; fmtRGBA = fmtRG = fmtR = null;
+    freshCanvas();
+  }
+  try{
+    ctx = canvas.getContext('webgl', attrs) || canvas.getContext('experimental-webgl', attrs);
+  }catch(e){ ctx = null; }
+  if (ctx){
+    var extHF = ctx.getExtension('OES_texture_half_float');
+    supportLinear = !!ctx.getExtension('OES_texture_half_float_linear');
+    if (extHF){
+      halfFloatType = extHF.HALF_FLOAT_OES;
+      if (testRenderFormat(ctx, ctx.RGBA, ctx.RGBA, halfFloatType)){
+        fmtRGBA = fmtRG = fmtR = { internalFormat: ctx.RGBA, format: ctx.RGBA };
+        gl = ctx;
+        return supportLinear ? 'WebGL1' : 'WebGL1·수동필터';
+      }
+    }
+  }
+  return null; /* → Canvas2D 간이 모드 */
+}
+
+/* ========== GL 프로그램 · FBO 인프라 ========== */
+function compileShader(type, source, defines){
+  var src = (defines && defines.length ? defines.join('\n') + '\n' : '') + source;
+  var sh = gl.createShader(type);
+  gl.shaderSource(sh, src);
+  gl.compileShader(sh);
+  if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS))
+    throw new Error('셰이더 컴파일 실패\n' + gl.getShaderInfoLog(sh));
+  return sh;
+}
+
+function createProgram(vertSrc, fragSrc, defines){
+  var prog = gl.createProgram();
+  gl.attachShader(prog, compileShader(gl.VERTEX_SHADER, vertSrc, null));
+  gl.attachShader(prog, compileShader(gl.FRAGMENT_SHADER, fragSrc, defines));
+  gl.bindAttribLocation(prog, 0, 'aPosition');
+  gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS))
+    throw new Error('셰이더 링크 실패\n' + gl.getProgramInfoLog(prog));
+  var uniforms = {}, n = gl.getProgramParameter(prog, gl.ACTIVE_UNIFORMS);
+  for (var i = 0; i < n; i++){
+    var info = gl.getActiveUniform(prog, i);
+    uniforms[info.name] = gl.getUniformLocation(prog, info.name);
+  }
+  return { program: prog, uniforms: uniforms,
+           bind: function(){ gl.useProgram(this.program); } };
+}
+
+/* 풀스크린 삼각형 1장 공용 */
+var blit = null;
+function initBlit(){
+  var buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  blit = function(target){
+    if (target == null){
+      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    } else {
+      gl.viewport(0, 0, target.width, target.height);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, target.fbo);
+    }
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  };
+}
+
+function createFBO(w, h, fmt, filterParam){
+  var tex = gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filterParam);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filterParam);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D, 0, fmt.internalFormat, w, h, 0, fmt.format, halfFloatType, null);
+  var fb = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  gl.viewport(0, 0, w, h);
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  return {
+    texture: tex, fbo: fb, width: w, height: h,
+    texelSizeX: 1 / w, texelSizeY: 1 / h,
+    attach: function(unit){
+      gl.activeTexture(gl.TEXTURE0 + unit);
+      gl.bindTexture(gl.TEXTURE_2D, this.texture);
+      return unit;
+    }
+  };
+}
+
+function createDoubleFBO(w, h, fmt, filterParam){
+  return {
+    width: w, height: h, texelSizeX: 1 / w, texelSizeY: 1 / h,
+    read: createFBO(w, h, fmt, filterParam),
+    write: createFBO(w, h, fmt, filterParam),
+    swap: function(){ var t = this.read; this.read = this.write; this.write = t; }
+  };
+}
+
+/* ========== 시뮬레이션 본체 (WebGL 모드) ========== */
+var TIERS = [
+  { name: 'HIGH', sim: 192, dye: 1024, jacobi: 28, bloom: true,  dpr: 2   },
+  { name: 'MED',  sim: 128, dye: 512,  jacobi: 20, bloom: true,  dpr: 1.5 },
+  { name: 'LOW',  sim: 96,  dye: 256,  jacobi: 12, bloom: false, dpr: 1   }
+];
+var CFG = {
+  tierIndex: 1,
+  curl: 30, pressureDecay: 0.8,
+  velDissipation: 0.2, dyeDissipation: 1.0,
+  splatForce: 6000, radiusPct: 0.35,
+  bloomOn: true, bloomIntensity: 0.7,
+  bloomThreshold: 0.6, bloomKnee: 0.7,
+  paused: false
+};
+var progs = {};                 /* 컴파일된 프로그램 모음 */
+var velocity, dye, divergenceFBO, curlFBO, pressureFBO;
+var bloomFBO, bloomChain = [];
+var backendName = '';
+var glMode = false;
+
+function tier(){ return TIERS[CFG.tierIndex]; }
+
+function getResolution(base){
+  var aspect = gl.drawingBufferWidth / gl.drawingBufferHeight;
+  if (aspect < 1) aspect = 1 / aspect;
+  var lo = Math.round(base), hi = Math.round(base * aspect);
+  return (gl.drawingBufferWidth > gl.drawingBufferHeight)
+    ? { width: hi, height: lo } : { width: lo, height: hi };
+}
+
+function resizeDoubleFBO(target, w, h, fmt, filterParam){
+  if (target.width === w && target.height === h) return target;
+  /* 기존 내용을 새 해상도로 blit — 리사이즈·티어 전환 시 그림 보존 */
+  var next = createFBO(w, h, fmt, filterParam);
+  progs.copy.bind();
+  gl.uniform1i(progs.copy.uniforms.uTexture, target.read.attach(0));
+  blit(next);
+  target.read = next;
+  target.write = createFBO(w, h, fmt, filterParam);
+  target.width = w; target.height = h;
+  target.texelSizeX = 1 / w; target.texelSizeY = 1 / h;
+  return target;
+}
+
+function initFramebuffers(){
+  var simRes = getResolution(tier().sim);
+  var dyeRes = getResolution(tier().dye);
+  var filt = supportLinear ? gl.LINEAR : gl.NEAREST;
+  gl.disable(gl.BLEND);
+  if (!velocity) velocity = createDoubleFBO(simRes.width, simRes.height, fmtRG, filt);
+  else velocity = resizeDoubleFBO(velocity, simRes.width, simRes.height, fmtRG, filt);
+  if (!dye) dye = createDoubleFBO(dyeRes.width, dyeRes.height, fmtRGBA, filt);
+  else dye = resizeDoubleFBO(dye, dyeRes.width, dyeRes.height, fmtRGBA, filt);
+  /* 압력·발산·컬은 보존 불필요 — 새로 생성 */
+  divergenceFBO = createFBO(simRes.width, simRes.height, fmtR, gl.NEAREST);
+  curlFBO       = createFBO(simRes.width, simRes.height, fmtR, gl.NEAREST);
+  pressureFBO   = createDoubleFBO(simRes.width, simRes.height, fmtR, gl.NEAREST);
+  initBloomFramebuffers();
+}
+
+function initBloomFramebuffers(){
+  var res = getResolution(256);
+  var filt = supportLinear ? gl.LINEAR : gl.NEAREST;
+  bloomFBO = createFBO(res.width, res.height, fmtRGBA, filt);
+  bloomChain = [];
+  var w = res.width >> 1, h = res.height >> 1;
+  for (var i = 0; i < 7; i++){          /* 블룸 7단 체인 */
+    if (w < 2 || h < 2) break;
+    bloomChain.push(createFBO(w, h, fmtRGBA, filt));
+    w = w >> 1; h = h >> 1;
+  }
+}
+
+/* 캔버스 백킹 크기 — LOW에서는 최대 1440px 캡(최후 단계, iGPU+4K 방어) */
+function resizeCanvasBacking(){
+  var dpr = Math.min(window.devicePixelRatio || 1, tier().dpr);
+  var w = Math.floor(canvas.clientWidth * dpr);
+  var h = Math.floor(canvas.clientHeight * dpr);
+  if (tier().name === 'LOW'){
+    var mx = Math.max(w, h);
+    if (mx > 1440){ var k = 1440 / mx; w = Math.floor(w * k); h = Math.floor(h * k); }
+  }
+  if (canvas.width !== w || canvas.height !== h){
+    canvas.width = w; canvas.height = h;
+    return true;
+  }
+  return false;
+}
+
+/* ---------- splat ---------- */
+function correctRadius(r){
+  var aspect = canvas.width / canvas.height;
+  return aspect > 1 ? r * aspect : r;
+}
+
+function doSplat(x, y, dx, dy, color){
+  progs.splat.bind();
+  gl.uniform1i(progs.splat.uniforms.uTarget, velocity.read.attach(0));
+  gl.uniform1f(progs.splat.uniforms.aspectRatio, canvas.width / canvas.height);
+  gl.uniform2f(progs.splat.uniforms.point, x, y);
+  gl.uniform3f(progs.splat.uniforms.color, dx, dy, 0);
+  gl.uniform1f(progs.splat.uniforms.radius, correctRadius(CFG.radiusPct / 100));
+  blit(velocity.write); velocity.swap();
+  gl.uniform1i(progs.splat.uniforms.uTarget, dye.read.attach(0));
+  gl.uniform3f(progs.splat.uniforms.color, color[0], color[1], color[2]);
+  blit(dye.write); dye.swap();
+}
+
+/* 로드 직후 8방 버스트 */
+function burstEightWay(){
+  for (var i = 0; i < 8; i++){
+    var ang = (i / 8) * Math.PI * 2;
+    var rgb = hsv2rgb(i / 8, 1, 1);
+    doSplat(0.5, 0.5, Math.cos(ang) * 900, Math.sin(ang) * 900,
+            [rgb[0] * 0.25, rgb[1] * 0.25, rgb[2] * 0.25]);
+  }
+}
+
+/* C 키 — 다색 버스트 */
+function burstMultiColor(){
+  for (var i = 0; i < 12; i++){
+    var rgb = hsv2rgb(Math.random(), 1, 1);
+    var ang = Math.random() * Math.PI * 2, f = 600 + Math.random() * 900;
+    doSplat(0.15 + Math.random() * 0.7, 0.15 + Math.random() * 0.7,
+            Math.cos(ang) * f, Math.sin(ang) * f,
+            [rgb[0] * 0.25, rgb[1] * 0.25, rgb[2] * 0.25]);
+  }
+}
+
+/* ---------- 시뮬 1스텝: splat→curl→vorticity→div→압력→구배 감산→이류 ---------- */
+function stepSimulation(dt){
+  gl.disable(gl.BLEND);
+  var simTexelX = velocity.texelSizeX, simTexelY = velocity.texelSizeY;
+
+  progs.curl.bind();
+  gl.uniform2f(progs.curl.uniforms.texelSize, simTexelX, simTexelY);
+  gl.uniform1i(progs.curl.uniforms.uVelocity, velocity.read.attach(0));
+  blit(curlFBO);
+
+  progs.vorticity.bind();
+  gl.uniform2f(progs.vorticity.uniforms.texelSize, simTexelX, simTexelY);
+  gl.uniform1i(progs.vorticity.uniforms.uVelocity, velocity.read.attach(0));
+  gl.uniform1i(progs.vorticity.uniforms.uCurl, curlFBO.attach(1));
+  gl.uniform1f(progs.vorticity.uniforms.curl, CFG.curl);
+  gl.uniform1f(progs.vorticity.uniforms.dt, dt);
+  blit(velocity.write); velocity.swap();
+
+  progs.divergence.bind();
+  gl.uniform2f(progs.divergence.uniforms.texelSize, simTexelX, simTexelY);
+  gl.uniform1i(progs.divergence.uniforms.uVelocity, velocity.read.attach(0));
+  blit(divergenceFBO);
+
+  progs.clear.bind();
+  gl.uniform1i(progs.clear.uniforms.uTexture, pressureFBO.read.attach(0));
+  gl.uniform1f(progs.clear.uniforms.value, CFG.pressureDecay);
+  blit(pressureFBO.write); pressureFBO.swap();
+
+  progs.pressure.bind();
+  gl.uniform2f(progs.pressure.uniforms.texelSize, simTexelX, simTexelY);
+  gl.uniform1i(progs.pressure.uniforms.uDivergence, divergenceFBO.attach(0));
+  for (var i = 0; i < tier().jacobi; i++){
+    gl.uniform1i(progs.pressure.uniforms.uPressure, pressureFBO.read.attach(1));
+    blit(pressureFBO.write); pressureFBO.swap();
+  }
+
+  progs.gradientSubtract.bind();
+  gl.uniform2f(progs.gradientSubtract.uniforms.texelSize, simTexelX, simTexelY);
+  gl.uniform1i(progs.gradientSubtract.uniforms.uPressure, pressureFBO.read.attach(0));
+  gl.uniform1i(progs.gradientSubtract.uniforms.uVelocity, velocity.read.attach(1));
+  blit(velocity.write); velocity.swap();
+
+  progs.advection.bind();
+  gl.uniform2f(progs.advection.uniforms.texelSize, simTexelX, simTexelY);
+  if (!supportLinear)
+    gl.uniform2f(progs.advection.uniforms.dyeTexelSize, simTexelX, simTexelY);
+  gl.uniform1i(progs.advection.uniforms.uVelocity, velocity.read.attach(0));
+  gl.uniform1i(progs.advection.uniforms.uSource, velocity.read.attach(0));
+  gl.uniform1f(progs.advection.uniforms.dt, dt);
+  gl.uniform1f(progs.advection.uniforms.dissipation, CFG.velDissipation);
+  blit(velocity.write); velocity.swap();
+
+  if (!supportLinear)
+    gl.uniform2f(progs.advection.uniforms.dyeTexelSize, dye.texelSizeX, dye.texelSizeY);
+  gl.uniform1i(progs.advection.uniforms.uVelocity, velocity.read.attach(0));
+  gl.uniform1i(progs.advection.uniforms.uSource, dye.read.attach(1));
+  gl.uniform1f(progs.advection.uniforms.dissipation, CFG.dyeDissipation);
+  blit(dye.write); dye.swap();
+}
+
+/* ---------- 블룸: prefilter → 다운 체인 → 가산 업샘플 → final ---------- */
+function applyBloom(sourceFBO, destFBO){
+  if (bloomChain.length < 2) return;
+  var last = destFBO;
+  gl.disable(gl.BLEND);
+  progs.bloomPrefilter.bind();
+  var knee = CFG.bloomThreshold * CFG.bloomKnee + 0.0001;
+  gl.uniform3f(progs.bloomPrefilter.uniforms.curve,
+    CFG.bloomThreshold - knee, knee * 2, 0.25 / knee);
+  gl.uniform1f(progs.bloomPrefilter.uniforms.threshold, CFG.bloomThreshold);
+  gl.uniform1i(progs.bloomPrefilter.uniforms.uTexture, sourceFBO.attach(0));
+  blit(last);
+
+  progs.bloomBlur.bind();
+  for (var i = 0; i < bloomChain.length; i++){
+    var dest = bloomChain[i];
+    gl.uniform2f(progs.bloomBlur.uniforms.texelSize, last.texelSizeX, last.texelSizeY);
+    gl.uniform1i(progs.bloomBlur.uniforms.uTexture, last.attach(0));
+    blit(dest);
+    last = dest;
+  }
+  gl.blendFunc(gl.ONE, gl.ONE);
+  gl.enable(gl.BLEND);
+  for (var j = bloomChain.length - 2; j >= 0; j--){
+    var base = bloomChain[j];
+    gl.uniform2f(progs.bloomBlur.uniforms.texelSize, last.texelSizeX, last.texelSizeY);
+    gl.uniform1i(progs.bloomBlur.uniforms.uTexture, last.attach(0));
+    blit(base);
+    last = base;
+  }
+  gl.disable(gl.BLEND);
+  progs.bloomFinal.bind();
+  gl.uniform2f(progs.bloomFinal.uniforms.texelSize, last.texelSizeX, last.texelSizeY);
+  gl.uniform1i(progs.bloomFinal.uniforms.uTexture, last.attach(0));
+  gl.uniform1f(progs.bloomFinal.uniforms.intensity, 1.0);
+  blit(destFBO);
+}
+
+function renderDisplay(){
+  var bloomActive = CFG.bloomOn && tier().bloom && supportLinear;
+  if (bloomActive) applyBloom(dye.read, bloomFBO);
+  gl.disable(gl.BLEND);
+  progs.display.bind();
+  gl.uniform2f(progs.display.uniforms.texelSize, dye.texelSizeX, dye.texelSizeY);
+  gl.uniform1i(progs.display.uniforms.uTexture, dye.read.attach(0));
+  gl.uniform1i(progs.display.uniforms.uBloom, bloomActive ? bloomFBO.attach(1) : dye.read.attach(0));
+  gl.uniform1f(progs.display.uniforms.uBloomIntensity, bloomActive ? CFG.bloomIntensity : 0.0);
+  blit(null);
+}
+
+/* ========== 입력 · 자동 연출 · 티어 관리 · 메인 루프 ========== */
+var pointer = { down: false, x: 0.5, y: 0.5, px: 0.5, py: 0.5, hue: Math.random(), moved: false };
+var hueTimer = 0;               /* 드래그 중 0.15초마다 hue 전진 → 무지개 리본 */
+var lastInteraction = performance.now();
+var attractOn = false, attractT = 0, attractPrev = null, attractHue = Math.random();
+var firstInputDone = false;
+var glAutoQuality = null;
+var lastFrameTime = performance.now();
+var rafId = 0;
+
+function pointerFromEvent(e){
+  var rect = canvas.getBoundingClientRect();
+  return [ (e.clientX - rect.left) / rect.width,
+           1 - (e.clientY - rect.top) / rect.height ];
+}
+
+function markInteraction(){
+  lastInteraction = performance.now();
+  if (attractOn){ attractOn = false; attractPrev = null; }
+  if (!firstInputDone){ firstInputDone = true; hideToast(); }
+}
+
+function onPointerDown(e){
+  if (!glMode) return;
+  var uv = pointerFromEvent(e);
+  pointer.down = true; pointer.moved = false;
+  pointer.x = uv[0]; pointer.y = uv[1]; pointer.px = uv[0]; pointer.py = uv[1];
+  pointer.hue = (pointer.hue + 0.12) % 1;
+  hueTimer = performance.now();
+  markInteraction();
+}
+function onPointerMove(e){
+  if (!glMode) return;
+  var uv = pointerFromEvent(e);
+  pointer.px = pointer.x; pointer.py = pointer.y;
+  pointer.x = uv[0]; pointer.y = uv[1];
+  /* 호버만으로도 유휴 타이머 리셋·attract 해제 (직접 조작 우선) */
+  lastInteraction = performance.now();
+  if (attractOn){ attractOn = false; attractPrev = null; }
+  if (pointer.down){
+    pointer.moved = true;
+    markInteraction();
+    var now = performance.now();
+    if (now - hueTimer > 150){ pointer.hue = (pointer.hue + 0.04) % 1; hueTimer = now; }
+    var dx = (pointer.x - pointer.px) * CFG.splatForce;
+    var dy = (pointer.y - pointer.py) * CFG.splatForce;
+    if (dx !== 0 || dy !== 0){
+      var rgb = hsv2rgb(pointer.hue, 1, 1);
+      doSplat(pointer.x, pointer.y, dx, dy,
+              [rgb[0] * 0.15, rgb[1] * 0.15, rgb[2] * 0.15]);
+    }
+  }
+}
+function onPointerUp(){ pointer.down = false; }
+
+function onWheel(e){
+  if (!glMode) return;
+  e.preventDefault();
+  markInteraction();
+  CFG.radiusPct *= (e.deltaY < 0 ? 1.15 : 0.87);
+  CFG.radiusPct = Math.min(1.6, Math.max(0.08, CFG.radiusPct));
+  showToast('브러시 반경 <em>' + CFG.radiusPct.toFixed(2) + '</em>');
+}
+
+/* 유휴 4초 → 리사주 경로 자동 splat (attract 모드) — reduced-motion이면 정지 */
+function updateAttract(now, dt){
+  if (reducedMotion || CFG.paused) return;
+  if (!attractOn){
+    if (now - lastInteraction > 4000){ attractOn = true; attractT = 0; attractPrev = null; }
+    return;
+  }
+  attractT += dt;
+  var t = attractT * 0.55;
+  var ax = 0.5 + 0.34 * Math.sin(1.00 * t + 1.2);
+  var ay = 0.5 + 0.28 * Math.sin(1.53 * t);
+  attractHue = (attractHue + dt * 0.05) % 1;
+  if (attractPrev){
+    /* 프레임당 이동량 × splatForce — 실제 드래그와 같은 단위계 */
+    var dx = (ax - attractPrev[0]) * CFG.splatForce * 1.4;
+    var dy = (ay - attractPrev[1]) * CFG.splatForce * 1.4;
+    var rgb = hsv2rgb(attractHue, 1, 1);
+    doSplat(ax, ay, dx, dy, [rgb[0] * 0.12, rgb[1] * 0.12, rgb[2] * 0.12]);
+  }
+  attractPrev = [ax, ay];
+}
+
+/* ---------- 티어 전환 (수동 Q · 자동 하향 공용) ---------- */
+function applyTier(idx, isManual){
+  /* WebGL1 폴백이면 MED 이하 고정, 수동 필터 경로면 LOW 고정 */
+  var minIdx = isWebGL2 ? 0 : (supportLinear ? 1 : 2);
+  CFG.tierIndex = Math.max(idx, minIdx);
+  resizeCanvasBacking();
+  initFramebuffers();            /* 염료·속도는 blit 보존 */
+  badgeTier.textContent = tier().name;
+  if (isManual){
+    storageSet('axc4-tier', tier().name);
+    if (glAutoQuality) glAutoQuality.restart();
+  }
+}
+
+function tierDownAuto(){
+  if (CFG.tierIndex >= TIERS.length - 1) return false;
+  applyTier(CFG.tierIndex + 1, false);
+  showToast('품질 자동 조정됨 · <em>' + tier().name + '</em>');
+  return CFG.tierIndex < TIERS.length - 1;
+}
+
+function cycleTierManual(){
+  var next = (CFG.tierIndex + 1) % TIERS.length;
+  applyTier(next, true);
+  showToast('품질 <em>' + tier().name + '</em> (수동)');
+}
+
+function resetDye(){
+  if (!glMode) return;
+  var filt = supportLinear ? gl.LINEAR : gl.NEAREST;
+  velocity = createDoubleFBO(velocity.width, velocity.height, fmtRG, filt);
+  dye = createDoubleFBO(dye.width, dye.height, fmtRGBA, filt);
+  pressureFBO = createDoubleFBO(pressureFBO.width, pressureFBO.height, fmtR, gl.NEAREST);
+}
+
+/* ---------- 메인 루프 ---------- */
+function glFrame(now){
+  rafId = requestAnimationFrame(glFrame);
+  var frameMs = now - lastFrameTime;
+  lastFrameTime = now;
+  var dt = Math.min(frameMs / 1000, 1 / 60);   /* dt 1/60 클램프 — 불안정 방지 */
+  fpsTick(frameMs);
+  if (glAutoQuality) glAutoQuality.frame(frameMs);
+  if (!CFG.paused){
+    updateAttract(now, dt);
+    stepSimulation(dt);
+  }
+  renderDisplay();
+}
+
+/* ---------- 리사이즈 ---------- */
+var resizeTimer = 0;
+function onResize(){
+  if (!glMode) return;
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function(){
+    if (resizeCanvasBacking()) initFramebuffers();  /* 염료 blit 보존 */
+  }, 150);
+}
+
+/* ---------- 키보드 (공통 UI 규약) ---------- */
+window.addEventListener('keydown', function(e){
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  var k = e.key.toLowerCase();
+  if (k === ' '){ e.preventDefault(); }
+  switch(k){
+    case 'r':
+      markInteraction();
+      if (glMode) resetDye(); else if (c2d) c2d.reset();
+      showToast('리셋');
+      break;
+    case 'f':
+      try{
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen();
+      }catch(err){}
+      break;
+    case 'h':
+      helpEl.classList.toggle('on');
+      break;
+    case 'p':
+      document.body.classList.toggle('show-badge');
+      break;
+    case ' ':
+      CFG.paused = !CFG.paused;
+      showToast(CFG.paused ? '일시정지 — <em>Space</em>로 재개' : '재개');
+      break;
+    case 'c':
+      markInteraction();
+      if (glMode) burstMultiColor(); else if (c2d) c2d.burst();
+      break;
+    case 'b':
+      if (!glMode) break;
+      if (!supportLinear){ showToast('이 기기에서는 블룸을 지원하지 않습니다'); break; }
+      CFG.bloomOn = !CFG.bloomOn;
+      showToast('블룸 <em>' + (CFG.bloomOn && tier().bloom ? '켜짐' : '꺼짐') + '</em>'
+                + (CFG.bloomOn && !tier().bloom ? ' (LOW 티어에서는 비활성)' : ''));
+      break;
+    case 'q':
+      if (glMode) cycleTierManual();
+      break;
+    case 'escape':
+      helpEl.classList.remove('on');
+      break;
+  }
+});
+helpEl.addEventListener('click', function(){ helpEl.classList.remove('on'); });
+
+/* ---------- WebGL 모드 부트 ---------- */
+function startGL(backend){
+  backendName = backend;
+  glMode = true;
+  /* 초기 티어 휴리스틱: 창너비×DPR>2600 → MED, 아니면 HIGH. WebGL1은 MED 이하 고정 */
+  var initIdx = (window.innerWidth * (window.devicePixelRatio || 1) > 2600) ? 1 : 0;
+  var saved = storageGet('axc4-tier');
+  if (saved){
+    for (var i = 0; i < TIERS.length; i++) if (TIERS[i].name === saved) initIdx = i;
+  }
+  initBlit();
+  var manualDefines = supportLinear ? null : ['#define MANUAL_FILTERING'];
+  progs.copy             = createProgram(SRC_BASE_VERT, SRC_COPY, null);
+  progs.clear            = createProgram(SRC_BASE_VERT, SRC_CLEAR, null);
+  progs.splat            = createProgram(SRC_BASE_VERT, SRC_SPLAT, null);
+  progs.advection        = createProgram(SRC_BASE_VERT, SRC_ADVECTION, manualDefines);
+  progs.divergence       = createProgram(SRC_BASE_VERT, SRC_DIVERGENCE, null);
+  progs.curl             = createProgram(SRC_BASE_VERT, SRC_CURL, null);
+  progs.vorticity        = createProgram(SRC_BASE_VERT, SRC_VORTICITY, null);
+  progs.pressure         = createProgram(SRC_BASE_VERT, SRC_PRESSURE, null);
+  progs.gradientSubtract = createProgram(SRC_BASE_VERT, SRC_GRADIENT_SUBTRACT, null);
+  progs.bloomPrefilter   = createProgram(SRC_BASE_VERT, SRC_BLOOM_PREFILTER, null);
+  progs.bloomBlur        = createProgram(SRC_BASE_VERT, SRC_BLOOM_BLUR, null);
+  progs.bloomFinal       = createProgram(SRC_BASE_VERT, SRC_BLOOM_FINAL, null);
+  progs.display          = createProgram(SRC_BASE_VERT, SRC_DISPLAY, null);
+  applyTier(initIdx, false);
+  badgeBack.textContent = backendName;
+
+  canvas.addEventListener('pointerdown', onPointerDown);
+  window.addEventListener('pointermove', onPointerMove);
+  window.addEventListener('pointerup', onPointerUp);
+  canvas.addEventListener('wheel', onWheel, { passive: false });
+  window.addEventListener('resize', onResize);
+
+  glAutoQuality = makeAutoQuality(tierDownAuto);
+  if (!reducedMotion) burstEightWay();   /* 로드 직후 8방 버스트 */
+  showToast('드래그해서 잉크를 흘려보세요 · <em>H</em> 도움말', 4200);
+  lastFrameTime = performance.now();
+  rafId = requestAnimationFrame(glFrame);
+}
+
+/* ========== Canvas2D 간이 모드 (WebGL 전면 실패 시) ==========
+   가산 트레일 파티클 ~300개 — 데모가 빈 화면으로 죽지 않는 것이 목적 */
+var c2d = null;
+function startCanvas2D(){
+  if (c2d) return;
+  glMode = false;
+  var cv = freshCanvas();
+  var ctx = cv.getContext('2d');
+  if (!ctx){
+    showErrorCard('Canvas2D 컨텍스트도 얻지 못했습니다. 브라우저를 갱신해 주세요.');
+    return;
+  }
+  modeBadge.classList.add('on');
+  badgeTier.textContent = '간이';
+  badgeBack.textContent = 'Canvas2D';
+
+  var W = 0, H = 0, N = 300;
+  var parts = [];
+  var mouse = { x: 0, y: 0, px: 0, py: 0, down: false };
+  var idleT = performance.now(), att = 0, attOn = false;
+
+  function fit(){
+    var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    W = cv.width = Math.floor(cv.clientWidth * dpr);
+    H = cv.height = Math.floor(cv.clientHeight * dpr);
+  }
+  function scatter(){
+    parts = [];
+    for (var i = 0; i < N; i++){
+      parts.push({ x: Math.random() * W, y: Math.random() * H,
+                   vx: 0, vy: 0, hue: Math.random() * 360 });
+    }
+    ctx.fillStyle = '#05060d';
+    ctx.fillRect(0, 0, W, H);
+  }
+  function impulse(cx, cy, dx, dy, radius){
+    for (var i = 0; i < parts.length; i++){
+      var p = parts[i];
+      var ddx = p.x - cx, ddy = p.y - cy;
+      var d2 = ddx * ddx + ddy * ddy, r2 = radius * radius;
+      if (d2 < r2){
+        var w = 1 - Math.sqrt(d2) / radius;
+        p.vx += dx * w; p.vy += dy * w;
+      }
+    }
+  }
+  fit(); scatter();
+
+  cv.addEventListener('pointerdown', function(e){
+    mouse.down = true;
+    var r = cv.getBoundingClientRect();
+    mouse.x = mouse.px = (e.clientX - r.left) / r.width * W;
+    mouse.y = mouse.py = (e.clientY - r.top) / r.height * H;
+    idleT = performance.now(); attOn = false;
+    if (!firstInputDone){ firstInputDone = true; hideToast(); }
+  });
+  window.addEventListener('pointermove', function(e){
+    if (glMode) return;
+    var r = cv.getBoundingClientRect();
+    mouse.px = mouse.x; mouse.py = mouse.y;
+    mouse.x = (e.clientX - r.left) / r.width * W;
+    mouse.y = (e.clientY - r.top) / r.height * H;
+    idleT = performance.now(); attOn = false;
+    if (mouse.down) impulse(mouse.x, mouse.y, (mouse.x - mouse.px) * 0.9, (mouse.y - mouse.py) * 0.9, Math.min(W, H) * 0.2);
+  });
+  window.addEventListener('pointerup', function(){ mouse.down = false; });
+  window.addEventListener('resize', function(){ if (!glMode){ fit(); scatter(); } });
+
+  c2d = {
+    reset: scatter,
+    burst: function(){
+      for (var i = 0; i < parts.length; i++){
+        var p = parts[i];
+        var a = Math.random() * Math.PI * 2, f = 3 + Math.random() * 9;
+        p.vx += Math.cos(a) * f; p.vy += Math.sin(a) * f;
+        p.hue = Math.random() * 360;
+      }
+    }
+  };
+
+  var prev = performance.now();
+  function loop2d(now){
+    requestAnimationFrame(loop2d);
+    var frameMs = now - prev; prev = now;
+    fpsTick(frameMs);
+    if (CFG.paused) return;
+    /* 유휴 4초 → 리사주 어트랙터 */
+    if (!reducedMotion && !attOn && now - idleT > 4000){ attOn = true; }
+    if (attOn){
+      att += Math.min(frameMs, 33) / 1000;
+      var t = att * 0.6;
+      var axp = W * (0.5 + 0.34 * Math.sin(t + 1.2));
+      var ayp = H * (0.5 + 0.28 * Math.sin(1.53 * t));
+      impulse(axp, ayp, Math.cos(t * 1.7) * 2.4, Math.sin(t * 1.3) * 2.4, Math.min(W, H) * 0.22);
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(5,6,13,0.10)';        /* 잔상 페이드 */
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'lighter';    /* 가산 트레일 */
+    var flowT = now * 0.0002;
+    for (var i = 0; i < parts.length; i++){
+      var p = parts[i];
+      /* 사인 유동장 — 유체 느낌의 순환 */
+      p.vx += Math.sin(p.y * 0.006 + flowT * 3) * 0.05;
+      p.vy += Math.cos(p.x * 0.006 - flowT * 2) * 0.05;
+      p.vx *= 0.985; p.vy *= 0.985;
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x += W; if (p.x > W) p.x -= W;
+      if (p.y < 0) p.y += H; if (p.y > H) p.y -= H;
+      var sp = Math.min(1, Math.sqrt(p.vx * p.vx + p.vy * p.vy) * 0.25);
+      p.hue = (p.hue + 0.2 + sp) % 360;
+      ctx.fillStyle = 'hsla(' + p.hue.toFixed(0) + ',95%,62%,' + (0.25 + sp * 0.45).toFixed(2) + ')';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 1.6 + sp * 2.2, 0, 6.2832);
+      ctx.fill();
+    }
+  }
+  showToast('간이 모드입니다 — 드래그해 보세요 · <em>H</em> 도움말', 4200);
+  requestAnimationFrame(loop2d);
+}
+
+/* ========== 부트 ========== */
+function boot(){
+  var backend = null;
+  try{
+    backend = initGLContext();
+  }catch(e){ backend = null; }
+  if (!backend){
+    startCanvas2D();
+    return;
+  }
+  try{
+    startGL(backend);
+  }catch(e){
+    /* 셰이더 컴파일/링크 실패 등 — 반드시 한국어 에러 카드로 표면화 */
+    if (rafId) cancelAnimationFrame(rafId);
+    glMode = false;
+    showErrorCard(String(e && e.message ? e.message : e));
+  }
+}
+boot();
+
+})();
+</script>
+</body>
+</html>

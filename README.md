@@ -38,7 +38,15 @@
 │   │       ├── claw/index.html         인형뽑기 — 플레이 가능
 │   │       ├── fps/index.html          제로 프론트 (1인칭 슈팅) — 플레이 가능
 │   │       └── rhythm/index.html       뉴럴 리듬 (마우스 블레이드 리듬) — 플레이 가능
-│   ├── app-c/index.html
+│   ├── app-c/                  인터랙티브 아트 (단일 파일 비주얼 데모)
+│   │   ├── index.html              심야 전시실 (데모 선택 화면)
+│   │   ├── PLAN.md                 구현 플랜
+│   │   └── apps/
+│   │       ├── 01-life-calendar.html       인생 달력 (90년을 주 단위 격자로)
+│   │       ├── 02-falling-sand.html        모래 물리 샌드박스 (셀룰러 오토마타)
+│   │       ├── 03-particle-typography.html 파티클 모프 타이포그래피
+│   │       ├── 04-fluid-simulation.html    유체 시뮬레이션 (WebGL Stable Fluids)
+│   │       └── 05-solar-system.html        3D 태양계 (three.js r147 인라인)
 │   ├── app-d/index.html
 │   ├── app-e/index.html
 │   ├── app-f/index.html
@@ -53,16 +61,22 @@
 - **강의본(lectures)**: `lecture-01` ~ `lecture-06`. 바이브 코딩 강의 자료.
 - **예제(apps)**: `app-a` ~ `app-h`. 강의에서 다루는 예제 웹앱.
 - 각 폴더는 `index.html` 하나로 완결되며, 상단의 `← 목록으로` 링크로 랜딩 페이지에 돌아옵니다.
-- `app-a`와 `app-b`만 예외로 하위에 `games/`를 둡니다. 각 앱의 `index.html`이 오락실 선택 화면이고,
+- `app-a`와 `app-b`는 예외로 하위에 `games/`를 둡니다. 각 앱의 `index.html`이 오락실 선택 화면이고,
   게임은 `games/<이름>/index.html` 한 파일로 완결됩니다.
-- `app-a`는 8비트 레트로(CRT·픽셀 아트), `app-b`는 실시간 3D(글래스·네온) 콘셉트입니다.
+- `app-c`도 예외로 하위에 `apps/`를 둡니다. `index.html`이 전시실(허브)이고,
+  데모는 `apps/NN-<이름>.html` 한 파일로 완결됩니다. 상세 플랜은 `apps/app-c/PLAN.md` 참고.
+- `app-a`는 8비트 레트로(CRT·픽셀 아트), `app-b`는 실시간 3D(글래스·네온),
+  `app-c`는 인터랙티브 아트(심야 전시실·다크 고정) 콘셉트입니다.
 
-`lecture-01`, `app-a`, `app-b`를 제외한 하위 페이지는 아직 자리표시자(placeholder)입니다. 내용은 차차 채웁니다.
+`lecture-01`, `app-a`, `app-b`, `app-c`를 제외한 하위 페이지는 아직 자리표시자(placeholder)입니다. 내용은 차차 채웁니다.
 `app-a`는 게임 4종(너구리·벽돌깨기·갤러그·격투)이 모두 플레이 가능합니다.
 하이스코어는 실제 플레이로 얻은 값만 sessionStorage에 세션 한정으로 기록합니다(조작된 초기값 없음).
 `app-b`는 게임 4종(블록 월드·제로 프론트·인형뽑기·뉴럴 리듬)이 모두 플레이 가능합니다.
 뉴럴 리듬의 손 추적 콘셉트는 사내 시연 환경(카메라 사용 불가)을 고려해
 마우스 광선 블레이드로 바꿔 구현했습니다.
+`app-c`는 비주얼 데모 5종(인생 달력·모래 샌드박스·파티클 타이포·유체 시뮬·3D 태양계)이 모두 동작합니다.
+프로젝터 대비를 위해 다크 고정 테마(규칙 4의 의도적 예외)이며, `05-solar-system.html`에는
+three.js r147(MIT)이 통째로 인라인되어 있어 실행 시 외부 요청이 없습니다.
 
 ### app-b의 3D 엔진 (`lib/ax3d.js`)
 

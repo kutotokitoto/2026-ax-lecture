@@ -3,71 +3,771 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>예제 C — 2026 AX 강의</title>
+<!-- 저장소 규칙 4의 의도적 예외(프로젝터 대비): 다크 단일 룩 고정, prefers-color-scheme 분기를 두지 않습니다. -->
+<title>인터랙티브 아트 — 2026 AX 강의</title>
 <style>
-  :root {
-    --bg: #ffffff; --bg-soft: #f6f7f9; --border: #e4e6ea;
-    --text: #16181d; --text-soft: #5c626c; --text-faint: #8b919b;
-    --accent: #2f5cff; --accent-soft: #eef2ff;
+  /* ── 공통 토큰 (PLAN 3.1) + 놋쇠 명판 색 ───────────────────────────── */
+  :root{
+    --bg0:#05060d; --bg1:#0c0f1a; --line:rgba(255,255,255,.10);
+    --text:#edf1ff; --text-soft:#9aa4c2;
+    --c1:#ffc94d; /* 01 인생달력 — 골드 */
+    --c2:#ff8a3d; /* 02 모래 — 앰버 */
+    --c3:#3fd3ff; /* 03 타이포 — 시안 */
+    --c4:#ff4fa0; /* 04 유체 — 마젠타 */
+    --c5:#b48cff; /* 05 태양계 — 바이올렛 */
+    --brass-hi:#d6b578; --brass-lo:#8a6c3c; --brass-ink:#241c0d;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0e1013; --bg-soft: #14171c; --border: #262a32;
-      --text: #eceef2; --text-soft: #a2a9b5; --text-faint: #737b88;
-      --accent: #7f9bff; --accent-soft: #1b2237;
-    }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    min-height:100vh;
+    display:flex; flex-direction:column;
+    color:var(--text);
+    font-family:Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+    letter-spacing:-0.01em;
+    background-color:var(--bg0);
+    background:
+      linear-gradient(180deg, rgba(122,134,182,0) 74%, rgba(122,134,182,.07) 100%),
+      radial-gradient(130% 90% at 50% -10%, var(--bg1) 0%, var(--bg0) 62%);
+    overflow-x:hidden;
   }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
-                 "Malgun Gothic", system-ui, sans-serif;
-    line-height: 1.65; letter-spacing: -0.01em;
+  /* 전시실 비네트 */
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:6;
+    background:radial-gradient(120% 95% at 50% 40%, rgba(0,0,0,0) 55%, rgba(0,0,0,.5) 100%);
   }
-  .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px; }
-  header { border-bottom: 1px solid var(--border); background: var(--bg-soft); }
-  .back {
-    display: inline-block; margin-bottom: 24px; padding-top: 28px;
-    font-size: 14px; color: var(--text-soft); text-decoration: none;
+
+  /* ── 상단 복귀 링크 (상시 노출) ─────────────────────────────────────── */
+  .back{
+    position:fixed; top:18px; left:20px; z-index:9;
+    color:var(--text-soft); text-decoration:none; font-size:14px;
+    padding:8px 14px; border:1px solid var(--line); border-radius:999px;
+    background:rgba(12,15,26,.78);
   }
-  .back:hover { color: var(--accent); }
-  .head-inner { padding-bottom: 44px; }
-  .badge {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-width: 34px; height: 26px; padding: 0 9px; margin-bottom: 12px;
-    border-radius: 7px; background: var(--accent-soft); color: var(--accent);
-    font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;
+  .back:hover{ color:var(--text); border-color:rgba(255,255,255,.32); }
+
+  /* ── 타이틀 ─────────────────────────────────────────────────────────── */
+  .marquee{ text-align:center; padding:52px 20px 0; }
+  .eyebrow{ margin:0 0 8px; font-size:13px; color:var(--text-soft); letter-spacing:.14em; }
+  h1{ margin:0; font-size:clamp(30px,4.4vw,44px); font-weight:800; letter-spacing:-0.02em; }
+  .spectrum{ display:flex; width:172px; height:4px; margin:14px auto 10px; border-radius:2px; overflow:hidden; }
+  .spectrum i{ flex:1; }
+  .sub{ margin:0; font-size:15px; color:var(--text-soft); }
+
+  /* ── 전시 홀 ────────────────────────────────────────────────────────── */
+  .hall{
+    flex:1; min-height:380px;
+    display:flex; flex-wrap:wrap; justify-content:center;
+    align-items:center; align-content:center;
+    column-gap:clamp(16px,3vw,46px); row-gap:150px;
+    padding:56px 28px 46px;
   }
-  h1 { margin: 0 0 10px; font-size: clamp(26px, 4vw, 34px); font-weight: 700; letter-spacing: -0.03em; }
-  .kind { margin: 0; font-size: 14px; color: var(--text-faint); }
-  main { padding: 44px 0 72px; }
-  .placeholder {
-    border: 1px dashed var(--border); border-radius: 14px;
-    padding: 40px 24px; text-align: center; color: var(--text-soft); font-size: 15px;
+
+  /* ── 액자 ───────────────────────────────────────────────────────────── */
+  .frame{
+    position:relative; display:block; text-decoration:none;
+    width:clamp(188px,16.4vw,252px);
+    transition:transform .35s cubic-bezier(.2,.8,.25,1);
+    outline:none;
   }
-  .placeholder p { margin: 0; }
-  .placeholder p + p { margin-top: 8px; font-size: 13px; color: var(--text-faint); }
+  .frame:hover, .frame:focus-visible, .frame.lit{ transform:translateY(-8px); }
+  .frame:focus-visible{ outline:2px solid rgba(var(--sigA),.85); outline-offset:6px; border-radius:4px; }
+
+  /* 스포트라이트 원뿔광 — 호버·포커스·어트랙트에서 밝아짐 */
+  .cone{
+    position:absolute; left:50%; bottom:calc(100% - 16px);
+    width:172%; height:118px;
+    transform:translateX(-50%);
+    clip-path:polygon(45.5% 0, 54.5% 0, 100% 100%, 0 100%);
+    background:linear-gradient(180deg, rgba(var(--sigA),.34), rgba(var(--sigA),.10) 62%, rgba(var(--sigA),0));
+    filter:blur(5px);
+    opacity:.5; transition:opacity .4s;
+    pointer-events:none;
+  }
+  .frame:hover .cone, .frame:focus-visible .cone, .frame.lit .cone{ opacity:1; }
+  /* 천장 램프 */
+  .frame::after{
+    content:""; position:absolute; left:50%; bottom:calc(100% + 96px);
+    width:12px; height:7px; transform:translateX(-50%);
+    border-radius:0 0 6px 6px;
+    background:var(--sig);
+    box-shadow:0 0 14px rgba(var(--sigA),.9);
+  }
+
+  /* 액자 본체 — 테두리는 시그니처 색 */
+  .art{
+    position:relative; z-index:1; display:block;
+    padding:7px;
+    background:#090a12;
+    border:3px solid var(--sig);
+    border-radius:3px;
+    box-shadow:0 10px 34px rgba(0,0,0,.6), 0 0 22px rgba(var(--sigA),.16);
+    transition:box-shadow .35s;
+  }
+  .frame:hover .art, .frame:focus-visible .art, .frame.lit .art{
+    box-shadow:0 16px 44px rgba(0,0,0,.65), 0 0 38px rgba(var(--sigA),.42);
+  }
+  .art canvas{ display:block; width:100%; aspect-ratio:3/2; background:#07080f; }
+
+  /* 놋쇠 명판 */
+  .plaque{
+    position:relative; z-index:1;
+    display:block; margin:14px auto 0; width:90%;
+    min-height:70px;
+    padding:8px 10px 9px;
+    text-align:center;
+    border-radius:4px;
+    background:linear-gradient(180deg, var(--brass-hi), var(--brass-lo));
+    box-shadow:0 4px 12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.35);
+    color:var(--brass-ink);
+  }
+  .plaque::before{ /* 걸이 목 */
+    content:""; position:absolute; left:50%; top:-11px; width:3px; height:11px;
+    transform:translateX(-50%); background:rgba(214,181,120,.45);
+  }
+  .p-title{ display:block; font-size:14px; font-weight:800; font-variant-numeric:tabular-nums; }
+  .p-desc{ display:block; margin-top:2px; font-size:12px; line-height:1.45; }
+  .p-mat{ display:block; margin-top:4px; font-size:10.5px; font-style:italic; opacity:.78; }
+
+  /* ── 하단 안내 ──────────────────────────────────────────────────────── */
+  .foot{ text-align:center; padding:0 20px 26px; color:var(--text-soft); font-size:13px; }
+  .kbd{
+    display:inline-block; min-width:20px; padding:1px 7px; margin:0 2px;
+    border:1px solid var(--line); border-bottom-width:2px; border-radius:5px;
+    background:rgba(255,255,255,.05); color:var(--text);
+    font-size:12px; font-variant-numeric:tabular-nums;
+  }
+  .note{ margin:8px 0 0; font-size:12px; opacity:.8; }
+  .noscript{ text-align:center; color:var(--text-soft); font-size:13px; margin:8px 0 0; }
+
+  /* ── 토스트 ─────────────────────────────────────────────────────────── */
+  .toast{
+    position:fixed; left:50%; bottom:86px; z-index:10;
+    transform:translateX(-50%) translateY(8px);
+    max-width:min(86vw,560px);
+    padding:10px 18px; border-radius:999px;
+    background:rgba(12,15,26,.94); border:1px solid var(--line);
+    color:var(--text); font-size:13.5px;
+    opacity:0; pointer-events:none;
+    transition:opacity .35s, transform .35s;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (prefers-reduced-motion: reduce){
+    .frame, .cone, .art, .toast{ transition:none; }
+  }
+  @media (max-width:720px){
+    .hall{ padding-top:40px; row-gap:140px; }
+  }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="wrap">
-    <a class="back" href="../../index.html">← 목록으로</a>
-    <div class="head-inner">
-      <span class="badge">C</span>
-      <h1>예제 C</h1>
-      <p class="kind">예제 웹앱</p>
-    </div>
-  </div>
+<a class="back" href="../../index.html">← 목록으로</a>
+
+<header class="marquee">
+  <p class="eyebrow">2026 AX 강의 · 예제 C · 심야 전시실</p>
+  <h1>인터랙티브 아트</h1>
+  <div class="spectrum" aria-hidden="true"><i style="background:var(--c1)"></i><i style="background:var(--c2)"></i><i style="background:var(--c3)"></i><i style="background:var(--c4)"></i><i style="background:var(--c5)"></i></div>
+  <p class="sub">브라우저 파일 하나로 만드는 비주얼 데모 5종 — 상시 개관, 관람료 무료</p>
 </header>
 
-<main class="wrap">
-  <div class="placeholder">
-    <p>내용 준비 중입니다.</p>
-    <p>이 자리에 예제 웹앱 내용이 들어갑니다.</p>
-  </div>
+<main class="hall" aria-label="전시실">
+
+  <a class="frame" href="apps/01-life-calendar.html" style="--sig:var(--c1); --sigA:255,201,77"
+     aria-label="01 인생 달력 — 감상하기">
+    <span class="cone" aria-hidden="true"></span>
+    <span class="art"><canvas width="360" height="240" aria-hidden="true"></canvas></span>
+    <span class="plaque">
+      <span class="p-title">01 · 인생 달력</span>
+      <span class="p-desc">당신의 90년을 점 4,680개로 환산해 드립니다.</span>
+      <span class="p-mat">재료: HTML Canvas, 날짜 계산, 약간의 숙연함 / 2026</span>
+    </span>
+  </a>
+
+  <a class="frame" href="apps/02-falling-sand.html" style="--sig:var(--c2); --sigA:255,138,61"
+     aria-label="02 모래 물리 샌드박스 — 감상하기">
+    <span class="cone" aria-hidden="true"></span>
+    <span class="art"><canvas width="360" height="240" aria-hidden="true"></canvas></span>
+    <span class="plaque">
+      <span class="p-title">02 · 모래 물리 샌드박스</span>
+      <span class="p-desc">모래·물·불·용암을 쏟아도 치울 필요가 없습니다.</span>
+      <span class="p-mat">재료: HTML Canvas, Uint8Array 64,000칸 / 2026</span>
+    </span>
+  </a>
+
+  <a class="frame" href="apps/03-particle-typography.html" style="--sig:var(--c3); --sigA:63,211,255"
+     aria-label="03 파티클 모프 타이포그래피 — 감상하기">
+    <span class="cone" aria-hidden="true"></span>
+    <span class="art"><canvas width="360" height="240" aria-hidden="true"></canvas></span>
+    <span class="plaque">
+      <span class="p-title">03 · 파티클 타이포그래피</span>
+      <span class="p-desc">점 1만 개가 모여 글자로 출근합니다.</span>
+      <span class="p-mat">재료: HTML Canvas, 스프링 물리 / 2026</span>
+    </span>
+  </a>
+
+  <a class="frame" href="apps/04-fluid-simulation.html" style="--sig:var(--c4); --sigA:255,79,160"
+     aria-label="04 유체 시뮬레이션 — 감상하기">
+    <span class="cone" aria-hidden="true"></span>
+    <span class="art"><canvas width="360" height="240" aria-hidden="true"></canvas></span>
+    <span class="plaque">
+      <span class="p-title">04 · 유체 시뮬레이션</span>
+      <span class="p-desc">잉크를 마음껏 풀어도 손에 묻지 않습니다.</span>
+      <span class="p-mat">재료: WebGL, Stable Fluids / 2026</span>
+    </span>
+  </a>
+
+  <a class="frame" href="apps/05-solar-system.html" style="--sig:var(--c5); --sigA:180,140,255"
+     aria-label="05 3D 태양계 — 감상하기">
+    <span class="cone" aria-hidden="true"></span>
+    <span class="art"><canvas width="360" height="240" aria-hidden="true"></canvas></span>
+    <span class="plaque">
+      <span class="p-title">05 · 3D 태양계</span>
+      <span class="p-desc">태양계 전체를 파일 하나에 눌러 담았습니다.</span>
+      <span class="p-mat">재료: three.js, 절차 텍스처 / 2026</span>
+    </span>
+  </a>
+
 </main>
+
+<footer class="foot">
+  <span class="kbd">←</span><span class="kbd">→</span> 관람 동선 ·
+  <span class="kbd">Enter</span> 감상 ·
+  <span class="kbd">1</span>–<span class="kbd">5</span> 바로 입장 ·
+  <span class="kbd">ESC</span> 퇴장
+  <p class="note">20초쯤 가만히 계시면 조명이 알아서 관람을 시작합니다.</p>
+</footer>
+
+<noscript><p class="noscript">JavaScript가 꺼져 있어 미리보기가 정지 상태입니다. 액자를 누르면 입장할 수 있습니다.</p></noscript>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ── 공용 헬퍼 (이름 충돌 주의: art2d / easeCubicInOut / TAU / FONT_STACK) ── */
+var TAU = Math.PI * 2;
+var FONT_STACK = 'Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif';
+
+function easeCubicInOut(u){
+  return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+}
+
+/* 백킹 360×240 캔버스를 논리 180×120 좌표계로 사용 */
+function art2d(cvEl){
+  var c2 = cvEl.getContext('2d');
+  c2.scale(2, 2);
+  return c2;
+}
+
+/* ── 미리보기 01: 격자 도트 차오름 (골드) ─────────────────────────────── */
+function buildCalendarArt(cvEl){
+  var ctx = art2d(cvEl);
+  var COLS = 26, ROWS = 15, TOTAL = COLS * ROWS;
+  var OX = 13, OY = 11, CW = (180 - 26) / COLS, CH = (120 - 22) / ROWS;
+  var FILL_MS = 5200, HOLD_MS = 2000, FADE_MS = 700;
+  var CYCLE = FILL_MS + HOLD_MS + FADE_MS;
+  var t = 0;
+  function dotAlpha(di){ /* 점별 밝기 변주 (결정적 의사난수) */
+    return 0.55 + ((di * 2654435761 % 97) / 97) * 0.4;
+  }
+  ctx.fillStyle = '#07080f'; ctx.fillRect(0, 0, 180, 120);
+  return {
+    lastT: 0,
+    step: function(dt){ t = (t + dt) % CYCLE; },
+    draw: function(){
+      var i, col, row, gx, gy;
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#07080f';
+      ctx.fillRect(0, 0, 180, 120);
+      var n = Math.max(1, Math.round(easeCubicInOut(Math.min(t / FILL_MS, 1)) * TOTAL));
+      ctx.fillStyle = 'rgba(255,255,255,0.07)';
+      for(i = n; i < TOTAL; i++){ /* 빈 점 */
+        col = (i / ROWS) | 0; row = i % ROWS;
+        ctx.fillRect(OX + col * CW, OY + row * CH, 2.6, 2.6);
+      }
+      for(i = 0; i < n; i++){ /* 채워진 점 — 열 우선(세로) 진행 */
+        col = (i / ROWS) | 0; row = i % ROWS;
+        ctx.globalAlpha = dotAlpha(i);
+        ctx.fillStyle = '#ffc94d';
+        ctx.fillRect(OX + col * CW, OY + row * CH, 3, 3);
+      }
+      ctx.globalAlpha = 1;
+      /* 최신 점 글로우: 채움 중엔 상시, 홀드 중엔 펄스 */
+      col = ((n - 1) / ROWS) | 0; row = (n - 1) % ROWS;
+      gx = OX + col * CW + 1.5; gy = OY + row * CH + 1.5;
+      var pulse = t > FILL_MS ? 0.5 + 0.5 * Math.sin(t * 0.006) : 0.9;
+      ctx.globalCompositeOperation = 'lighter';
+      var grad = ctx.createRadialGradient(gx, gy, 0, gx, gy, 9);
+      grad.addColorStop(0, 'rgba(255,225,150,' + (0.75 * pulse).toFixed(3) + ')');
+      grad.addColorStop(1, 'rgba(255,201,77,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(gx - 9, gy - 9, 18, 18);
+      ctx.globalCompositeOperation = 'source-over';
+      if(t > FILL_MS + HOLD_MS){ /* 리셋 페이드 */
+        ctx.fillStyle = 'rgba(7,8,15,' + Math.min(1, (t - FILL_MS - HOLD_MS) / FADE_MS).toFixed(3) + ')';
+        ctx.fillRect(0, 0, 180, 120);
+      }
+    }
+  };
+}
+
+/* ── 미리보기 02: 미니 낙하 모래 (앰버) ───────────────────────────────── */
+function buildSandArt(cvEl){
+  var ctx = art2d(cvEl);
+  var GW = 90, GH = 60;
+  var cells = new Uint8Array(GW * GH);
+  var SHADES = ['#a85a22', '#c96e2a', '#e08133', '#ff8a3d', '#ffab66'];
+  var emitX = GW * 0.5, drift = 0, grains = 0, frameNo = 0;
+  var fading = false, fadeA = 0;
+  ctx.fillStyle = '#08070c'; ctx.fillRect(0, 0, 180, 120);
+  return {
+    lastT: 0,
+    step: function(dt){
+      if(fading){
+        fadeA += dt / 650;
+        if(fadeA >= 1){ cells.fill(0); grains = 0; fading = false; fadeA = 0; }
+        return;
+      }
+      frameNo++;
+      /* 배출구가 랜덤 워크로 이동 */
+      drift += (Math.random() - 0.5) * 0.9;
+      drift *= 0.92;
+      emitX = Math.min(GW - 10, Math.max(10, emitX + drift));
+      var k, sx;
+      for(k = 0; k < 3; k++){
+        sx = (emitX + (Math.random() - 0.5) * 5) | 0;
+        if(sx > 0 && sx < GW - 1 && !cells[sx]){
+          cells[sx] = 1 + ((Math.random() * SHADES.length) | 0);
+          grains++;
+        }
+      }
+      /* 아래에서 위로 스캔 — 프레임 스탬프 없이도 이중 이동 없음 */
+      var y, x, x0, x1, xs, ci, v, below, side;
+      for(y = GH - 2; y >= 0; y--){
+        if((y + frameNo) & 1){ x0 = 0; x1 = GW; xs = 1; } else { x0 = GW - 1; x1 = -1; xs = -1; }
+        for(x = x0; x !== x1; x += xs){
+          ci = y * GW + x; v = cells[ci];
+          if(!v) continue;
+          below = ci + GW;
+          if(!cells[below]){ cells[below] = v; cells[ci] = 0; continue; }
+          side = Math.random() < 0.5 ? -1 : 1;
+          if(x + side > 0 && x + side < GW - 1 && !cells[below + side]){ cells[below + side] = v; cells[ci] = 0; }
+          else if(x - side > 0 && x - side < GW - 1 && !cells[below - side]){ cells[below - side] = v; cells[ci] = 0; }
+        }
+      }
+      if(grains > 2600) fading = true; /* 절반쯤 쌓이면 스르륵 비움 */
+    },
+    draw: function(){
+      ctx.fillStyle = '#08070c';
+      ctx.fillRect(0, 0, 180, 120);
+      var s, ci2, y2, x2;
+      for(s = 1; s <= SHADES.length; s++){ /* 음영별 일괄 드로우 */
+        ctx.fillStyle = SHADES[s - 1];
+        for(ci2 = 0; ci2 < cells.length; ci2++){
+          if(cells[ci2] === s){
+            y2 = (ci2 / GW) | 0; x2 = ci2 % GW;
+            ctx.fillRect(x2 * 2, y2 * 2, 2, 2);
+          }
+        }
+      }
+      /* 배출구 노즐 */
+      ctx.fillStyle = 'rgba(255,255,255,0.25)';
+      ctx.fillRect(emitX * 2 - 3, 0, 6, 2);
+      if(fading){
+        ctx.fillStyle = 'rgba(8,7,12,' + Math.min(1, fadeA).toFixed(3) + ')';
+        ctx.fillRect(0, 0, 180, 120);
+      }
+    }
+  };
+}
+
+/* ── 미리보기 03: 점 200개가 "가"로 모임/흩어짐 (시안) ────────────────── */
+function buildTypoArt(cvEl){
+  var ctx = art2d(cvEl);
+  var N = 200;
+  var targets = [];
+  (function(){ /* 오프스크린에 "가" 렌더 후 알파 샘플링 */
+    var oc = document.createElement('canvas');
+    oc.width = 180; oc.height = 120;
+    var og = oc.getContext('2d');
+    og.font = '900 92px ' + FONT_STACK;
+    if(og.font.indexOf('92px') === -1) og.font = '900 92px sans-serif'; /* 파싱 실패 대비 */
+    og.textAlign = 'center'; og.textBaseline = 'middle';
+    og.fillStyle = '#fff'; og.strokeStyle = '#fff'; og.lineWidth = 5;
+    og.fillText('가', 90, 66);
+    og.strokeText('가', 90, 66);
+    var data = og.getImageData(0, 0, 180, 120).data;
+    var sy, sxp;
+    for(sy = 0; sy < 120; sy += 2){
+      for(sxp = 0; sxp < 180; sxp += 2){
+        if(data[(sy * 180 + sxp) * 4 + 3] > 128) targets.push(sxp, sy);
+      }
+    }
+    if(targets.length < 80){ /* 글꼴 실패 시 원형 링으로 대체 */
+      var ra;
+      for(ra = 0; ra < TAU; ra += TAU / 60) targets.push(90 + Math.cos(ra) * 34, 60 + Math.sin(ra) * 34);
+    }
+  })();
+  var tcCount = (targets.length / 2) | 0;
+  var px = new Float32Array(N), py = new Float32Array(N);
+  var vx = new Float32Array(N), vy = new Float32Array(N);
+  var tgx = new Float32Array(N), tgy = new Float32Array(N);
+  function retarget(){
+    var ri, rr;
+    for(ri = 0; ri < N; ri++){
+      rr = ((Math.random() * tcCount) | 0) * 2;
+      tgx[ri] = targets[rr]; tgy[ri] = targets[rr + 1];
+    }
+  }
+  var ii;
+  for(ii = 0; ii < N; ii++){ px[ii] = Math.random() * 180; py[ii] = Math.random() * 120; }
+  retarget();
+  var phase = 0, pt = 0; /* 0 모임 / 1 흩어짐 */
+  var GATHER_MS = 3400, SCATTER_MS = 1700;
+  ctx.fillStyle = '#06080f'; ctx.fillRect(0, 0, 180, 120);
+  return {
+    lastT: 0,
+    step: function(dt){
+      pt += dt;
+      var i;
+      if(phase === 0 && pt > GATHER_MS){
+        phase = 1; pt = 0;
+        for(i = 0; i < N; i++){ vx[i] += (Math.random() - 0.5) * 10; vy[i] += (Math.random() - 0.5) * 10; }
+      } else if(phase === 1 && pt > SCATTER_MS){
+        phase = 0; pt = 0;
+        retarget(); /* 목표 재배정으로 소용돌이 느낌 */
+      }
+      var kk = phase === 0 ? (pt < 800 ? 0.10 : 0.06) : 0;
+      for(i = 0; i < N; i++){
+        if(phase === 0){
+          vx[i] = (vx[i] + (tgx[i] - px[i]) * kk) * 0.84;
+          vy[i] = (vy[i] + (tgy[i] - py[i]) * kk) * 0.84;
+        } else {
+          vx[i] *= 0.97; vy[i] *= 0.97; vy[i] += 0.02;
+        }
+        px[i] += vx[i]; py[i] += vy[i];
+        if(px[i] < -6) px[i] = 186; else if(px[i] > 186) px[i] = -6;
+        if(py[i] < -6) py[i] = 126; else if(py[i] > 126) py[i] = -6;
+      }
+    },
+    draw: function(){
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = 'rgba(6,8,15,0.30)'; /* 트레일 페이드 */
+      ctx.fillRect(0, 0, 180, 120);
+      ctx.fillStyle = '#3fd3ff';
+      var i;
+      for(i = 0; i < N; i++) ctx.fillRect(px[i] - 1, py[i] - 1, 2, 2);
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = 'rgba(63,211,255,0.10)';
+      for(i = 0; i < N; i += 4) ctx.fillRect(px[i] - 3, py[i] - 3, 6, 6);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+  };
+}
+
+/* ── 미리보기 04: 잉크 소용돌이 (마젠타) ──────────────────────────────── */
+function buildInkArt(cvEl){
+  var ctx = art2d(cvEl);
+  var M = 110;
+  var inkX = new Float32Array(M), inkY = new Float32Array(M), inkLife = new Float32Array(M);
+  var INK_COLS = ['#ff4fa0', '#ff77b8', '#e14fff', '#ff2f6d'];
+  var colIdx = new Uint8Array(M);
+  function respawnInk(ri){
+    var a = Math.random() * TAU, r = 46 + Math.random() * 26;
+    inkX[ri] = 90 + Math.cos(a) * r;
+    inkY[ri] = 60 + Math.sin(a) * r * 0.8;
+    inkLife[ri] = 2200 + Math.random() * 3800;
+    colIdx[ri] = (Math.random() * INK_COLS.length) | 0;
+  }
+  var ii;
+  for(ii = 0; ii < M; ii++){ respawnInk(ii); inkLife[ii] *= Math.random(); }
+  var t = 0;
+  ctx.fillStyle = '#06060e'; ctx.fillRect(0, 0, 180, 120);
+  return {
+    lastT: 0,
+    step: function(dt){
+      t += dt;
+      /* 소용돌이 중심이 리사주 궤적으로 떠다님 */
+      var cx = 90 + Math.sin(t * 0.00041) * 13;
+      var cy = 60 + Math.cos(t * 0.00033) * 8;
+      var i, dx, dy, d, sp;
+      for(i = 0; i < M; i++){
+        inkLife[i] -= dt;
+        dx = inkX[i] - cx; dy = inkY[i] - cy;
+        d = Math.sqrt(dx * dx + dy * dy) + 0.001;
+        sp = 0.55 + 14 / d; /* 중심에 가까울수록 빠른 접선 속도 */
+        inkX[i] += (-dy / d) * sp - (dx / d) * 0.34 + (Math.random() - 0.5) * 0.5;
+        inkY[i] += (dx / d) * sp * 0.86 - (dy / d) * 0.30 + (Math.random() - 0.5) * 0.5;
+        if(d < 5 || inkLife[i] < 0) respawnInk(i);
+      }
+    },
+    draw: function(){
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = 'rgba(6,6,14,0.16)'; /* 긴 트레일 */
+      ctx.fillRect(0, 0, 180, 120);
+      ctx.globalCompositeOperation = 'lighter';
+      var i;
+      ctx.globalAlpha = 0.5;
+      for(i = 0; i < M; i++){
+        ctx.fillStyle = INK_COLS[colIdx[i]];
+        ctx.fillRect(inkX[i] - 1, inkY[i] - 1, 2, 2);
+      }
+      ctx.globalAlpha = 0.12;
+      for(i = 0; i < M; i += 3){
+        ctx.fillStyle = INK_COLS[colIdx[i]];
+        ctx.fillRect(inkX[i] - 2.5, inkY[i] - 2.5, 5, 5);
+      }
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+    }
+  };
+}
+
+/* ── 미리보기 05: 미니 궤도 + 태양 글로우 (바이올렛) ──────────────────── */
+function buildOrbitArt(cvEl){
+  var ctx = art2d(cvEl);
+  var stars = [];
+  var ii;
+  for(ii = 0; ii < 40; ii++) stars.push({ x: Math.random() * 180, y: Math.random() * 120, ph: Math.random() * TAU });
+  var bodies = [
+    { r: 15, size: 1.5, w: 0.0021,  col: '#e8ddff', a: Math.random() * TAU },
+    { r: 25, size: 2.3, w: 0.00125, col: '#b48cff', a: Math.random() * TAU },
+    { r: 37, size: 1.9, w: 0.00078, col: '#8f6fe0', a: Math.random() * TAU },
+    { r: 51, size: 2.7, w: 0.00047, col: '#d3baff', a: Math.random() * TAU }
+  ];
+  var t = 0;
+  function orbDrawPlanets(front){ /* 타원 궤도의 앞/뒤 반을 나눠 그림 */
+    var bi, b, sy, bx, by;
+    for(bi = 0; bi < bodies.length; bi++){
+      b = bodies[bi];
+      sy = Math.sin(b.a);
+      if((sy >= 0) !== front) continue;
+      bx = 90 + Math.cos(b.a) * b.r;
+      by = 62 + sy * b.r * 0.55;
+      ctx.fillStyle = b.col;
+      ctx.beginPath();
+      ctx.arc(bx, by, b.size, 0, TAU);
+      ctx.fill();
+    }
+  }
+  ctx.fillStyle = '#06060e'; ctx.fillRect(0, 0, 180, 120);
+  return {
+    lastT: 0,
+    step: function(dt){
+      t += dt;
+      var bi;
+      for(bi = 0; bi < bodies.length; bi++) bodies[bi].a += bodies[bi].w * dt;
+    },
+    draw: function(){
+      ctx.fillStyle = '#06060e';
+      ctx.fillRect(0, 0, 180, 120);
+      var si, s;
+      for(si = 0; si < stars.length; si++){ /* 별 트윙클 */
+        s = stars[si];
+        ctx.globalAlpha = 0.25 + 0.45 * (0.5 + 0.5 * Math.sin(t * 0.0012 + s.ph));
+        ctx.fillStyle = '#cfc4ff';
+        ctx.fillRect(s.x, s.y, 1, 1);
+      }
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = 'rgba(180,140,255,0.20)';
+      ctx.lineWidth = 1;
+      var bi;
+      for(bi = 0; bi < bodies.length; bi++){
+        ctx.beginPath();
+        ctx.ellipse(90, 62, bodies[bi].r, bodies[bi].r * 0.55, 0, 0, TAU);
+        ctx.stroke();
+      }
+      orbDrawPlanets(false); /* 태양 뒤쪽 */
+      var pr = 9 + Math.sin(t * 0.0021) * 1.3; /* 맥동하는 코로나 */
+      ctx.globalCompositeOperation = 'lighter';
+      var grad = ctx.createRadialGradient(90, 62, 0, 90, 62, pr * 2.6);
+      grad.addColorStop(0, 'rgba(255,246,230,0.95)');
+      grad.addColorStop(0.28, 'rgba(255,214,150,0.55)');
+      grad.addColorStop(0.62, 'rgba(180,140,255,0.30)');
+      grad.addColorStop(1, 'rgba(180,140,255,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(90 - pr * 2.6, 62 - pr * 2.6, pr * 5.2, pr * 5.2);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = '#fff3dd';
+      ctx.beginPath();
+      ctx.arc(90, 62, 4.2, 0, TAU);
+      ctx.fill();
+      orbDrawPlanets(true); /* 태양 앞쪽 */
+    }
+  };
+}
+
+/* ── 조립: 액자·미리보기·토스트 ───────────────────────────────────────── */
+var FRAME_ELS = [].slice.call(document.querySelectorAll('.frame'));
+var previewBuilders = [buildCalendarArt, buildSandArt, buildTypoArt, buildInkArt, buildOrbitArt];
+var previews = [];
+FRAME_ELS.forEach(function(fr, fi){
+  previews.push(previewBuilders[fi](fr.querySelector('canvas')));
+});
+
+var toastEl = document.getElementById('toast');
+var toastTimer = 0;
+function showToast(msg, ms){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, ms || 2400);
+}
+
+/* 첫 진입 힌트 — 첫 입력 시 즉시 소멸 */
+var hintShown = false, hintCleared = false;
+setTimeout(function(){
+  if(!hintCleared){
+    hintShown = true;
+    showToast('← → 로 관람 동선을 옮기고, Enter 로 감상하세요 · 1–5 바로 입장', 6000);
+  }
+}, 700);
+function hideHintOnce(){
+  if(hintCleared) return;
+  hintCleared = true;
+  if(hintShown){
+    toastEl.classList.remove('show');
+    clearTimeout(toastTimer);
+  }
+}
+
+/* ── 키보드 관람 동선 ─────────────────────────────────────────────────── */
+var selIdx = 0;
+FRAME_ELS.forEach(function(fr, fi){
+  fr.addEventListener('focus', function(){ selIdx = fi; });
+});
+function moveSel(dir){
+  selIdx = (selIdx + dir + FRAME_ELS.length) % FRAME_ELS.length;
+  FRAME_ELS[selIdx].focus();
+}
+document.addEventListener('keydown', function(ev){
+  if(ev.ctrlKey || ev.metaKey || ev.altKey) return;
+  var kk = ev.key;
+  if(kk === 'ArrowRight'){ ev.preventDefault(); moveSel(1); }
+  else if(kk === 'ArrowLeft'){ ev.preventDefault(); moveSel(-1); }
+  else if(kk.length === 1 && kk >= '1' && kk <= '5'){
+    location.href = FRAME_ELS[+kk - 1].getAttribute('href');
+  }
+  else if(kk === 'Enter'){
+    /* 포커스된 링크(액자·복귀 링크)는 브라우저 기본 동작으로 이동, 아니면 현재 선택 액자로 */
+    var ae = document.activeElement;
+    if(!(ae && ae.tagName === 'A')){
+      location.href = FRAME_ELS[selIdx].getAttribute('href');
+    }
+  }
+  else if(kk === 'Escape'){ location.href = '../../index.html'; }
+});
+
+/* ── 메인 루프: 30fps 스로틀 미리보기 + 성능 안전판 + 어트랙트 ────────── */
+var REDUCED = false;
+try { REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(eRm){}
+
+var STEP_MS = 33;
+var loopStartT = 0, prevFrameT = 0;
+var perfSum = 0, perfCount = 0, perfDone = false;
+var stillMode = false;
+var lastInputT = performance.now();
+var attractOn = false, attractIdx = 0, attractNextT = 0;
+var rafId = 0, loopOn = false;
+
+function setLit(n){
+  FRAME_ELS.forEach(function(fr, fi){ fr.classList.toggle('lit', fi === n); });
+}
+
+function frameTick(now){
+  rafId = requestAnimationFrame(frameTick);
+  if(!loopStartT) loopStartT = now;
+  var dtRaw = prevFrameT ? now - prevFrameT : 16;
+  prevFrameT = now;
+
+  /* 성능 안전판: 첫 2초 평균 프레임타임 > 25ms → 미리보기 정지 프레임 전환 */
+  if(!perfDone){
+    if(now - loopStartT > 350 && dtRaw < 500){ perfSum += dtRaw; perfCount++; }
+    if(now - loopStartT >= 2000){
+      perfDone = true;
+      if(perfCount > 10 && perfSum / perfCount > 25){
+        stillMode = true;
+        showToast('사양을 감지해 미리보기를 정지 화면으로 바꿨습니다', 2600);
+      }
+    }
+  }
+
+  if(!stillMode){
+    var pi, pv;
+    for(pi = 0; pi < previews.length; pi++){
+      pv = previews[pi];
+      if(now - pv.lastT >= STEP_MS){
+        pv.step(Math.min(now - pv.lastT, 120));
+        pv.draw();
+        pv.lastT = Math.max(pv.lastT + STEP_MS, now - STEP_MS);
+      }
+    }
+  }
+
+  /* 어트랙트: 20초 무입력 시 스포트라이트 자동 순회 (reduced-motion 시 없음) */
+  if(!REDUCED){
+    if(now - lastInputT > 20000){
+      if(!attractOn){ attractOn = true; attractNextT = 0; attractIdx = selIdx; }
+      if(now >= attractNextT){
+        attractNextT = now + 2600;
+        var litIdx = attractIdx % FRAME_ELS.length;
+        setLit(litIdx);
+        selIdx = litIdx; /* 어트랙트 중 Enter는 조명 받은 액자로 */
+        attractIdx++;
+      }
+    } else if(attractOn){
+      attractOn = false;
+      setLit(-1);
+    }
+  }
+}
+
+function startLoop(){
+  if(loopOn) return;
+  loopOn = true;
+  prevFrameT = 0;
+  lastInputT = performance.now();
+  var vi;
+  for(vi = 0; vi < previews.length; vi++) previews[vi].lastT = 0;
+  rafId = requestAnimationFrame(frameTick);
+}
+function stopLoop(){
+  if(!loopOn) return;
+  loopOn = false;
+  cancelAnimationFrame(rafId);
+}
+
+/* 입력 감지 — 어트랙트 해제 + 힌트 소멸 */
+function noteInput(){
+  lastInputT = performance.now();
+  hideHintOnce();
+}
+['pointerdown', 'pointermove', 'wheel', 'keydown', 'touchstart'].forEach(function(evName){
+  window.addEventListener(evName, noteInput, { passive: true });
+});
+
+/* 탭 비활성 시 전체 정지 → CPU 급감 */
+document.addEventListener('visibilitychange', function(){
+  if(document.hidden) stopLoop();
+  else if(!REDUCED) startLoop();
+});
+
+if(REDUCED){
+  /* reduced-motion: 미리보기를 보기 좋은 지점까지 진행시킨 정지 프레임으로 */
+  var wi, ws;
+  for(wi = 0; wi < previews.length; wi++){
+    for(ws = 0; ws < 90; ws++){ previews[wi].step(STEP_MS); previews[wi].draw(); }
+  }
+} else {
+  startLoop();
+}
+
+})();
+</script>
 
 </body>
 </html>

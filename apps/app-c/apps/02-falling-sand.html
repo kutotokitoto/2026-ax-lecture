@@ -1,0 +1,741 @@
+<!doctype html>
+<!--
+  02 · 모래 물리 샌드박스 — app-c "인터랙티브 아트"
+  단일 파일 완결(외부 요청 0). 다크 단일 룩은 저장소 규칙 4의 의도적 예외(프로젝터 대비).
+-->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>02 · 모래 물리 샌드박스</title>
+<style>
+  :root{
+    --bg0:#05060d; --bg1:#0c0f1a; --line:rgba(255,255,255,.10);
+    --text:#edf1ff; --text-soft:#9aa4c2;
+    --c2:#ff8a3d; /* 앱 02 시그니처 — 앰버 오렌지 */
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden}
+  body{
+    background:var(--bg0); color:var(--text);
+    font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+    -webkit-user-select:none; user-select:none;
+  }
+  #view{
+    position:fixed; inset:0; width:100vw; height:100vh; display:block;
+    cursor:crosshair; background:var(--bg0);
+    image-rendering:pixelated;
+  }
+  /* 미세 비네트 */
+  #vig{
+    position:fixed; inset:0; z-index:2; pointer-events:none;
+    background:radial-gradient(130% 100% at 50% 42%, transparent 58%, rgba(0,0,0,.45) 100%);
+  }
+  /* 공통 크롬 UI — 마우스 유휴 시 페이드아웃 */
+  .chrome{position:fixed; z-index:10; transition:opacity .45s ease}
+  body.ui-idle .chrome{opacity:0; pointer-events:none}
+  #appTitle{
+    top:14px; left:18px; font-size:15px; font-weight:800; letter-spacing:.04em;
+    color:var(--c2); text-shadow:0 0 16px rgba(255,138,61,.35);
+  }
+  #pauseTag{
+    display:none; margin-left:10px; font-size:11px; font-weight:600; vertical-align:1px;
+    color:var(--text); background:rgba(255,138,61,.16); border:1px solid rgba(255,138,61,.45);
+    border-radius:6px; padding:2px 8px;
+  }
+  #hubLink{bottom:12px; left:18px}
+  #hubLink a{
+    color:var(--text-soft); text-decoration:none; font-size:13px;
+    padding:6px 11px; border:1px solid var(--line); border-radius:8px;
+    background:rgba(12,15,26,.62);
+  }
+  #hubLink a:hover{color:var(--c2); border-color:rgba(255,138,61,.5)}
+  #perf{
+    bottom:12px; right:18px; display:none; font-size:12px; color:var(--text-soft);
+    background:rgba(12,15,26,.72); border:1px solid var(--line); border-radius:8px;
+    padding:6px 10px; font-variant-numeric:tabular-nums; white-space:nowrap;
+  }
+  #perf.on{display:block}
+  /* 원소 팔레트 */
+  #pal{
+    bottom:12px; left:50%; transform:translateX(-50%);
+    display:flex; gap:3px; padding:6px; border-radius:12px;
+    background:rgba(12,15,26,.74); border:1px solid var(--line);
+    max-width:min(96vw,760px); flex-wrap:wrap; justify-content:center;
+  }
+  .pbtn{
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    min-width:46px; padding:5px 6px; border:1px solid transparent; border-radius:9px;
+    background:transparent; color:var(--text-soft); font:inherit; font-size:11px; cursor:pointer;
+  }
+  .pbtn:hover{background:rgba(255,255,255,.06); color:var(--text)}
+  .pbtn.sel{border-color:var(--c2); color:var(--text); background:rgba(255,138,61,.10)}
+  .chip{width:18px; height:18px; border-radius:5px; border:1px solid rgba(255,255,255,.18)}
+  .pk{font-size:10px; opacity:.62; font-variant-numeric:tabular-nums}
+  /* 토스트 */
+  #toast{
+    position:fixed; z-index:20; top:16px; left:50%; transform:translateX(-50%);
+    background:rgba(12,15,26,.88); border:1px solid var(--line); border-left:3px solid var(--c2);
+    border-radius:10px; padding:9px 16px; font-size:13.5px; color:var(--text);
+    opacity:0; transition:opacity .35s; pointer-events:none;
+    max-width:min(92vw,600px); text-align:center;
+  }
+  #toast.show{opacity:1}
+  /* 브러시 미리보기 링 */
+  #ring{
+    position:fixed; z-index:5; pointer-events:none; display:none;
+    border:1px solid rgba(255,255,255,.75); border-radius:50%;
+    transform:translate(-50%,-50%); box-shadow:0 0 0 1px rgba(0,0,0,.5);
+  }
+  /* 도움말 오버레이 */
+  #help{
+    position:fixed; inset:0; z-index:30; display:none;
+    align-items:center; justify-content:center; background:rgba(3,4,9,.72);
+  }
+  #help.open{display:flex}
+  .hcard{
+    background:var(--bg1); border:1px solid var(--line); border-top:3px solid var(--c2);
+    border-radius:14px; padding:22px 26px; width:min(92vw,540px);
+    box-shadow:0 24px 60px rgba(0,0,0,.6); max-height:88vh; overflow-y:auto;
+  }
+  .hcard h2{font-size:16px; color:var(--c2); margin-bottom:12px; letter-spacing:.03em}
+  .hrow{
+    display:flex; justify-content:space-between; gap:16px; padding:6px 0;
+    border-bottom:1px solid rgba(255,255,255,.05); font-size:13px; color:var(--text-soft);
+  }
+  .hrow b{color:var(--text); font-weight:600}
+  .hnote{margin-top:12px; font-size:12.5px; line-height:1.6; color:var(--text-soft)}
+  .hnote em{color:var(--c2); font-style:normal}
+  kbd{
+    background:#161a28; border:1px solid var(--line); border-bottom-width:2px;
+    border-radius:5px; padding:1px 7px; font:inherit; font-size:12px; color:var(--text);
+  }
+</style>
+</head>
+<body>
+<canvas id="view"></canvas>
+<div id="vig"></div>
+<div id="ring" class="chrome"></div>
+<div id="appTitle" class="chrome">02 · 모래 물리 샌드박스<span id="pauseTag">일시정지</span></div>
+<div id="hubLink" class="chrome"><a href="../index.html">← 허브</a></div>
+<div id="pal" class="chrome"></div>
+<div id="perf" class="chrome"></div>
+<div id="toast"></div>
+<div id="help">
+  <div class="hcard">
+    <h2>02 · 모래 물리 샌드박스 — 도움말</h2>
+    <div class="hrow"><span>원소 그리기 / 지우기</span><b>좌클릭 드래그 / 우클릭 드래그</b></div>
+    <div class="hrow"><span>브러시 크기 (1~24)</span><b>마우스 휠</b></div>
+    <div class="hrow"><span>원소 선택</span><b><kbd>1</kbd>~<kbd>8</kbd> · 지우개 <kbd>9</kbd></b></div>
+    <div class="hrow"><span>일시정지 / 재개</span><b><kbd>Space</kbd></b></div>
+    <div class="hrow"><span>씬 리셋</span><b><kbd>R</kbd></b></div>
+    <div class="hrow"><span>전체화면</span><b><kbd>F</kbd></b></div>
+    <div class="hrow"><span>성능 표시</span><b><kbd>P</kbd></b></div>
+    <div class="hrow"><span>품질 단계 수동 변경</span><b><kbd>Q</kbd></b></div>
+    <div class="hrow"><span>도움말 닫기</span><b><kbd>H</kbd> · <kbd>ESC</kbd></b></div>
+    <p class="hnote">
+      반응 힌트 — <em>용암+물=돌</em> · <em>불+기름=폭주</em> · <em>불+물=증기</em> ·
+      증기는 식으면 <em>비</em>가 되어 내리고, <em>산</em>은 돌·모래·식물을 녹입니다.
+      물가의 식물은 물을 먹고 자랍니다. 우측 하단 용암 챔버의 벽을 지워 보세요.
+    </p>
+  </div>
+</div>
+<script>
+(function(){
+'use strict';
+
+/* ===== 원소 상수 ===== */
+var E_EMPTY=0, E_WALL=1, E_SAND=2, E_WATER=3, E_OIL=4, E_FIRE=5,
+    E_SMOKE=6, E_STEAM=7, E_PLANT=8, E_LAVA=9, E_STONE=10, E_ACID=11;
+var N_TYPES=12;
+
+/* ===== 반응·거동 파라미터 (튜닝은 전부 여기서) ===== */
+var CFG={
+  igniteOil:.80,        // 불 옆 기름 발화
+  igniteOilLava:.60,    // 용암 옆 기름 발화
+  ignitePlant:.25,      // 불 옆 식물 발화
+  ignitePlantLava:.35,  // 용암 옆 식물 발화
+  extinguish:.90,       // 불+물 → 물이 증기로, 불 소멸
+  steamRain:.35,        // 증기 수명 만료 시 비(물)
+  fireToSmoke:.45,      // 불 소멸 시 연기 잔류
+  fireRise:.35,         // 불꽃 상승 확률
+  fireSmokePuff:.04,    // 불 위 연기 발생
+  densitySwap:.70,      // 밀도 침강 swap 확률
+  plantGrow:.12,        // 물 → 식물 성장
+  plantCrowd:3,         // 주변 식물이 이 수 이상이면 성장 중단(과밀 방지)
+  acidDissolve:.28,     // 산의 고체 용해
+  acidSpent:.22,        // 용해 시 산 소모
+  acidFume:.08,         // 용해 시 연기 발생
+  liquidWalk:.50,       // 수평 확산 억제(진동 방지 랜덤 워크)
+  gasBubble:.25,        // 기체가 액체를 뚫고 상승(기포)
+  sandDropFrames:190    // 초기 모래 낙하 연출 길이(시뮬 프레임 ≈ 3초)
+};
+
+/* 카테고리 테이블 */
+var IS_LIQ=new Uint8Array(16);  IS_LIQ[E_WATER]=1; IS_LIQ[E_OIL]=1; IS_LIQ[E_LAVA]=1; IS_LIQ[E_ACID]=1;
+var IS_GAS=new Uint8Array(16);  IS_GAS[E_SMOKE]=1; IS_GAS[E_STEAM]=1;
+var DENSITY=new Uint8Array(16); DENSITY[E_OIL]=1; DENSITY[E_WATER]=2; DENSITY[E_ACID]=2; DENSITY[E_LAVA]=3;
+var DISPERSE=new Uint8Array(16); DISPERSE[E_WATER]=4; DISPERSE[E_OIL]=2; DISPERSE[E_LAVA]=1; DISPERSE[E_ACID]=3;
+var DISSOLVE=new Uint8Array(16); DISSOLVE[E_SAND]=1; DISSOLVE[E_PLANT]=1; DISSOLVE[E_STONE]=1;
+var FLICKER=new Uint8Array(16); FLICKER[E_FIRE]=1; FLICKER[E_LAVA]=1; FLICKER[E_ACID]=1;
+var EMIT=new Uint8Array(16);    EMIT[E_FIRE]=1; EMIT[E_LAVA]=1; EMIT[E_ACID]=1;
+/* 수명 초기 범위 (불·연기·증기) */
+var LIFE_LO=new Uint8Array(16), LIFE_HI=new Uint8Array(16);
+LIFE_LO[E_FIRE]=24;  LIFE_HI[E_FIRE]=60;
+LIFE_LO[E_SMOKE]=50; LIFE_HI[E_SMOKE]=140;
+LIFE_LO[E_STEAM]=130;LIFE_HI[E_STEAM]=255;
+
+/* ===== 색 팔레트 — 셀별 고정 난수(rndc)로 음영 선택, 불·용암·산은 프레임 섞어 일렁임 ===== */
+var COLORS=[
+  ['#070a12','#070a12','#080c15','#060810'],            // 빈칸(미세 노이즈)
+  ['#4c5164','#565b6e','#454a5c','#5d6276'],            // 벽
+  ['#e2a94a','#d09a41','#c08c39','#eeb95c'],            // 모래
+  ['#2668d9','#2e74e6','#1f5cc7','#3a80ef'],            // 물
+  ['#8a6a2f','#7a5c28','#96793a','#6e5222'],            // 기름
+  ['#ff4a00','#ff7a1c','#ffc22e','#ffe96a'],            // 불
+  ['#3a3f4c','#464c5a','#31363f','#525866'],            // 연기
+  ['#9fb4cc','#b6c8dd','#8ca2bd','#c6d6e8'],            // 증기
+  ['#2f9e44','#37b24d','#2b8a3e','#40c057'],            // 식물
+  ['#ff3d00','#ff7300','#d63000','#ffa726'],            // 용암
+  ['#7b8194','#6c7284','#868da0','#5f6577'],            // 돌
+  ['#8dff2e','#7ceb26','#a4ff55','#6ed41f']             // 산
+];
+function hexToU32(hex){
+  var r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return (0xff000000 | (b<<16) | (g<<8) | r) >>> 0;  // 리틀엔디언 ABGR
+}
+var PAL=new Uint32Array(N_TYPES*8);
+(function(){
+  for(var t=0;t<N_TYPES;t++){
+    var sh=COLORS[t];
+    for(var s=0;s<8;s++) PAL[(t<<3)+s]=hexToU32(sh[s%sh.length]);
+  }
+})();
+
+/* ===== 상태 ===== */
+var gw=320, gh=180;
+var cells=null, life=null, rndc=null, stampA=null;  // 단일 버퍼 + 프레임 스탬프
+var frame=0, stampVal=0, dropLeft=0, paused=false;
+var reducedMotion=false;
+try{ reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+
+/* xorshift32 PRNG — Math.random보다 빠르고 결정적 */
+var rngS=0x9e3779b9;
+function rnd(){ rngS^=rngS<<13; rngS^=rngS>>>17; rngS^=rngS<<5; return rngS>>>0; }
+function chance(p){ return (rnd()&1023) < (p*1024); }
+function randInt(a,b){ return a + rnd()%(b-a+1); }
+function idx(x,y){ return y*gw+x; }
+
+function lifeInit(t){ return LIFE_HI[t] ? randInt(LIFE_LO[t],LIFE_HI[t]) : 0; }
+function setType(i,t){ cells[i]=t; life[i]=lifeInit(t); rndc[i]=rnd()&255; stampA[i]=stampVal; }
+function setFire(i,oily){ setType(i,E_FIRE); if(oily) life[i]=randInt(40,95); }
+function moveC(i,j){
+  cells[j]=cells[i]; life[j]=life[i]; rndc[j]=rndc[i]; stampA[j]=stampVal;
+  cells[i]=E_EMPTY; life[i]=0;
+}
+function swapC(i,j){
+  var t=cells[i], l=life[i], r=rndc[i];
+  cells[i]=cells[j]; life[i]=life[j]; rndc[i]=rndc[j];
+  cells[j]=t; life[j]=l; rndc[j]=r;
+  stampA[i]=stampVal; stampA[j]=stampVal;
+}
+
+/* ===== 월드 할당·절차 씬 생성 ===== */
+function allocWorld(w,h){
+  gw=w; gh=h;
+  cells=new Uint8Array(w*h); life=new Uint8Array(w*h);
+  rndc=new Uint8Array(w*h);  stampA=new Uint8Array(w*h);
+}
+function borderWalls(){
+  var x,y;
+  for(x=0;x<gw;x++){ cells[x]=E_WALL; cells[(gh-1)*gw+x]=E_WALL; }
+  for(y=0;y<gh;y++){ cells[y*gw]=E_WALL; cells[y*gw+gw-1]=E_WALL; }
+}
+function buildScene(){
+  var x,y,i;
+  cells.fill(E_EMPTY); life.fill(0); stampA.fill(0);
+  for(i=0;i<gw*gh;i++) rndc[i]=rnd()&255;
+  borderWalls();
+
+  /* 지형: 모래 언덕 + 중앙 분지 (높이는 gh 비율 기반 — 그리드 크기 무관) */
+  var surf=new Int16Array(gw);
+  for(x=1;x<gw-1;x++){
+    var tx=x/gw;
+    var h=0.22 + 0.070*Math.sin(tx*9.2+0.8) + 0.045*Math.sin(tx*21.0+2.2);
+    var b=(tx-0.47)/0.115;
+    h -= 0.15*Math.exp(-b*b);              // 중앙 분지 파임
+    var hc=Math.max(2,Math.round(h*gh));
+    surf[x]=gh-2-hc;
+    for(y=surf[x];y<=gh-2;y++) setType(idx(x,y),E_SAND);
+  }
+  /* 바닥 2줄은 돌(기반암) */
+  for(x=1;x<gw-1;x++){ setType(idx(x,gh-3),E_STONE); setType(idx(x,gh-2),E_STONE); }
+
+  /* 물 분지 채움 (분지 x 구간만) */
+  var wl=gh-2-Math.round(0.14*gh);
+  var xa=Math.round(gw*0.33), xb=Math.round(gw*0.61);
+  for(x=xa;x<=xb;x++){
+    if(surf[x]>wl){
+      for(y=wl;y<surf[x];y++){ i=idx(x,y); if(cells[i]===E_EMPTY) setType(i,E_WATER); }
+    }
+  }
+
+  /* 식물: 분지 양옆 모래 표면에 줄기 몇 개 */
+  var k,px,ph,py;
+  for(k=0;k<12;k++){
+    px = (k<6) ? randInt(Math.round(gw*0.14),Math.round(gw*0.32))
+               : randInt(Math.round(gw*0.62),Math.round(gw*0.76));
+    if(cells[idx(px,surf[px])]!==E_SAND) continue;
+    ph=randInt(2,6);
+    for(py=surf[px]-1; py>=surf[px]-ph && py>1; py--) setType(idx(px,py),E_PLANT);
+  }
+
+  /* 돌 선반 + 양끝 턱 + 기름 웅덩이 (좌상단) */
+  var sy=Math.round(gh*0.30), sx0=Math.round(gw*0.06), sx1=Math.round(gw*0.28);
+  for(x=sx0;x<=sx1;x++){ setType(idx(x,sy),E_STONE); setType(idx(x,sy+1),E_STONE); }
+  for(y=sy-4;y<sy;y++){ setType(idx(sx0,y),E_STONE); setType(idx(sx1,y),E_STONE); }
+  for(x=sx0+1;x<sx1;x++) for(y=sy-3;y<sy;y++) setType(idx(x,y),E_OIL);
+
+  /* 벽으로 밀봉한 용암 챔버 (우하단 — 발표 때 지우개로 개방) */
+  var cx0=Math.round(gw*0.80), cx1=Math.round(gw*0.93);
+  var cyT=gh-4-Math.round(gh*0.20), cyB=gh-4;
+  for(x=cx0;x<=cx1;x++) for(y=cyT;y<=cyB;y++){
+    i=idx(x,y);
+    if(x===cx0||x===cx1||y===cyT||y===cyB) setType(i,E_WALL);
+    else setType(i,E_LAVA);
+  }
+
+  /* 초기 모래 낙하 연출 (reduced-motion이면 생략) */
+  dropLeft = reducedMotion ? 0 : CFG.sandDropFrames;
+}
+function spawnDrop(){
+  var cx=(gw*0.5)|0, k,x,y,i;
+  for(k=0;k<3;k++){
+    x=cx+(rnd()%15)-7; y=2+(rnd()%3); i=idx(x,y);
+    if(cells[i]===E_EMPTY) setType(i,E_SAND);
+  }
+}
+/* 티어 하향 시 기존 씬 최근접 리샘플 유지 */
+function resampleWorld(nw){
+  var nh=Math.max(100,Math.round(gh*nw/gw));
+  var nc=new Uint8Array(nw*nh), nl=new Uint8Array(nw*nh), nr=new Uint8Array(nw*nh);
+  var x,y,sx,sy,j;
+  for(y=0;y<nh;y++){
+    sy=(y*gh/nh)|0;
+    for(x=0;x<nw;x++){
+      sx=(x*gw/nw)|0; j=y*nw+x;
+      nc[j]=cells[sy*gw+sx]; nl[j]=life[sy*gw+sx]; nr[j]=rndc[sy*gw+sx];
+    }
+  }
+  gw=nw; gh=nh; cells=nc; life=nl; rndc=nr; stampA=new Uint8Array(nw*nh);
+  borderWalls();
+}
+
+/* ===== 시뮬레이션 =====
+   단일 버퍼 in-place + stampA 프레임 스탬프(이중 이동 방지).
+   패스1 아래→위(가루·액체), 패스2 위→아래(불·기체).
+   행별 좌우 방향은 (행+프레임) 홀짝으로 교대해 편향 제거. */
+function simStep(){
+  frame++; stampVal=frame&255;
+  if(dropLeft>0){ spawnDrop(); dropLeft--; }
+  var x,y,i,t,xs,xe,dx;
+  for(y=gh-2;y>=1;y--){
+    if(((y+frame)&1)===0){ xs=1; xe=gw-1; dx=1; } else { xs=gw-2; xe=0; dx=-1; }
+    for(x=xs;x!==xe;x+=dx){
+      i=y*gw+x; t=cells[i];
+      if(t===E_SAND){ if(stampA[i]!==stampVal) doSand(i); }
+      else if(IS_LIQ[t]){ if(stampA[i]!==stampVal) doLiquid(i,t); }
+    }
+  }
+  for(y=1;y<gh-1;y++){
+    if(((y+frame)&1)===0){ xs=1; xe=gw-1; dx=1; } else { xs=gw-2; xe=0; dx=-1; }
+    for(x=xs;x!==xe;x+=dx){
+      i=y*gw+x; t=cells[i];
+      if(t===E_FIRE){ if(stampA[i]!==stampVal) doFire(i); }
+      else if(IS_GAS[t]){ if(stampA[i]!==stampVal) doGas(i,t); }
+    }
+  }
+}
+
+function doSand(i){
+  var below=i+gw, tb=cells[below];
+  if(tb===E_EMPTY){ moveC(i,below); return; }
+  if(IS_LIQ[tb] && chance(CFG.densitySwap)){ swapC(i,below); return; }  // 밀도 침강
+  var d=chance(.5)?1:-1;
+  if(cells[below+d]===E_EMPTY && cells[i+d]===E_EMPTY){ moveC(i,below+d); return; }
+  if(cells[below-d]===E_EMPTY && cells[i-d]===E_EMPTY){ moveC(i,below-d); }
+}
+
+function doLiquid(i,t){
+  /* 반응 먼저 — 반응으로 자신이 변하면 이동 생략 */
+  if(t===E_LAVA){ if(reactLava(i)) return; }
+  else if(t===E_ACID){ reactAcid(i); if(cells[i]!==E_ACID) return; }
+  else if(t===E_WATER){ reactWater(i); if(cells[i]!==E_WATER) return; }
+
+  var below=i+gw, tb=cells[below];
+  if(tb===E_EMPTY){ moveC(i,below); return; }
+  if(IS_LIQ[tb] && DENSITY[t]>DENSITY[tb] && chance(CFG.densitySwap)){ swapC(i,below); return; }
+  var d=chance(.5)?1:-1;
+  if(cells[below+d]===E_EMPTY && cells[i+d]===E_EMPTY){ moveC(i,below+d); return; }
+  if(cells[below-d]===E_EMPTY && cells[i-d]===E_EMPTY){ moveC(i,below-d); return; }
+  /* 수평 확산: p0.5 랜덤 워크로 진동 완화, 확산 계수만큼 탐색해 가장 먼 빈칸으로 */
+  var k=DISPERSE[t];
+  if(k===0 || chance(CFG.liquidWalk)) return;
+  var best=0,s;
+  for(s=1;s<=k;s++){ if(cells[i+d*s]!==E_EMPTY) break; best=s; }
+  if(best===0){
+    d=-d;
+    for(s=1;s<=k;s++){ if(cells[i+d*s]!==E_EMPTY) break; best=s; }
+  }
+  if(best>0) moveC(i,i+d*best);
+}
+
+var DIR4=[0,0,0,0];  // 재사용 버퍼 (할당 회피)
+function reactLava(i){
+  DIR4[0]=i-gw; DIR4[1]=i+gw; DIR4[2]=i-1; DIR4[3]=i+1;
+  for(var k=0;k<4;k++){
+    var j=DIR4[k], tj=cells[j];
+    if(tj===E_WATER){ setType(j,E_STEAM); setType(i,E_STONE); return true; }  // 용암+물=돌 (p1.0)
+    if(tj===E_OIL){ if(chance(CFG.igniteOilLava)) setFire(j,true); }
+    else if(tj===E_PLANT){ if(chance(CFG.ignitePlantLava)) setFire(j,false); }
+  }
+  return false;
+}
+function plantAround(i){
+  var n=0;
+  if(cells[i-gw]===E_PLANT)n++; if(cells[i+gw]===E_PLANT)n++;
+  if(cells[i-1]===E_PLANT)n++;  if(cells[i+1]===E_PLANT)n++;
+  return n;
+}
+function reactWater(i){
+  /* 물+식물=성장 (과밀 방지) — 배열 리터럴 할당 회피(핫패스) */
+  var r4=rnd()&3, j=i+(r4===0?-gw:(r4===1?gw:(r4===2?-1:1)));
+  if(cells[j]===E_PLANT && chance(CFG.plantGrow) && plantAround(i)<CFG.plantCrowd) setType(i,E_PLANT);
+}
+function reactAcid(i){
+  DIR4[0]=i-gw; DIR4[1]=i+gw; DIR4[2]=i-1; DIR4[3]=i+1;
+  for(var k=0;k<4;k++){
+    var j=DIR4[k];
+    if(DISSOLVE[cells[j]] && chance(CFG.acidDissolve)){
+      setType(j, chance(CFG.acidFume)?E_SMOKE:E_EMPTY);
+      if(chance(CFG.acidSpent)){ setType(i,E_EMPTY); return; }
+    }
+  }
+}
+
+function doFire(i){
+  DIR4[0]=i-gw; DIR4[1]=i+gw; DIR4[2]=i-1; DIR4[3]=i+1;
+  for(var k=0;k<4;k++){
+    var j=DIR4[k], tj=cells[j];
+    if(tj===E_WATER){
+      if(chance(CFG.extinguish)){ setType(j,E_STEAM); setType(i,E_EMPTY); return; }  // 불+물=증기
+    }
+    else if(tj===E_OIL){ if(chance(CFG.igniteOil)) setFire(j,true); }    // 불+기름=폭주
+    else if(tj===E_PLANT){ if(chance(CFG.ignitePlant)) setFire(j,false); }
+  }
+  if(life[i]>0) life[i]--;
+  if(life[i]===0){ setType(i, chance(CFG.fireToSmoke)?E_SMOKE:E_EMPTY); return; }
+  if(chance(CFG.fireSmokePuff) && cells[i-gw]===E_EMPTY) setType(i-gw,E_SMOKE);
+  if(chance(CFG.fireRise)){
+    var j2=i-gw+((rnd()%3)-1);
+    if(cells[j2]===E_EMPTY) moveC(i,j2);
+  }
+}
+
+function doGas(i,t){
+  if(life[i]>0 && chance(.9)) life[i]--;
+  if(life[i]===0){
+    /* 증기는 수명 만료 시 p0.35로 비가 되어 내림 */
+    if(t===E_STEAM && chance(CFG.steamRain)) setType(i,E_WATER);
+    else setType(i,E_EMPTY);
+    return;
+  }
+  var up=i-gw, d=chance(.5)?1:-1;
+  if(cells[up]===E_EMPTY && chance(.85)){ moveC(i,up); return; }
+  if(IS_LIQ[cells[up]] && chance(CFG.gasBubble)){ swapC(i,up); return; }  // 기포 상승
+  if(cells[up+d]===E_EMPTY){ moveC(i,up+d); return; }
+  if(cells[up-d]===E_EMPTY){ moveC(i,up-d); return; }
+  if(cells[i+d]===E_EMPTY && chance(.5)){ moveC(i,i+d); return; }
+  if(cells[i-d]===E_EMPTY && chance(.4)){ moveC(i,i-d); }
+}
+
+/* ===== DOM 참조 ===== */
+function $(id){ return document.getElementById(id); }
+var view=$('view'), ctx=view.getContext('2d',{alpha:false});
+var perfEl=$('perf'), toastEl=$('toast'), helpEl=$('help'), ringEl=$('ring'), pauseEl=$('pauseTag');
+
+/* ===== 품질 티어 — 하향 전용(자동 상향 없음), Q로 수동 순환 ===== */
+var TIERS=[
+  {name:'HIGH', gw:320, bloom:true,  dpr:2,   simHz:60},
+  {name:'MED',  gw:320, bloom:false, dpr:1.5, simHz:60},
+  {name:'LOW',  gw:240, bloom:false, dpr:1,   simHz:30}   // LOW는 시뮬 30Hz/렌더 60Hz 분리
+];
+var tierIdx=0, bloomOn=true, dprCap=2, simDt=1000/60;
+try{
+  var sv=localStorage.getItem('axc02-tier');
+  if(sv!==null){ var svn=parseInt(sv,10); if(svn>=0 && svn<TIERS.length) tierIdx=svn; }
+}catch(e){}
+
+/* ===== 렌더 버퍼: ImageData를 Uint32Array 뷰로 직접 기록 → pixelated 확대 ===== */
+var off=document.createElement('canvas'), offCtx=null, img=null, u32=null;
+var offE=document.createElement('canvas'), offECtx=null, imgE=null, u32E=null;  // 발광(블룸) 전용
+function buildBuffers(){
+  off.width=gw;  off.height=gh;  offCtx=off.getContext('2d');
+  img=offCtx.createImageData(gw,gh);  u32=new Uint32Array(img.data.buffer);
+  offE.width=gw; offE.height=gh; offECtx=offE.getContext('2d');
+  imgE=offECtx.createImageData(gw,gh); u32E=new Uint32Array(imgE.data.buffer);
+}
+function fitView(){
+  var d=Math.min(dprCap, window.devicePixelRatio||1);
+  view.width=Math.max(2,Math.round(window.innerWidth*d));
+  view.height=Math.max(2,Math.round(window.innerHeight*d));
+}
+function applyTier(k){
+  tierIdx=Math.max(0,Math.min(TIERS.length-1,k));
+  var T=TIERS[tierIdx];
+  if(cells && T.gw!==gw) resampleWorld(T.gw);   // 기존 씬 유지(최근접 리샘플)
+  bloomOn=T.bloom; dprCap=T.dpr; simDt=1000/T.simHz;
+  buildBuffers(); fitView();
+  try{ localStorage.setItem('axc02-tier',String(tierIdx)); }catch(e){}
+}
+
+function render(){
+  var n=gw*gh, f=frame>>1, i, t;
+  for(i=0;i<n;i++){
+    t=cells[i];
+    u32[i]=PAL[(t<<3)+((rndc[i]+(FLICKER[t]?f:0))&7)];
+  }
+  offCtx.putImageData(img,0,0);
+  ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(off,0,0,gw,gh,0,0,view.width,view.height);
+  if(bloomOn){
+    /* HIGH 전용 가짜 블룸: 발광 셀만 블러+lighter 1회 겹침 */
+    for(i=0;i<n;i++){ t=cells[i]; u32E[i]=EMIT[t]?u32[i]:0; }
+    offECtx.putImageData(imgE,0,0);
+    ctx.save();
+    ctx.globalCompositeOperation='lighter';
+    ctx.filter='blur(6px)';
+    ctx.globalAlpha=.9;
+    ctx.drawImage(offE,0,0,gw,gh,0,0,view.width,view.height);
+    ctx.restore();
+  }
+}
+
+/* ===== 메인 루프: 시뮬(고정 스텝)과 렌더(매 프레임) 분리 ===== */
+var last=performance.now(), acc=0, emaMs=16.7, perfT=0;
+var qSamples=[], warmupUntil=last+1200;
+function autoQuality(now,dt){
+  if(now<warmupUntil || document.hidden || paused || dt<=0 || dt>200) return;
+  qSamples.push(dt);
+  if(qSamples.length<72) return;
+  qSamples.sort(function(a,b){ return a-b; });
+  var med=qSamples[qSamples.length>>1];
+  qSamples.length=0;
+  if(med>26 && tierIdx<TIERS.length-1){
+    applyTier(tierIdx+1);
+    showToast('품질 자동 조정됨 · '+TIERS[tierIdx].name);
+    warmupUntil=now+900;
+  }
+}
+function updatePerf(now){
+  if(now-perfT<500) return;
+  perfT=now;
+  if(!perfEl.classList.contains('on')) return;
+  perfEl.textContent=Math.round(1000/emaMs)+' fps · '+TIERS[tierIdx].name+' · '
+    +gw+'×'+gh+' · 시뮬 '+TIERS[tierIdx].simHz+'Hz';
+}
+function tick(now){
+  var dt=now-last; last=now;
+  if(dt>0 && dt<500) emaMs=emaMs*.9+dt*.1;
+  autoQuality(now,dt);
+  if(!paused){
+    acc+=dt; if(acc>simDt*3) acc=simDt*3;   // 탭 복귀 시 폭주 방지
+    while(acc>=simDt){ simStep(); acc-=simDt; }
+  }
+  render();
+  updatePerf(now);
+  requestAnimationFrame(tick);
+}
+
+/* ===== 브러시 입력 ===== */
+var TOOL_DEFS=[
+  {t:E_WALL,name:'벽'},{t:E_SAND,name:'모래'},{t:E_WATER,name:'물'},{t:E_OIL,name:'기름'},
+  {t:E_FIRE,name:'불'},{t:E_PLANT,name:'식물'},{t:E_LAVA,name:'용암'},{t:E_ACID,name:'산'},
+  {t:-1,name:'지우개'}
+];
+var brushR=4, curToolIdx=1, painting=false, strokeErase=false;
+var prevGX=-1, prevGY=-1, lastMX=-100, lastMY=-100;
+
+function stampBrush(cx,cy,erase){
+  var tool=TOOL_DEFS[curToolIdx].t;
+  var r=brushR, r2=r*r, dx,dy,x,y,i,t0;
+  for(dy=-r;dy<=r;dy++){
+    y=cy+dy; if(y<1||y>gh-2) continue;
+    for(dx=-r;dx<=r;dx++){
+      if(dx*dx+dy*dy>r2) continue;
+      x=cx+dx; if(x<1||x>gw-2) continue;
+      i=y*gw+x; t0=cells[i];
+      if(erase){ if(t0!==E_EMPTY) setType(i,E_EMPTY); continue; }
+      if(tool===E_FIRE){
+        /* 불은 기름·식물을 직접 점화, 빈칸엔 성기게 */
+        if(t0===E_OIL) setFire(i,true);
+        else if(t0===E_PLANT) setFire(i,false);
+        else if(t0===E_EMPTY && chance(.45)) setFire(i,false);
+        continue;
+      }
+      if(tool===E_WALL){ setType(i,E_WALL); continue; }  // 벽은 덮어쓰기(밀봉용)
+      if(t0===E_EMPTY || IS_GAS[t0]) setType(i,tool);
+    }
+  }
+}
+function paintLine(gx,gy,erase){
+  if(prevGX<0) stampBrush(gx,gy,erase);
+  else{
+    var steps=Math.max(Math.abs(gx-prevGX),Math.abs(gy-prevGY),1), s;
+    for(s=1;s<=steps;s++)
+      stampBrush(Math.round(prevGX+(gx-prevGX)*s/steps),
+                 Math.round(prevGY+(gy-prevGY)*s/steps), erase);
+  }
+  prevGX=gx; prevGY=gy;
+}
+function evGX(e){ return (e.clientX/window.innerWidth*gw)|0; }
+function evGY(e){ return (e.clientY/window.innerHeight*gh)|0; }
+function updateRing(px,py){
+  if(px<0) return;
+  lastMX=px; lastMY=py;
+  var d=(brushR*2+1)*(window.innerWidth/gw);
+  var eraser=TOOL_DEFS[curToolIdx].t===-1;
+  ringEl.style.display='block';
+  ringEl.style.width=d+'px'; ringEl.style.height=d+'px';
+  ringEl.style.left=px+'px'; ringEl.style.top=py+'px';
+  ringEl.style.borderStyle=eraser?'dashed':'solid';
+  ringEl.style.borderColor=eraser?'rgba(255,255,255,.9)':COLORS[TOOL_DEFS[curToolIdx].t][0];
+}
+
+view.addEventListener('pointerdown',function(e){
+  if(e.button!==0 && e.button!==2) return;
+  strokeErase=(e.button===2)||TOOL_DEFS[curToolIdx].t===-1;
+  painting=true; prevGX=-1; prevGY=-1;
+  hideHintOnce(); pokeUI();
+  paintLine(evGX(e),evGY(e),strokeErase);
+  try{ view.setPointerCapture(e.pointerId); }catch(err){}
+  e.preventDefault();
+});
+window.addEventListener('pointermove',function(e){
+  pokeUI(); updateRing(e.clientX,e.clientY);
+  if(painting) paintLine(evGX(e),evGY(e),strokeErase);
+});
+window.addEventListener('pointerup',function(){ painting=false; prevGX=-1; prevGY=-1; });
+view.addEventListener('contextmenu',function(e){ e.preventDefault(); });
+window.addEventListener('wheel',function(e){
+  if(helpEl.classList.contains('open')) return;  // 도움말 스크롤 방해 금지
+  brushR=Math.max(1,Math.min(24,brushR+(e.deltaY<0?1:-1)));
+  updateRing(lastMX,lastMY);
+  e.preventDefault();
+},{passive:false});
+
+/* ===== 팔레트 UI ===== */
+function setTool(k){
+  curToolIdx=Math.max(0,Math.min(TOOL_DEFS.length-1,k));
+  var btns=$('pal').children, j;
+  for(j=0;j<btns.length;j++) btns[j].classList.toggle('sel',j===curToolIdx);
+  updateRing(lastMX,lastMY);
+}
+function buildPalette(){
+  var host=$('pal');
+  TOOL_DEFS.forEach(function(def,k){
+    var b=document.createElement('button');
+    b.className='pbtn'; b.type='button';
+    var chip=document.createElement('span'); chip.className='chip';
+    if(def.t===-1){ chip.style.borderStyle='dashed'; }
+    else chip.style.background=COLORS[def.t][0];
+    var nm=document.createElement('span'); nm.textContent=def.name;
+    var kk=document.createElement('span'); kk.className='pk'; kk.textContent=String(k+1);
+    b.appendChild(chip); b.appendChild(nm); b.appendChild(kk);
+    b.addEventListener('click',function(){ setTool(k); pokeUI(); });
+    host.appendChild(b);
+  });
+}
+
+/* ===== 토스트·힌트·유휴 페이드 ===== */
+var toastTimer=0, hintShown=true, idleTimer=0;
+function showToast(msg,ms){
+  toastEl.textContent=msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){ toastEl.classList.remove('show'); }, ms||2200);
+}
+function hideHintOnce(){
+  if(hintShown){ hintShown=false; clearTimeout(toastTimer); toastEl.classList.remove('show'); }
+}
+function pokeUI(){
+  document.body.classList.remove('ui-idle');
+  clearTimeout(idleTimer);
+  idleTimer=setTimeout(function(){
+    if(!helpEl.classList.contains('open')) document.body.classList.add('ui-idle');
+  },3000);
+}
+
+/* ===== 키·기타 조작 ===== */
+function togglePause(){
+  paused=!paused;
+  pauseEl.style.display=paused?'inline-block':'none';
+  showToast(paused?'일시정지 — Space로 재개':'재개');
+}
+function resetScene(){ buildScene(); showToast('씬 리셋'); }
+function toggleFull(){
+  try{
+    if(document.fullscreenElement){ document.exitFullscreen(); }
+    else{
+      var p=document.documentElement.requestFullscreen();
+      if(p && p.catch) p.catch(function(){});
+    }
+  }catch(e){}
+}
+function cycleTier(){
+  applyTier((tierIdx+1)%TIERS.length);
+  qSamples.length=0; warmupUntil=performance.now()+900;
+  showToast('품질: '+TIERS[tierIdx].name+' (수동)');
+}
+window.addEventListener('keydown',function(e){
+  if(e.ctrlKey||e.metaKey||e.altKey) return;
+  pokeUI();
+  var k=e.key.toLowerCase();
+  if(k>='1' && k<='9'){ setTool(parseInt(k,10)-1); return; }
+  if(k==='0'){ setTool(8); return; }
+  if(k===' '){ togglePause(); e.preventDefault(); return; }
+  if(k==='r'){ resetScene(); return; }
+  if(k==='f'){ toggleFull(); return; }
+  if(k==='h'){ helpEl.classList.toggle('open'); return; }
+  if(k==='p'){ perfEl.classList.toggle('on'); perfT=0; return; }
+  if(k==='q'){ cycleTier(); return; }
+  if(k==='escape'){ helpEl.classList.remove('open'); }
+});
+helpEl.addEventListener('click',function(e){ if(e.target===helpEl) helpEl.classList.remove('open'); });
+window.addEventListener('resize',function(){ fitView(); updateRing(lastMX,lastMY); });
+document.addEventListener('visibilitychange',function(){
+  if(!document.hidden){
+    last=performance.now(); acc=0;
+    qSamples.length=0; warmupUntil=last+900;
+  }
+});
+
+/* ===== 부트 ===== */
+function aspectH(w){
+  var a=window.innerHeight/Math.max(1,window.innerWidth);
+  a=Math.min(1.1,Math.max(0.4,a));
+  return Math.max(110,Math.min(260,Math.round(w*a)));
+}
+allocWorld(TIERS[tierIdx].gw, aspectH(TIERS[tierIdx].gw));
+buildScene();
+applyTier(tierIdx);
+buildPalette();
+setTool(1);   // 기본 도구: 모래
+showToast('드래그해 원소를 뿌려 보세요 · 숫자키 1~8 원소 · 휠 브러시 · H 도움말',6000);
+pokeUI();
+requestAnimationFrame(tick);
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="ko">
+<!-- 다크 단일 룩 고정: 저장소 규칙 4(prefers-color-scheme 분기)의 의도적 예외 — 프로젝터 대비 확보 목적 (PLAN.md 3.1) -->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>03 · 파티클 모프 타이포그래피</title>
+<style>
+:root{
+  --bg0:#05060d; --bg1:#0c0f1a; --line:rgba(255,255,255,.10);
+  --text:#edf1ff; --text-soft:#9aa4c2;
+  --c3:#3fd3ff; /* 03 타이포 시그니처 — 시안 */
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; overflow:hidden; background:var(--bg0); color:var(--text);
+  font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+}
+[hidden]{display:none !important}
+#stage{position:fixed; inset:0; z-index:0; display:block; touch-action:none}
+.vignette{
+  position:fixed; inset:0; z-index:1; pointer-events:none;
+  background:radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,.38) 100%);
+}
+/* ---- 공통 UI (마우스 유휴 시 페이드) ---- */
+.ui{transition:opacity .5s ease}
+body.ui-idle .ui{opacity:0}
+.app-title{
+  position:fixed; top:16px; left:20px; z-index:5;
+  color:var(--c3); font-weight:700; font-size:15px; letter-spacing:.04em;
+  text-shadow:0 0 16px rgba(63,211,255,.35);
+}
+.hub-link{
+  position:fixed; left:20px; bottom:16px; z-index:5;
+  color:var(--text-soft); text-decoration:none; font-size:13px;
+  padding:6px 12px; border:1px solid var(--line); border-radius:8px;
+  background:rgba(12,15,26,.66);
+}
+.hub-link:hover,.hub-link:focus-visible{color:var(--text); border-color:rgba(63,211,255,.5)}
+.control-bar{
+  position:fixed; left:50%; bottom:16px; transform:translateX(-50%); z-index:5;
+  display:flex; gap:8px; align-items:center;
+  padding:8px; border:1px solid var(--line); border-radius:12px;
+  background:rgba(12,15,26,.72);
+}
+.control-bar input{
+  width:230px; padding:7px 10px; font:inherit; font-size:13px;
+  color:var(--text); background:#0a0d18;
+  border:1px solid var(--line); border-radius:8px; outline:none;
+}
+.control-bar input::placeholder{color:#5f6884}
+.control-bar input:focus{border-color:rgba(63,211,255,.6)}
+.control-bar button{
+  padding:7px 12px; font:inherit; font-size:13px; cursor:pointer;
+  color:var(--text-soft); background:transparent;
+  border:1px solid var(--line); border-radius:8px; white-space:nowrap;
+}
+.control-bar button:hover,.control-bar button:focus-visible{color:var(--c3); border-color:rgba(63,211,255,.5)}
+.hud{
+  position:fixed; right:20px; bottom:16px; z-index:5;
+  font-size:12px; line-height:1.6; color:var(--text-soft); text-align:right;
+  background:rgba(12,15,26,.72); border:1px solid var(--line); border-radius:8px;
+  padding:8px 12px; white-space:pre-line; font-variant-numeric:tabular-nums;
+  pointer-events:none;
+}
+.toast{
+  position:fixed; top:56px; left:50%; transform:translate(-50%,-8px); z-index:6;
+  opacity:0; transition:opacity .3s ease, transform .3s ease; pointer-events:none;
+  background:rgba(12,15,26,.88); border:1px solid rgba(63,211,255,.4);
+  color:var(--text); padding:8px 16px; border-radius:999px; font-size:13px;
+}
+.toast.show{opacity:1; transform:translate(-50%,0)}
+.hint{
+  position:fixed; left:50%; bottom:74px; transform:translate(-50%,8px); z-index:5;
+  opacity:0; transition:opacity .6s ease, transform .6s ease; pointer-events:none;
+  background:rgba(12,15,26,.82); border:1px solid var(--line);
+  color:var(--text-soft); padding:8px 16px; border-radius:999px; font-size:13px;
+}
+.hint.show{opacity:1; transform:translate(-50%,0)}
+.hint b{color:var(--c3); font-weight:600}
+/* ---- 도움말 오버레이 ---- */
+.help-overlay{
+  position:fixed; inset:0; z-index:10;
+  background:rgba(3,4,10,.72);
+  display:flex; align-items:center; justify-content:center;
+}
+.help-card{
+  background:var(--bg1); border:1px solid rgba(63,211,255,.35); border-radius:14px;
+  padding:22px 28px; max-width:440px; width:min(92vw,440px);
+  box-shadow:0 12px 48px rgba(0,0,0,.6);
+}
+.help-card h2{margin:0 0 14px; font-size:16px; color:var(--c3); letter-spacing:.03em}
+.help-card table{width:100%; border-collapse:collapse; font-size:13px}
+.help-card td{padding:5px 0; vertical-align:top}
+.help-card td:first-child{width:120px; color:var(--text)}
+.help-card td:last-child{color:var(--text-soft)}
+.help-card kbd{
+  display:inline-block; min-width:22px; text-align:center;
+  padding:2px 6px; font:inherit; font-weight:600; font-size:11px; line-height:1.4; color:var(--text);
+  background:#141827; border:1px solid var(--line); border-bottom-width:2px; border-radius:5px;
+}
+.help-card .help-close{margin-top:14px; font-size:12px; color:#5f6884}
+</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+
+<header class="ui app-title">03 · 파티클 모프 타이포그래피</header>
+<a class="ui hub-link" href="../index.html">← 허브</a>
+
+<div class="ui control-bar">
+  <input id="phrase-input" type="text" maxlength="12" placeholder="문구 입력 후 Enter (최대 12자)" autocomplete="off" spellcheck="false" aria-label="표시할 문구">
+  <button id="next-btn" type="button">다음 문구</button>
+  <button id="scatter-btn" type="button">흩어지기</button>
+</div>
+
+<div id="hud" class="hud" hidden></div>
+<div id="toast" class="toast" role="status"></div>
+<div id="hint" class="hint show">마우스로 글자를 휘저어 보세요 · <b>Space</b> 다음 문구 · <b>H</b> 도움말</div>
+
+<div id="help" class="help-overlay" hidden>
+  <div class="help-card">
+    <h2>조작법</h2>
+    <table>
+      <tr><td>마우스 이동</td><td>입자 반발 (글자 휘젓기)</td></tr>
+      <tr><td>클릭</td><td>충격파 (반경 220px)</td></tr>
+      <tr><td><kbd>Space</kbd></td><td>다음 문구 (프리셋 5종 순환)</td></tr>
+      <tr><td><kbd>X</kbd></td><td>흩어지기 · 모으기</td></tr>
+      <tr><td><kbd>Enter</kbd></td><td>입력창의 문구 적용</td></tr>
+      <tr><td><kbd>R</kbd></td><td>리셋</td></tr>
+      <tr><td><kbd>F</kbd></td><td>전체화면</td></tr>
+      <tr><td><kbd>Q</kbd></td><td>품질 단계 수동 변경</td></tr>
+      <tr><td><kbd>P</kbd></td><td>성능 정보 표시</td></tr>
+      <tr><td><kbd>H</kbd></td><td>이 도움말</td></tr>
+    </table>
+    <div class="help-close">아무 곳이나 클릭하거나 H를 누르면 닫힙니다</div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= 상수 ================= */
+var STACK='Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR","Malgun Gothic",system-ui,sans-serif';
+var PALETTE=['#ff3d68','#ffd23f','#35e0ff','#7cff4f','#c07dff']; // 좌→우 그라데이션 5색
+var PRESETS=['바이브 코딩','AX 2026','안녕하세요','코드가 예술이\n되는 순간','♥'];
+var TIERS=[
+  {name:'높음', count:10000, dprCap:2,   glowStep:4}, // tier0: 입자 4개당 글로우 1
+  {name:'중간', count:7000,  dprCap:1.5, glowStep:8}, // tier1: 1/8
+  {name:'낮음', count:4500,  dprCap:1,   glowStep:0}  // tier2: 글로우 없음(트레일이 밀도 보전)
+];
+var SPRING_K=0.055, SPRING_K_BOOST=0.08, DAMP=0.86;
+var MOUSE_R=110, MOUSE_F=7;          // 반발: (1-d/R)^2 * 7
+var SHOCK_R=220, SHOCK_F=32;         // 클릭 충격파
+var TRAIL='rgba(5,5,16,0.28)';       // 트레일 페이드 — 잔상이 밀도 체감을 키우는 핵심
+var BG='#05060d';
+var MEDIAN_LIMIT=22;                 // 60프레임 중앙값 22ms 초과 시 하향 (플랜 4.3)
+var WARMUP_MS=1200;
+var TIER_KEY='appc-03-tier';
+
+/* ================= 상태 ================= */
+var stage,ctx,W=0,H=0,dpr=1;
+var tierIdx=0,tierForced=false;
+var aPx,aPy,aVx,aVy,aTx,aTy;         // SoA Float32Array x6
+var colorIdx,pCount=0;
+var buckets=[],bucketLen=[0,0,0,0,0];
+var targetXY=null,targetCount=0;
+var glowSprites=[];
+var curText=PRESETS[0],presetIdx=0;
+var scattered=false;
+var morphAt=0,introUntil=0;
+var mouseX=0,mouseY=0,mouseOn=false;
+var running=true,rafId=0,lastT=0;
+var fpsAvg=60,hudMedian=0,hudNextAt=0;
+var samples=[],measureStart=0;
+var reducedMotion=false;
+var hintDone=false,idleTimer=0,toastTimer=0,resizeTimer=0;
+
+var inputEl,nextBtn,scatterBtn,hudEl,toastEl,hintEl,helpEl;
+
+/* ================= 헬퍼 ================= */
+function median(arr){
+  var s=arr.slice().sort(function(a,b){return a-b;});
+  return s[s.length>>1];
+}
+function hexToRgb(hex){
+  var v=parseInt(hex.slice(1),16);
+  return [(v>>16)&255,(v>>8)&255,v&255];
+}
+function fontStr(sizePx){ return '900 '+sizePx.toFixed(1)+'px '+STACK; }
+
+function showToast(msg){
+  toastEl.textContent=msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){ toastEl.classList.remove('show'); },2000);
+}
+
+function loadTierPref(){
+  try{
+    var v=localStorage.getItem(TIER_KEY);
+    if(v!==null&&/^[0-2]$/.test(v)) return +v;
+  }catch(err){}
+  return -1;
+}
+function saveTierPref(){
+  try{ localStorage.setItem(TIER_KEY,String(tierIdx)); }catch(err){}
+}
+
+/* ================= 글로우 스프라이트 (팔레트 5색 프리렌더) ================= */
+function makeGlowSprites(){
+  glowSprites=[];
+  for(var c=0;c<5;c++){
+    var rgb=hexToRgb(PALETTE[c]);
+    var cv=document.createElement('canvas');
+    cv.width=32; cv.height=32;
+    var gctx=cv.getContext('2d');
+    var grad=gctx.createRadialGradient(16,16,0,16,16,16);
+    grad.addColorStop(0,'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+',0.55)');
+    grad.addColorStop(0.4,'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+',0.18)');
+    grad.addColorStop(1,'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+',0)');
+    gctx.fillStyle=grad;
+    gctx.fillRect(0,0,32,32);
+    glowSprites.push(cv);
+  }
+}
+
+/* ================= 텍스트 → 목표점 ================= */
+function splitTwo(s){
+  // 중앙에 가장 가까운 공백에서 분리, 없으면 절반
+  var chars=Array.from(s);
+  var mid=chars.length/2,bestI=-1,bestD=1e9;
+  for(var i=1;i<chars.length-1;i++){
+    if(chars[i]===' '){
+      var d=Math.abs(i-mid);
+      if(d<bestD){ bestD=d; bestI=i; }
+    }
+  }
+  if(bestI<0) bestI=Math.ceil(chars.length/2);
+  var l1=chars.slice(0,bestI).join('').trim();
+  var l2=chars.slice(bestI).join('').trim();
+  return l2? [l1,l2] : [l1];
+}
+function layoutLines(str){
+  var s=String(str||'').trim();
+  if(!s) return [];
+  if(s.indexOf('\n')>=0){
+    var out=[],parts=s.split('\n');
+    for(var i=0;i<parts.length&&out.length<2;i++){
+      var t=parts[i].trim();
+      if(t) out.push(t);
+    }
+    return out;
+  }
+  return [s];
+}
+
+function buildTargets(str){
+  var lines=layoutLines(str);
+  if(!lines.length) return false;
+  // 오프스크린은 CSS px 기준(상한 1600×1000) — dpr과 무관하게 목표점 좌표 유지
+  var scale=Math.min(1,1600/W,1000/H);
+  var ow=Math.max(2,Math.round(W*scale)), oh=Math.max(2,Math.round(H*scale));
+  var off=document.createElement('canvas');
+  off.width=ow; off.height=oh;
+  var octx=off.getContext('2d',{willReadFrequently:true});
+  octx.textAlign='center'; octx.textBaseline='middle';
+
+  function fitFor(ls){
+    var base=Math.min(oh*0.5,(oh*0.74)/(ls.length*1.14));
+    octx.font=fontStr(base);
+    var wMax=0;
+    for(var i=0;i<ls.length;i++){
+      var mw=octx.measureText(ls[i]).width;
+      if(mw>wMax) wMax=mw;
+    }
+    var avail=ow*0.86;
+    return wMax>avail? base*avail/wMax : base;
+  }
+
+  var size=fitFor(lines);
+  // 판독성 기반 자동 2줄: 한 줄로는 글자가 너무 작아지는 장문(6자 초과)만 분할
+  if(lines.length===1&&Array.from(lines[0]).length>6&&size<oh*0.24){
+    var forced=splitTwo(lines[0]);
+    if(forced.length===2){ lines=forced; size=fitFor(lines); }
+  }
+
+  // fillText+strokeText 중첩 — 한글 가는 획 보강 (플랜 4.3)
+  octx.font=fontStr(size);
+  octx.fillStyle='#fff'; octx.strokeStyle='#fff';
+  octx.lineWidth=Math.max(1,size*0.045); octx.lineJoin='round';
+  var lh=size*1.14, cy0=oh/2;
+  for(var li=0;li<lines.length;li++){
+    var ly=cy0+(li-(lines.length-1)/2)*lh;
+    octx.fillText(lines[li],ow/2,ly);
+    octx.strokeText(lines[li],ow/2,ly);
+  }
+
+  var img=octx.getImageData(0,0,ow,oh).data;
+  function countStep(step){
+    var c=0;
+    for(var yy=0;yy<oh;yy+=step){
+      var row=yy*ow;
+      for(var xx=0;xx<ow;xx+=step){
+        if(img[(row+xx)*4+3]>128) c++;
+      }
+    }
+    return c;
+  }
+  // 적응 샘플링: step 4 시작, 목표점 4,000~12,000이 되도록 3~6 조정
+  var sampleStep=4, cnt=countStep(4);
+  while(cnt>12000&&sampleStep<6){ sampleStep++; cnt=countStep(sampleStep); }
+  while(cnt<4000&&sampleStep>3){ sampleStep--; cnt=countStep(sampleStep); }
+  if(cnt<1) return false;
+
+  var pts=new Float32Array(cnt*2), m=0;
+  var inv=1/scale, jit=sampleStep*0.6*inv; // 격자 티 제거용 지터
+  for(var y2=0;y2<oh;y2+=sampleStep){
+    var row2=y2*ow;
+    for(var x2=0;x2<ow;x2+=sampleStep){
+      if(img[(row2+x2)*4+3]>128){
+        pts[m++]=x2*inv+(Math.random()-0.5)*jit;
+        pts[m++]=y2*inv+(Math.random()-0.5)*jit;
+      }
+    }
+  }
+  targetXY=pts; targetCount=cnt;
+  return true;
+}
+
+/* ================= 목표점 배정 (셔플 → 소용돌이 연출) ================= */
+function assignTargets(){
+  if(!targetXY||!targetCount||!pCount) return;
+  var order=new Uint32Array(targetCount);
+  var i;
+  for(i=0;i<targetCount;i++) order[i]=i;
+  for(i=targetCount-1;i>0;i--){ // Fisher–Yates
+    var j=(Math.random()*(i+1))|0;
+    var tmp=order[i]; order[i]=order[j]; order[j]=tmp;
+  }
+  var minX=1e9,maxX=-1e9;
+  for(var p=0;p<pCount;p++){
+    var ti=order[p%targetCount]*2;
+    // 입자가 목표점보다 많으면 공유 — 겹침 방지용 소량 오프셋
+    var shared=p>=targetCount;
+    aTx[p]=targetXY[ti]+(shared?(Math.random()-0.5)*3:0);
+    aTy[p]=targetXY[ti+1]+(shared?(Math.random()-0.5)*3:0);
+    if(aTx[p]<minX) minX=aTx[p];
+    if(aTx[p]>maxX) maxX=aTx[p];
+  }
+  // 좌→우 5색 그룹 배정
+  var span=Math.max(1,maxX-minX);
+  for(var p2=0;p2<pCount;p2++){
+    var g=((aTx[p2]-minX)/span*5)|0;
+    if(g>4) g=4; else if(g<0) g=0;
+    colorIdx[p2]=g;
+  }
+  rebuildBuckets();
+  morphAt=performance.now(); // 모프 첫 0.8초 스프링 부스트 기점
+}
+
+function rebuildBuckets(){
+  for(var c=0;c<5;c++) bucketLen[c]=0;
+  for(var i=0;i<pCount;i++){
+    var g=colorIdx[i];
+    buckets[g][bucketLen[g]++]=i;
+  }
+}
+
+/* ================= 입자 배열 (SoA) ================= */
+function initParticles(n){
+  var oldN=pCount,oPx=aPx,oPy=aPy,oVx=aVx,oVy=aVy;
+  aPx=new Float32Array(n); aPy=new Float32Array(n);
+  aVx=new Float32Array(n); aVy=new Float32Array(n);
+  aTx=new Float32Array(n); aTy=new Float32Array(n);
+  colorIdx=new Uint8Array(n);
+  var keep=Math.min(oldN,n);
+  for(var i=0;i<keep;i++){ aPx[i]=oPx[i]; aPy[i]=oPy[i]; aVx[i]=oVx[i]; aVy[i]=oVy[i]; }
+  for(var j=keep;j<n;j++){
+    aPx[j]=Math.random()*W; aPy[j]=Math.random()*H;
+    aVx[j]=(Math.random()-0.5)*4; aVy[j]=(Math.random()-0.5)*4;
+  }
+  pCount=n;
+  buckets=[];
+  for(var c=0;c<5;c++) buckets.push(new Uint32Array(n));
+  assignTargets();
+}
+
+function snapToTargets(){
+  for(var i=0;i<pCount;i++){
+    aPx[i]=aTx[i]; aPy[i]=aTy[i]; aVx[i]=0; aVy[i]=0;
+  }
+}
+
+/* ================= 물리 조작 ================= */
+function applyShock(cx,cy,radius,force){
+  var r2=radius*radius;
+  for(var i=0;i<pCount;i++){
+    var dx=aPx[i]-cx, dy=aPy[i]-cy;
+    var d2=dx*dx+dy*dy;
+    if(d2>=r2) continue;
+    var d=Math.sqrt(d2)||0.001;
+    var q=1-d/radius;
+    var f=q*q*force;
+    aVx[i]+=dx/d*f; aVy[i]+=dy/d*f;
+  }
+}
+
+/* ================= 문구 전환 ================= */
+function setText(str,withBurst){
+  var s=String(str||'').trim();
+  if(!s) return;
+  var prev=curText;
+  curText=s;
+  if(!buildTargets(s)){ curText=prev; return; }
+  if(withBurst&&!reducedMotion) applyShock(W/2,H/2,Math.max(W,H)*0.75,16); // 폭발 후 재조합
+  scattered=false; updateScatterBtn();
+  assignTargets();
+  if(reducedMotion) snapToTargets();
+  updateHud();
+}
+function nextPreset(){
+  presetIdx=(presetIdx+1)%PRESETS.length;
+  setText(PRESETS[presetIdx],true);
+}
+function toggleScatter(){
+  scattered=!scattered;
+  if(scattered){
+    applyShock(W/2,H/2,Math.max(W,H),9);
+    for(var i=0;i<pCount;i++){
+      aVx[i]+=(Math.random()-0.5)*8;
+      aVy[i]+=(Math.random()-0.5)*8;
+    }
+  }else{
+    morphAt=performance.now();
+    if(reducedMotion) snapToTargets();
+  }
+  updateScatterBtn();
+}
+function updateScatterBtn(){
+  scatterBtn.textContent=scattered?'모으기':'흩어지기';
+}
+function resetAll(){
+  presetIdx=0; curText=PRESETS[0];
+  scattered=false; updateScatterBtn();
+  for(var i=0;i<pCount;i++){
+    aPx[i]=Math.random()*W; aPy[i]=Math.random()*H;
+    aVx[i]=(Math.random()-0.5)*4; aVy[i]=(Math.random()-0.5)*4;
+  }
+  if(buildTargets(curText)) assignTargets();
+  ctx.fillStyle=BG; ctx.fillRect(0,0,W,H);
+  if(reducedMotion) snapToTargets();
+  else introUntil=performance.now()+2500;
+  showToast('리셋');
+}
+
+/* ================= 캔버스 · 티어 ================= */
+function resizeCanvas(){
+  W=window.innerWidth; H=window.innerHeight;
+  dpr=Math.min(window.devicePixelRatio||1,TIERS[tierIdx].dprCap);
+  stage.width=Math.max(2,Math.floor(W*dpr));
+  stage.height=Math.max(2,Math.floor(H*dpr));
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle=BG; ctx.fillRect(0,0,W,H);
+}
+function setTier(idx,isAuto){
+  idx=Math.max(0,Math.min(2,idx));
+  tierIdx=idx;
+  resizeCanvas();
+  initParticles(TIERS[idx].count); // 기존 위치는 보존, 목표점 재배정
+  saveTierPref();
+  samples.length=0;
+  measureStart=performance.now();
+  showToast(isAuto? '품질 자동 조정됨 · '+TIERS[idx].name : '품질: '+TIERS[idx].name);
+  updateHud();
+}
+
+/* ================= 품질 자동 하향 (하향 전용, 복귀 없음) ================= */
+function perfSample(dt,now){
+  if(document.hidden) return;
+  if(now<measureStart+WARMUP_MS) return; // 워밍업 1.2초 버림
+  samples.push(dt);
+  if(samples.length>=60){
+    var med=median(samples);
+    hudMedian=med;
+    samples.length=0;
+    measureStart=now; // 다음 측정 창에도 워밍업 적용
+    if(!tierForced&&med>MEDIAN_LIMIT&&tierIdx<2) setTier(tierIdx+1,true);
+  }
+}
+
+/* ================= HUD · 토스트 · 힌트 ================= */
+function updateHud(){
+  if(hudEl.hidden) return;
+  var medTxt=hudMedian>0? hudMedian.toFixed(1)+'ms' : '측정 중';
+  hudEl.textContent=
+    Math.round(fpsAvg)+' FPS · 중앙값 '+medTxt+'\n'+
+    '품질 '+TIERS[tierIdx].name+(tierForced?' (URL 고정)':'')+' · dpr '+(Math.round(dpr*100)/100)+'\n'+
+    '입자 '+pCount.toLocaleString()+' · 목표점 '+targetCount.toLocaleString();
+}
+function firstInputDone(){
+  if(hintDone) return;
+  hintDone=true;
+  hintEl.classList.remove('show');
+}
+function pokeUi(){
+  document.body.classList.remove('ui-idle');
+  clearTimeout(idleTimer);
+  idleTimer=setTimeout(function(){
+    if(document.activeElement!==inputEl) document.body.classList.add('ui-idle');
+  },3000);
+}
+
+/* ================= 전체화면 · 도움말 ================= */
+function toggleFullscreen(){
+  try{
+    if(document.fullscreenElement){
+      var pr=document.exitFullscreen();
+      if(pr&&pr.catch) pr.catch(function(){});
+    }else{
+      var pr2=document.documentElement.requestFullscreen();
+      if(pr2&&pr2.catch) pr2.catch(function(){});
+    }
+  }catch(err){}
+}
+function toggleHelp(){ helpEl.hidden=!helpEl.hidden; }
+
+/* ================= 메인 루프 ================= */
+function frame(now){
+  rafId=requestAnimationFrame(frame);
+  var dt=now-lastT; lastT=now;
+  if(!(dt>0)||dt>250) dt=16.7; // 탭 복귀 등 비정상 dt 방어
+  perfSample(dt,now);
+
+  var n=Math.min(dt/16.667,2.5); // 60fps 기준 정규화
+  var kNow;
+  if(now<introUntil){
+    // 인트로: 2.5초에 걸쳐 스프링을 서서히 강화 → 소용돌이치며 수렴
+    var it=1-(introUntil-now)/2500;
+    if(it<0) it=0;
+    kNow=0.006+(SPRING_K_BOOST-0.006)*it*it;
+  }else{
+    kNow=(now-morphAt<800)? SPRING_K_BOOST : SPRING_K; // 모프 첫 0.8초 부스트
+  }
+  var dampNow=Math.pow(scattered?0.985:DAMP,n);
+  var jitterOn=!scattered&&!reducedMotion; // 숨쉬는 질감 — 자동 연출이므로 감소 모션 시 정지
+  var mR2=MOUSE_R*MOUSE_R;
+
+  for(var i=0;i<pCount;i++){
+    var x=aPx[i], y=aPy[i], velX=aVx[i], velY=aVy[i];
+    if(!scattered){
+      var dx=aTx[i]-x, dy=aTy[i]-y;
+      velX+=dx*kNow*n; velY+=dy*kNow*n;
+      if(jitterOn&&dx*dx+dy*dy<9){
+        velX+=(Math.random()-0.5)*0.35;
+        velY+=(Math.random()-0.5)*0.35;
+      }
+    }else{
+      velX+=(Math.random()-0.5)*0.3*n;
+      velY+=(Math.random()-0.5)*0.3*n;
+    }
+    if(mouseOn){
+      var mdx=x-mouseX, mdy=y-mouseY;
+      var md2=mdx*mdx+mdy*mdy;
+      if(md2<mR2&&md2>1e-4){
+        var md=Math.sqrt(md2);
+        var q=1-md/MOUSE_R;
+        var mf=q*q*MOUSE_F/md;
+        velX+=mdx*mf*n; velY+=mdy*mf*n;
+      }
+    }
+    velX*=dampNow; velY*=dampNow;
+    x+=velX*n; y+=velY*n;
+    if(scattered){ // 흩어짐 모드는 화면 순환(랩)
+      if(x<-24) x+=W+48; else if(x>W+24) x-=W+48;
+      if(y<-24) y+=H+48; else if(y>H+24) y-=H+48;
+    }
+    aPx[i]=x; aPy[i]=y; aVx[i]=velX; aVy[i]=velY;
+  }
+
+  // ① 트레일 페이드 ② 본체 5색 그룹 ③ 글로우 'lighter'
+  ctx.fillStyle=TRAIL;
+  ctx.fillRect(0,0,W,H);
+  var c,arr,len,k2,pi;
+  for(c=0;c<5;c++){
+    ctx.fillStyle=PALETTE[c];
+    arr=buckets[c]; len=bucketLen[c];
+    for(k2=0;k2<len;k2++){
+      pi=arr[k2];
+      ctx.fillRect((aPx[pi]-1)|0,(aPy[pi]-1)|0,2,2);
+    }
+  }
+  var gs=TIERS[tierIdx].glowStep;
+  if(gs>0){
+    ctx.globalCompositeOperation='lighter';
+    for(c=0;c<5;c++){
+      var sp=glowSprites[c];
+      arr=buckets[c]; len=bucketLen[c];
+      for(k2=0;k2<len;k2++){
+        pi=arr[k2];
+        if(pi%gs===0) ctx.drawImage(sp,(aPx[pi]-8)|0,(aPy[pi]-8)|0,16,16);
+      }
+    }
+    ctx.globalCompositeOperation='source-over';
+  }
+
+  fpsAvg=fpsAvg*0.92+(1000/dt)*0.08;
+  if(now>hudNextAt){ hudNextAt=now+300; updateHud(); }
+}
+
+/* ================= 부트 ================= */
+function boot(){
+  stage=document.getElementById('stage');
+  ctx=stage.getContext('2d',{alpha:false});
+  inputEl=document.getElementById('phrase-input');
+  nextBtn=document.getElementById('next-btn');
+  scatterBtn=document.getElementById('scatter-btn');
+  hudEl=document.getElementById('hud');
+  toastEl=document.getElementById('toast');
+  hintEl=document.getElementById('hint');
+  helpEl=document.getElementById('help');
+
+  // 감소 모션 선호
+  var rmq=window.matchMedia? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  if(rmq){
+    reducedMotion=rmq.matches;
+    var onRmq=function(){ reducedMotion=rmq.matches; };
+    if(rmq.addEventListener) rmq.addEventListener('change',onRmq);
+    else if(rmq.addListener) rmq.addListener(onRmq);
+  }
+
+  // 티어 결정: URL ?tier=N(고정, 자동 하향 없음) > localStorage > 해상도 휴리스틱
+  var qt=null;
+  try{ qt=new URLSearchParams(location.search).get('tier'); }catch(err){}
+  var stored=loadTierPref();
+  if(qt!==null&&/^[0-2]$/.test(qt)){
+    tierIdx=+qt; tierForced=true;
+  }else if(stored>=0){
+    tierIdx=stored;
+  }else{
+    var rawDpr=Math.min(window.devicePixelRatio||1,2);
+    if(window.innerWidth*rawDpr*window.innerHeight*rawDpr>4e6) tierIdx=1; // 고해상 시작점 하향
+  }
+
+  resizeCanvas();
+  makeGlowSprites();
+  buildTargets(curText);
+  initParticles(TIERS[tierIdx].count);
+  if(reducedMotion) snapToTargets();
+  else introUntil=performance.now()+2500; // 무작위 → "바이브 코딩" 수렴 인트로
+
+  /* ---- 입력 ---- */
+  window.addEventListener('pointermove',function(e){
+    mouseX=e.clientX; mouseY=e.clientY; mouseOn=true;
+    pokeUi();
+  });
+  window.addEventListener('pointerdown',firstInputDone);
+  window.addEventListener('pointerup',function(e){
+    if(e.pointerType!=='mouse') mouseOn=false; // 터치는 손을 떼면 반발 종료
+  });
+  window.addEventListener('pointercancel',function(){ mouseOn=false; });
+  window.addEventListener('blur',function(){ mouseOn=false; });
+  document.documentElement.addEventListener('mouseleave',function(){ mouseOn=false; });
+
+  stage.addEventListener('pointerdown',function(e){
+    mouseX=e.clientX; mouseY=e.clientY;
+    applyShock(e.clientX,e.clientY,SHOCK_R,SHOCK_F);
+  });
+
+  inputEl.addEventListener('keydown',function(e){
+    if(e.isComposing) return; // 한글 IME 조합 중 Enter 무시
+    if(e.key==='Enter'){
+      e.preventDefault();
+      var v=inputEl.value.trim();
+      if(v){ setText(v,true); inputEl.blur(); }
+    }else if(e.key==='Escape'){
+      inputEl.blur();
+    }
+    e.stopPropagation(); // 전역 단축키와 분리
+  });
+  nextBtn.addEventListener('click',function(){
+    nextBtn.blur(); nextPreset(); firstInputDone();
+  });
+  scatterBtn.addEventListener('click',function(){
+    scatterBtn.blur(); toggleScatter(); firstInputDone();
+  });
+  helpEl.addEventListener('click',function(){ helpEl.hidden=true; });
+
+  document.addEventListener('keydown',function(e){
+    if(e.isComposing) return;
+    var tag=(e.target&&e.target.tagName)||'';
+    if(tag==='INPUT') return; // 입력창은 자체 핸들러
+    switch(e.key){
+      case ' ': e.preventDefault(); nextPreset(); break;
+      case 'x': case 'X': toggleScatter(); break;
+      case 'r': case 'R': resetAll(); break;
+      case 'f': case 'F': toggleFullscreen(); break;
+      case 'h': case 'H': toggleHelp(); break;
+      case 'p': case 'P':
+        hudEl.hidden=!hudEl.hidden;
+        if(!hudEl.hidden) updateHud();
+        break;
+      case 'q': case 'Q': setTier((tierIdx+1)%3,false); break;
+      case 'Escape': if(!helpEl.hidden) helpEl.hidden=true; break;
+      default: break;
+    }
+    firstInputDone();
+  });
+
+  window.addEventListener('resize',function(){
+    resizeCanvas();
+    clearTimeout(resizeTimer);
+    resizeTimer=setTimeout(function(){ // 재샘플·재배정은 디바운스
+      if(buildTargets(curText)){
+        assignTargets();
+        if(reducedMotion) snapToTargets();
+      }
+      updateHud();
+    },250);
+  });
+
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden){
+      if(running){ cancelAnimationFrame(rafId); running=false; }
+    }else if(!running){
+      running=true;
+      lastT=performance.now();
+      samples.length=0; measureStart=lastT;
+      rafId=requestAnimationFrame(frame);
+    }
+  });
+
+  // 힌트: 첫 입력 또는 10초 후 페이드
+  setTimeout(firstInputDone,10000);
+  pokeUi();
+
+  lastT=performance.now();
+  measureStart=lastT;
+  rafId=requestAnimationFrame(frame);
+}
+
+boot();
+})();
+</script>
+</body>
+</html>
