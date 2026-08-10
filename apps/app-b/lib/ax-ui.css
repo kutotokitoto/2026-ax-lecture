@@ -1,0 +1,360 @@
+/* ─────────────────────────────────────────────────────────────
+   ax-ui.css — 요즘 오락실 게임 공용 셸
+
+   게임 화면은 3D 씬이라 늘 어둡습니다. 그래서 셸도 어두운 톤을 기본으로
+   두되, 색은 전부 :root 변수로 정의하고 다크 모드에서 값만 다시 잡습니다.
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  --ax-bg: #05060b;
+  --ax-panel: rgba(10, 12, 22, .82);
+  --ax-panel-solid: #0b0e18;
+  --ax-stroke: rgba(255, 255, 255, .12);
+  --ax-stroke-2: rgba(255, 255, 255, .26);
+  --ax-text: #eef0f8;
+  --ax-text-soft: #a8afc4;
+  --ax-text-faint: #6e7589;
+  --ax-tint: #6d5bff;
+  --ax-violet: #6d5bff;
+  --ax-cyan: #00d0ff;
+  --ax-pink: #ff4d8f;
+  --ax-mint: #3ce8b0;
+  --ax-amber: #ffc44d;
+  --ax-shadow: 0 2px 6px rgba(0, 0, 0, .5), 0 28px 70px rgba(0, 0, 0, .55);
+  --ax-font: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
+             "Malgun Gothic", system-ui, sans-serif;
+  --ax-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ax-bg: #04050a;
+    --ax-panel: rgba(8, 10, 18, .86);
+    --ax-panel-solid: #090c14;
+    --ax-stroke: rgba(255, 255, 255, .10);
+    --ax-stroke-2: rgba(255, 255, 255, .24);
+    --ax-text: #f2f4fc;
+    --ax-text-soft: #a2a9be;
+    --ax-text-faint: #6a7184;
+    --ax-shadow: 0 2px 6px rgba(0, 0, 0, .6), 0 28px 70px rgba(0, 0, 0, .65);
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--ax-bg);
+  color: var(--ax-text);
+  font-family: var(--ax-font);
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ── 캔버스 ───────────────────────────────── */
+#gl {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  cursor: default;
+}
+body[data-locked="1"] #gl { cursor: none; }
+
+/* ── 상단 바 ──────────────────────────────── */
+.ax-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(4, 5, 10, .72), transparent);
+  transition: opacity .25s ease;
+}
+body[data-playing="1"] .ax-nav { opacity: 0; }
+body[data-playing="1"] .ax-nav:hover { opacity: 1; }
+.ax-nav a, .ax-nav button {
+  pointer-events: auto;
+  border: 1px solid var(--ax-stroke);
+  border-radius: 999px;
+  background: var(--ax-panel);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--ax-text-soft);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 6px 13px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color .15s ease, border-color .15s ease;
+}
+.ax-nav a:hover, .ax-nav button:hover,
+.ax-nav a:focus-visible, .ax-nav button:focus-visible {
+  color: var(--ax-text);
+  border-color: var(--ax-stroke-2);
+  outline: none;
+}
+.ax-nav .ax-spacer { flex: 1; }
+.ax-stat {
+  pointer-events: none;
+  font-family: var(--ax-mono);
+  font-size: 11px;
+  letter-spacing: .06em;
+  color: var(--ax-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 게임 HUD 컨테이너 ────────────────────── */
+.ax-hud {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── 전면 화면 (로딩·시작·일시정지·결과) ──── */
+.ax-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(80% 60% at 50% 40%, rgba(10, 12, 26, .72), rgba(3, 4, 9, .92));
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  animation: ax-fade .22s ease;
+}
+.ax-screen[data-open="1"] { display: flex; }
+@keyframes ax-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.ax-card {
+  width: min(560px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 34px 32px 30px;
+  border: 1px solid var(--ax-stroke);
+  border-radius: 22px;
+  background: var(--ax-panel);
+  box-shadow: var(--ax-shadow), 0 0 0 1px color-mix(in srgb, var(--ax-tint) 22%, transparent);
+  text-align: center;
+}
+.ax-eyebrow {
+  display: inline-block;
+  margin: 0 0 14px;
+  padding: 4px 12px;
+  border: 1px solid color-mix(in srgb, var(--ax-tint) 40%, transparent);
+  border-radius: 999px;
+  font-family: var(--ax-mono);
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--ax-tint);
+}
+.ax-card h1 {
+  margin: 0 0 6px;
+  font-size: clamp(28px, 6vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+.ax-card h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.ax-card .ax-lede {
+  margin: 0 auto 24px;
+  max-width: 42ch;
+  font-size: 14px;
+  color: var(--ax-text-soft);
+}
+
+/* 조작키 표 */
+.ax-keys {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 9px 16px;
+  margin: 0 0 26px;
+  padding: 18px 20px;
+  border: 1px solid var(--ax-stroke);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .03);
+  text-align: left;
+}
+.ax-keys dt { display: flex; gap: 5px; flex-wrap: wrap; }
+.ax-keys dd {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ax-text-soft);
+  align-self: center;
+}
+kbd {
+  display: inline-block;
+  min-width: 22px;
+  padding: 2px 7px;
+  border: 1px solid var(--ax-stroke-2);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, .06);
+  font-family: var(--ax-mono);
+  font-size: 11px;
+  color: var(--ax-text);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 버튼 */
+.ax-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 26px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(96deg, var(--ax-tint), color-mix(in srgb, var(--ax-tint) 40%, var(--ax-cyan)));
+  color: #060810;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  box-shadow: 0 10px 30px -10px var(--ax-tint);
+  transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+}
+.ax-btn:hover, .ax-btn:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px -12px var(--ax-tint);
+  filter: saturate(1.15);
+  outline: none;
+}
+.ax-btn:active { transform: translateY(0); }
+.ax-btn.ax-ghost {
+  background: transparent;
+  border: 1px solid var(--ax-stroke-2);
+  color: var(--ax-text-soft);
+  box-shadow: none;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 11px 22px;
+}
+.ax-btn.ax-ghost:hover { color: var(--ax-text); box-shadow: none; }
+.ax-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+/* 로딩 진행 바 */
+.ax-bar {
+  height: 5px;
+  margin: 0 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .09);
+  overflow: hidden;
+}
+.ax-bar span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--ax-violet), var(--ax-tint));
+  transition: width .2s ease;
+}
+.ax-load-note {
+  margin: 0;
+  font-family: var(--ax-mono);
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--ax-text-faint);
+}
+
+/* 결과 통계 */
+.ax-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 14px;
+  margin: 0 0 26px;
+  padding: 20px;
+  border: 1px solid var(--ax-stroke);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .03);
+}
+.ax-stats div { text-align: center; }
+.ax-stats dt {
+  margin: 0 0 3px;
+  font-family: var(--ax-mono);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ax-text-faint);
+}
+.ax-stats dd {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ax-tint);
+}
+
+/* 화질 선택 */
+.ax-quality { display: inline-flex; border: 1px solid var(--ax-stroke); border-radius: 999px; overflow: hidden; }
+.ax-quality button {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--ax-text-faint);
+}
+.ax-quality button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--ax-tint) 26%, transparent);
+  color: var(--ax-text);
+}
+
+/* 토스트 */
+.ax-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 34px;
+  z-index: 70;
+  transform: translate(-50%, 14px);
+  padding: 10px 20px;
+  border: 1px solid var(--ax-stroke-2);
+  border-radius: 999px;
+  background: var(--ax-panel-solid);
+  box-shadow: var(--ax-shadow);
+  font-size: 13px;
+  color: var(--ax-text);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s ease, transform .22s ease;
+}
+.ax-toast[data-show="1"] { opacity: 1; transform: translate(-50%, 0); }
+
+/* 오류 화면 */
+.ax-error {
+  max-width: 620px;
+  text-align: left;
+  font-family: var(--ax-mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--ax-pink);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 560px) {
+  .ax-card { padding: 26px 20px 24px; border-radius: 18px; }
+  .ax-keys { padding: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ax-screen, .ax-btn, .ax-toast, .ax-bar span { animation: none; transition: none; }
+}
