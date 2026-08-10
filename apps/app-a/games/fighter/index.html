@@ -5,163 +5,262 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>격투 게임 — 옛날 오락실</title>
 <style>
+  /* Noto Sans KR(SIL OFL 1.1)을 16x16 픽셀로 래스터화해 만든 서브셋 폰트입니다. */
+  @font-face {
+    font-family: "Oraksil";
+    src: url("data:font/woff2;base64,d09GMgABAAAAABb8AAoAAAAAeTwAABasAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAABmAAh2QKgcYYgY82ATYCJAOFLguDRAAEIAWGYAeRZBtlWzXjmCWwccDG49g2IgXpKKOinI3dlf//YwIdQ2zxBqbuTAdSJJapVNljuXKfrbUDghXl+0RvjP4HW0ZXGgwi4kcEbaiIMq1Oh8kXvuGd57RwBhA4IBwEDgJnAIGj/kaviHblLK0eZuJbN71+1xPt8DLLMeCOzkjv//9Re/e9v+0zbZt1osAy2HGowsBKIJBAsoYDXXbKwuGB/mrvX7Tjq0eXyEmwxE0Ex0nwJ47DwMKsBgQCAB4ABqxzKV4orxDF0Q9gM1T/B2XfW5ATDAQCC7Eptl9sPWxz77t5Bx7l+7N9jVTGchFg0mYmA9uNvSMRAfOPpx2slE6VvV3WA6zUSJXC8z9YOjZjBdwAok6f+nuh4SEiY5xs2/9a/Tub+191Frm4uFSEjg67UDjzbs89XT3DabblkYpj2Tz7uz0sd3oIQlJIjN0dCqnRDqVxDqMVf631aacXLgzqaISJsFAehYmR/aCzM/16Ps5W3ezOHvBCiHZT07P/6vMxyRiLbIFdjGMbISNsjExFxbhA/7lqOjVp9V84swoj8WpnM1WEmc91hvJbGHPdCq0QwiOkxW8L83kzad0NRoSIDJuJGRazSJDgQZL+/z+d6qm093/S+xvgwWAwCIIgCIIgCIIgCIIbbDP1J8rptopjbTEPpMECfhTb9nchif93mnJy9w1JoOtOji798e57L9sL2aYKtxjX6eKRRep0e8H2dZWe/8v9MWZ2gN8qlO426XgIqgDh0AXIAFkgG+SCfJAfSpOqkqaQZmIVsKZYF2w3dgMLYg+wr81s9Y+Wo5muQ3XHdef1NcbDhojhibGCcbAxaEwYy013TA/MZOsa63HrG1uNHbKNsa+2Y/aIPWF/4VjsuOFq4qK6jrjcrh9vnRf1YT6TD8fb4B1wLp6H98L3+Fv4L/vv+J+E0FA43DrchZATKNGbGE4sJpYTW4gDkSqRFpkfrRDtUTxBSZiSo1OLU0/SbTKzM77M3Swnx8jZCusUtkJK4YdiRTFaPLx4dPHikiElw/8f0e6dH/an8/f8yuqnbvQT3/30NxP7n9idi8H/v1yLlyv+kw/63iu8PQ08AFFgBxZgBgagBRpwEcwB9UAYvGTwhMGDBr0ZlBlkGXRq0LZBDQduHdhvYIv+in6v+j3ut7rPxz5vn0t9tvcR9g739vY29tL30vSa3qNJ91/ds+67u8/vLu3WRvVWlVOlVSYVteArSqHL0Dp62vVW/vH8Ccgv5DPyHNmD7ERWIrORiUgn5XFlXUWJIi2bL30vPSU9BK+Gl8Bz4Ulwd7gAlsIciUdilAwWh8RmcTXBeUFT/lzeMO4Lrp4zkVOf/YV9kXWN1YYZZYaZWsYL+mn6Ufom+nr6DNpO2vbUwsm1F3+CJ3aBNg+098Vh9xn18fAXGYkVgaZZgiGszr0ehKy41zV/eIOpI1V3Wo1f1CdWlUhEFWENtFQLplitajgJ7X54EMsdA8zJg7yoUDDVLGIVWXz7jydTVZDcda1pwtJNQw2qiarJLsWsuVPgXC2Z96PIJ/RBbZCkJb+WVFNZtrLq7azzutqno4klmQ9rDWo8P1WF6ti+WbSasBS/qHvA1OMUlS2Va9Ek/wtuN/LJxzUqXZRGZffzCZnG2MfKAJMTrnHlYAKNn4N85OpBYhUEDqDqncBItrRicZaksOHpj2Ml7GRSnLTaQxo2SWpg4lq9TYIkMlI/ugjtHnhV+bY5uR+UsSo54XGUEAu76E0l1YzSCDrS1G0s5Q+H2rhYBMGeq2DQeaxOtjrFBieAbr3m3myjQiQzrHYmjcaC5JoUrXq2lebBacr1zt6ri41b1tUPgm2yPsX6qCM2lU5M8pMQamW9KCalG2IEnUfWXIFOiFKJqycBQ6rIdaWLnYV+Qp2WSMlJ38TTY0+zfwJM3YRhTCIwsSkq4vXNavjkHqHa6lONTirFMmJWdOojmLywfYcRVuS8uxEUQgT0IehyJ9aH5HCDMSJ+ezJoF7m9kayAWnXBux8xxSxk9NUA4WpvYlYgc/TPdnAx9KquPDJ+y94BaAAixV79pKPnH2SROH9B8Fndvebac55TErnrJtRSE0228WPUL6DWG59WPRCJiRgxQ3gywzjgEalZ3szNWdikY76VGxMx3+ccGhj6bmBoEaHSenzsfHG5A+757tuhiYrkbIPsFvjopTbvCGC7QNcjNhJE/cAQ+eEHtQ3ya0R2L4FTa6G8q9ZytfBGKJhhzAGuOXCUBzm7pX1WEd4fzPbydGcHoeEyIVIMejOQWPwzffn7kPSjtUIWchTkevLkNHwWhr7+X6eiwva4QzFdfz/9u0PCEJEqIBbOd7SiDPIscFOmTeT9WpuX96Sin/ou14uft2RVnxSM9spW4Skh91YTzQqL1uTrq6gawsxiFy+/u84XnvMXCtY3RoLSRLrBV+WovMqsX1XFiXOM6usrw/CNJ5AHz3/z1WlrRjQ/uingu5eK3J0Bl5BILuqYEP3wl6Am5b/+iXxyVY7Vm+Rj09KgdX7oLDtm5GAkT+WYMJRwNNk6RLzXEV9qaZfKaZASkR6VA7WGGhSfBUzS+1IMFXBUy/m+XtWSeR5CXTMQSN+XFtON7OKL18hzjH1bEMFeiyQCqNAMJLseiTAYMdogSwgjvoaxzjWjIK08FXA5lZqChuh9e0tryX+sZIXniztrbEwW+c7EL9ZOk/jNzoOneMWSlXiRAAdzWb0+eyPEwjEHhrpFv9ZotkwactoKUUKR22kwA2UQFmmYKe29TAHhe7DGfabxfST0Ib2gIJHKc6wI6MiSLfzsIPrs5KONQznfnWs8OSSrtGYvrmW6IKWhv7JVntBQIVqfzfENF0dOiKt+7nldue0ZNgYnKdeQh3kmR50VoI1IEXw/uIWpM5C5TrALEiW6kW/eUctGkVibxZv5vepSYlLdusaleAKcvI3ibLRu0IxFKRRdEMTQULXoB1d4E9qlqM8aPoUiuI/ogsLHw1hX6DK1iMhhnVqrvx8HVKeLWnF2wxy8mEjm70ivbDUWwDy/i/emg6qt9YnauVUIyuTKY1/8ITnCYz1KifEvBfYCds1z0CzUHt1icMZ6d/8t4erQTT4obTPEsUpAQdrQFIDdLmuBrfVzvs4XK3ZtYg4C09TOg2L416m8mTmsedOFh+AK6svKRZbDabXga+xo08SwI9JT8ECERlAUKPMkgJgL2lu61tXTStRICn4djqpZpMDgaiXsfakeTYl8AqZcK2Nr61XlJVqY4SIJY84veef5Pp/ARSTbXXzeVofXx2WCwXVlYc4n+szWN9xiXaKXJdPR/MRJ0x9v5dkZUdm+Om6OxLjWY56woKyb4gpf15wtG0UZ+wlK3DLSNmthzExEuzREuBnh1olip4R90+CIIWGfhNxikb79AlhozOsTuTnNN8Pn450yZ8TPug2231E//Z5TctnMM2yhwJwbV705htqVGwlGd5NQxAx1MRQVI+26bnzdRKQF1JkZ/vbEUslNdnFay+mtS0skginfaQBODo7cAhF5fFzZUWLCUHuJpBSYUmeikJHiv98oulCS02vF5ShWLINK6t/NLqizgplOfQyNR5LzVdD4Z3WuEK5nXXaRvJPgE1mmk30387680TtC4N7Nd5dOpGe+M6cj1+BOom7Im2vNf7ppvKcm6hvZAZdw/56Z6dyjqPdV03vMBWOmgdBuOYte+4WhuvWpmnbtzHw5dB4HV2X/NohMn50pAryHiOQ15gZV82ZtB2TOjGrusI/A2aClHzUhMyuGvDHfE6c0qq0oMGWLZIZG3jw+u+8te4/Ez6UhLotZ+aUa0pPTs6qoC2QPR1u3Qswo2Ov5F4lr1lMyQ+W13nnvirfvom5I1uxzVJHuFKVA3hUIqw4m05sN7Gp8G73gzVu15817QKZbNc337J3eXZaAhF+DjOqrmkyUug0Tc7WOhtO8vvDrgzk5u217JeCmU+gaaAJk4qPVjegel8ZoUlYTg2E9IWlHrEFbT7fq1Mv03EQZSR3KZzGZyOHcXcstgafpdFPW9XkhJxTZGfUj2uXJp9d5a+SamOnKuhPi7gUhGEnjEcYK+5oA3S+x0Hv6vWAGUZ5vzoUExDIBFqyx1luePfCfgtFTBl4dcqMZWX09Nnu1GPmTQ/kiLnGNvrErYmDZWYlkl3igxy+AlSZkLD47H2EegcuveMiLq8dmy15aN/Q6b4h/YfDunS07g2KNAeuNbabysur1RIzf9XlaZtzvb9whOvII0s/JIuFDn4KAlXFOqrwiIaTNjxBHrFMniX7+eYAFeim5BmxSU2ybFOoKuQALEuL+2mQavsWPmmQeaGPRIjZf9tcPzTxKDGoeD0MAWWJIYwPa1r+ZBGmJmLpoR5jZ76b0YNOix0/a3sdDHji6+yYb3phDr+K8nrJcU9dsYn9XXQOv0YYgdip5+ZRq0ehJwK0sNwrk8rl9rh3YnIy6BRzDjQy9e2KJerAWL3qJk8mwGJac48DZ02vZB/fMvnVv5HWrPZXgExUqo8dscg93ZqbuXj9MsPTydkSzf/h72dwL+sQZ6AzOS9WRvhepX7XdXZbdZzyVMju4LFyrIY3ftXZzXU7ilsk/8doA12CRbyIsMA8uyw3Ou7vLKnbkAhT1wqT/BY8HKfvmeyzipE/xRj82xJGvsjFwyL95ZUtgKngs5D6ZulXYn7FBQfB3w14m2xuEI0LB/sCiO4dfnvHGmeNFfThUDS5e9YrG1TcfbMmJ9IWv9Ma8wbRIjNfk3tdy1XR0GofsCEFUvMUVuXJ64cNiJ861e8GVM8iuRz/UWnzu2j4YCJ0mIxh9wifP0bPEJWclZ3iIKLoGRXv+hE/dPkLbKAnxcOUXXj5HRofulRAwtcwzYvJ8lGLGyUB0Lv30U6jGtjF4uYtrek+a7j5rpOx8f1ZUvXlD/nyiv58aHMh/vAq+2sCHYRndg6MOxEDDLUCiS3IdPF3l5d0x9Bpr+U43tDnfmlv78EzZEDJvBoGczouWM9fvIhYNKpICikh2bgE2lwFaf7niVENepnChQEMp3dtIMOgQDkjONdwtQLLLEz/0etzCn61emnDizndp/+Oze31i17YWGWK2ca/JlhQJnkXJQ53qg+3Jg6QuQi5jrEhsIjZqMy35M+hp1pwcEUiL7vSk10WwhiIgRgt1lq55lzVlZQ+G56qyHz7qkNwlbk8Wwibgfuxb83VH9ey4B2Gsqn4qya1nWy7YkDPvVnV81cf6GifbRTlf4XJdsIcjE6dV3SNKMc/XVVB5JLc5Ddt23xxkfko7y9Yy+POpxm5p02+5uj4cxjWUzt8MMmCjEwHb7o21O8JSa5maVwdjKTqpydjskQVeOOHTjhBVl96Je/B7Yk5jJQOxtU69RcFK9Q+nZJxm0xOUGy5Bm7QLyUxngouTFapo/d1+9mbcasoqO2TGJpk0nNFgMwDstBNHAO4yMoWRemQi483mFQrjdDpicEzI0rOplVgfbmogW4Yn3U3Uy7wjLVCSinluicmwqxhGQhvT8hsWKqZ8FGs3L1Zsu8jOvgX+gnDV9ZurNyF9SCfFkA25pn5a+k4aQ83IRi1NnL0RoGS7ytjzvfFeYbzxyPOyCeboxW/sBe0hAZyD6+C5gt2mQt40P2URhqw/t3hmA2CLtQT9ExrYjWNNqeBEbF9vL52qFF9hCRjVRVqENHvE6g9UUDrGIw1rMxY1xLA5NdlhYkpefKHeS1hMoYCbK2hFJi1CRD1xe2jS8ZHl5yrDMGou/YFDr/nNgCm5atoU9LHXPFxmryrsw+lhl4TdHsiOwj5s5bpP7VVz0VtIKsqFO0zXJwb5dshw+5o0u1ePzm5UOHC8AhMpXDBIe2r1R4VsIrTYM8dcttdwAzL2UXlecKnW1DgYfvNp/TyK+YgBg4j3CH/ApaJQ0u5ceyTXvsuzr4nObbWjr1Fb0DwtISMFMoiKWwpXzVARZExqO+5lhK/mCZNc3DCVRN91CVPPz3uENs6L2K0X9WhVv/gwuflKAQdGDG4Z0UR/zb/RtFMNx1WKoaQXtWXAJ3gmHM57Y/NcBhVj1RTM6U3jqSzK4+Z5sGqrJL2h1Xdet+cBfftohJ0ydR/TXpMvcP4pYB+KB1Iz7CIvqfp/Tan0FkhAtu41QofMFfHOYZELLtZvOg9Ewl7J3IrqdalX+TxCQPFN439quJ4CDwtPhyucWCis3fJR/Rgo6TUd25WWez7NntA5/C/qxkOKDdZMuzbVEQQ3LgT5AZekYtfUk0y7GLM7DbWavbNl/vdTd2v4VexRtO+vazDhja/iFSqe5yIVlhTqouRJ+UN6vQFFB14bR7A6WAZQdmeoHJlIhqJzj+OZ/39GhUNy3XXX3qzlvOWNw3bpzHqvjbvUNQ108OqbxbhopQsF4MGB6Nbc2iqYh0PJpLhX2qgQPJK23+7omayMQbtQtku8Bty+ONT4CQiRdY5evgOTuScwHdmyIipOaaGu11UYpwItaR4CE+TfPOSwdy+0ksM2uDVF383se3onco9K37Kn+uGZPSF4L59XKY6InPC/+qb81gObyhOPsQ7O2LYOPietF8wEpLzqTtrB8MCE53Kw08vW/fepfQYWZkDE18NtNqiLTRk/EhozyLLgNBY3MqST8xhntFjggAdsccu46DQRuPv2ZBuJHfdav30tB738OSi+6PM8nv5NF6WaChK8HL/2C5ddTvaw//9eRkRObe+vfyLbFvfRfxPlpAFseDFq743DZi6oY4Hezo6jkFmzUKy6CpUltw2t1e9DY+rhg7M1TxJkT0RzH4SwHh4hK+ExFIfhFSoH4R9q63EeGvtxO5K9L2J4ova/qDjZc/GDB/44Ch/Toi2wsvIG+pLcThF9R1zh8xM3rVTjR8Tob1egrxCfYMjTp89qK2mi9Dem0I8gowQ2kE5gh7jiPb3p2By+Hnku/UjTBU9r8MsJF7WZVZaeC67fXke91f5FPSh8mBZtASsrb0BfksI1RFFN6drxMmXF2nFZtYLGcGu5Ug2Ms1Yhv5QKhPa9UXQLDNLVGZZW0nBIwzyM6+myBls1lT6o5bv5jwiMRPlX6e2PsD1u76anvrHD0p++RPVL9/8mmT9j7t+QIVDQMLBw8AiISMgoqGh9TKZYNW3WvEXLVq3btG3XvkPHTp27QCQyhUqjM5gsNofL4wuEIrEElsrkCiWSx3K8IEqyomq6YU5n88Vytd5sd/vD8XS+XG93y3Zczw/CKE7SLC/Kqm7arh/Gx/P1/nx/fwCEYATFcIKkaIbleEGUZEXVdMO0bMf1/CCM4iTN8qKs6qbt+mGc5mXd9uO87uf9fji/gKCQMEJEVExcQlJKWkZWTqEixUqUKlMOuO2Ou+6574GHW2JU/c3CPE6wACQpmmFzEJcXv7QMJ1gAkhTNsDmIyxtaAAAAAAAAAAAAAEAIIYQQQgghhBCSJEmSJEmSJEmSJElSFEVRFEVRFEVRFOXHMl7aCnPMfAwnupVppu60LXo6QdJRSUZ0X04jWcY82NouJKcCammPK/Wnxa/eGRZsX+e3rMxXz1NeyCe2bXJrMYAL8bVlBif2hCi7k3FlzzYZNatSvJq2p9zWCiaqaHUsC2IndYHmtV2A7clyeMQa6lz7uj0TykjHsro5+YlN3twFhflKHSQcb9n6tvBmbehqenRKwJQ5/Vgg15IDQGyv1Au0mhqz8dYGllusNCb3qKzoYZTNS/mr99dn+ka6uZZesnTV3U1fliNkp/Myyc0jtc8a14WAxI6aCmdJwN0GAA==") format("woff2");
+    font-weight: 400; font-style: normal; font-display: swap;
+  }
+
   :root {
-    --room: #e7e2d6;
-    --room-line: rgba(30, 24, 16, .10);
-    --ink: #241f1a;
-    --ink-soft: #6b6254;
-    --ink-faint: #918878;
-    --panel: #1c1b2e;
-    --panel-hi: #35334f;
-    --panel-lo: #08080f;
-    --screen: #0b0b14;
-    --screen-2: #12121f;
-    --screen-ink: #f3eee2;
-    --screen-soft: #9a94b5;
-    --scan: rgba(0, 0, 0, .30);
+    --wall: #b9483f; --wall-2: #8f322c; --floor: #2a2340;
+    --ink-soft: #f6e0c8; --ink-faint: #d8a48f;
+    --cab: #21203a; --cab-hi: #3a3762; --cab-lo: #0b0a16; --cab-edge: #56528c;
+    --screen: #090913; --screen-2: #14142a;
+    --screen-ink: #f3eee2; --screen-soft: #9d97be; --scan: rgba(0, 0, 0, .2);
+    --gold: #ffd23f; --pink: #ff3b6b; --mint: #35e0a1; --sky: #4cc2ff;
     --tint: #35e0a1;
-    --shadow-hard: 8px 8px 0 rgba(20, 16, 10, .28);
-    --font-ui: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
-               "Malgun Gothic", system-ui, sans-serif;
-    --font-arcade: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+    --hard: 0 10px 0 rgba(0, 0, 0, .35);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --room: #0a0a11;
-      --room-line: rgba(255, 255, 255, .06);
-      --ink: #ece7dc;
-      --ink-soft: #a09a8d;
-      --ink-faint: #6f6a60;
-      --panel: #17162a;
-      --panel-hi: #2e2c49;
-      --panel-lo: #000004;
-      --screen: #07070e;
-      --screen-2: #0d0d18;
-      --screen-ink: #f6f2e8;
-      --screen-soft: #8f89ad;
-      --scan: rgba(0, 0, 0, .42);
-      --shadow-hard: 8px 8px 0 rgba(0, 0, 0, .55);
+      --wall: #2a1420; --wall-2: #170a12; --floor: #0d0a18;
+      --ink-soft: #e7cdb4; --ink-faint: #a3798c;
+      --cab: #171630; --cab-hi: #2b2954; --cab-lo: #04040a; --cab-edge: #4b4788;
+      --screen: #06060e; --screen-2: #101026; --scan: rgba(0, 0, 0, .26);
     }
   }
 
   * { box-sizing: border-box; }
   body {
-    margin: 0;
-    background: var(--room);
+    margin: 0; min-height: 100vh; color: var(--ink-soft);
+    font-family: "Oraksil", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                 "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+    font-size: 16px; line-height: 1.5;
+    background-color: var(--wall);
     background-image:
-      linear-gradient(var(--room-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--room-line) 1px, transparent 1px);
-    background-size: 32px 32px, 32px 32px;
-    color: var(--ink);
-    font-family: var(--font-ui);
-    line-height: 1.65;
-    letter-spacing: -0.01em;
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='24' shape-rendering='crispEdges'%3E%3Cg stroke='rgba(0,0,0,.34)' stroke-width='2' fill='none'%3E%3Cpath d='M0 1h48M0 13h48M1 0v12M25 0v12M13 12v12M37 12v12'/%3E%3C/g%3E%3Cg stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'%3E%3Cpath d='M0 3h48M0 15h48'/%3E%3C/g%3E%3C/svg%3E"),
+      linear-gradient(180deg, var(--wall-2) 0%, var(--wall) 30%, var(--wall) 70%, var(--floor) 100%);
+    background-attachment: scroll, fixed;
   }
-  .wrap { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 16px; }
 
-  .navs { display: flex; gap: 18px; flex-wrap: wrap; padding: 22px 0 18px; }
-  .navs a {
-    font-family: var(--font-arcade);
-    font-size: 12px; letter-spacing: .08em;
-    color: var(--ink-soft); text-decoration: none;
+  .topbar { display: flex; gap: 10px; flex-wrap: wrap; padding: 20px 0 16px; }
+  .chip {
+    display: inline-block; padding: 7px 12px; font-size: 16px;
+    color: var(--gold); background: rgba(0, 0, 0, .45);
+    border: 2px solid var(--gold); text-decoration: none;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, .5);
   }
-  .navs a:hover, .navs a:focus-visible { color: var(--tint); outline: none; }
+  .chip:hover, .chip:focus-visible {
+    background: var(--gold); color: #14101f; outline: none;
+    transform: translate(1px, 1px); box-shadow: 2px 2px 0 rgba(0, 0, 0, .5);
+  }
 
+  .cabinet {
+    border: 4px solid var(--cab-lo);
+    background: linear-gradient(180deg, var(--cab-hi), var(--cab) 40%, var(--cab-lo));
+    box-shadow: var(--hard), 0 0 0 2px var(--cab-edge) inset;
+    padding: 14px;
+  }
   .crt {
-    position: relative;
-    border: 4px solid var(--panel-lo);
-    box-shadow: var(--shadow-hard);
-    background: radial-gradient(120% 90% at 50% 0%, var(--screen-2), var(--screen) 70%);
-    padding: 34px 22px 40px;
-    text-align: center;
-    overflow: hidden;
+    position: relative; overflow: hidden;
+    background: radial-gradient(130% 100% at 50% 0%, var(--screen-2), var(--screen) 72%);
+    border: 3px solid #000; border-radius: 18px / 26px;
+    padding: 22px 16px 26px; text-align: center;
   }
-  .crt::after {
-    content: "";
-    position: absolute; inset: 0;
-    background: repeating-linear-gradient(180deg, transparent 0 2px, var(--scan) 2px 3px);
-    pointer-events: none;
+  .fx { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+  .fx::before {
+    content: ""; position: absolute; inset: 0;
+    background: repeating-linear-gradient(180deg, transparent 0 3px, var(--scan) 3px 4px);
   }
+  .fx::after {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(120% 100% at 50% 50%, transparent 45%, rgba(0,0,0,.55) 100%);
+  }
+  .sync {
+    position: absolute; left: 0; right: 0; height: 80px; z-index: 6; pointer-events: none;
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,.05), transparent);
+    animation: roll 7s linear infinite;
+  }
+  @keyframes roll { from { top: -90px; } to { top: 100%; } }
+
+  .marquee {
+    position: relative; border: 3px solid var(--cab-lo); margin-bottom: 14px;
+    background: radial-gradient(120% 160% at 50% 0%, #3b2b6b 0%, #1b1533 60%, #0d0a1c 100%);
+    padding: 12px 14px 12px; text-align: center;
+  }
+  .bulbs { display: flex; justify-content: center; gap: 12px; margin-bottom: 10px; }
+  .bulb {
+    width: 8px; height: 8px; background: var(--gold);
+    box-shadow: 0 0 10px var(--gold);
+    animation: chase 1.6s steps(1, end) infinite;
+  }
+  .bulb:nth-child(3n+2) { background: var(--pink); box-shadow: 0 0 10px var(--pink); animation-delay: .5s; }
+  .bulb:nth-child(3n)   { background: var(--sky);  box-shadow: 0 0 10px var(--sky);  animation-delay: 1s; }
+  @keyframes chase { 0%, 32% { opacity: 1; } 33%, 100% { opacity: .18; } }
+  .marquee p { margin: 0; font-size: 16px; color: var(--gold); text-shadow: 0 0 10px rgba(255,210,63,.7); }
+
+  .hud {
+    display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    font-size: 16px; color: var(--mint);
+    border-bottom: 2px solid rgba(255, 255, 255, .12);
+    padding-bottom: 10px; margin-bottom: 16px; text-align: left;
+  }
+  .hud .hi { color: var(--gold); }
+  .hud .lab { color: var(--screen-soft); }
+
+  .in { position: relative; z-index: 3; }
   .art {
-    display: block;
-    width: 108px; height: 108px;
-    margin: 0 auto 20px;
+    display: block; width: 112px; height: 112px; margin: 0 auto 16px;
     image-rendering: pixelated;
-    filter: drop-shadow(0 4px 0 rgba(0, 0, 0, .55));
+    filter: drop-shadow(0 5px 0 rgba(0, 0, 0, .6));
+    animation: bob 1s steps(2, end) infinite alternate;
   }
+  @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-5px); } }
+
   h1 {
-    margin: 0 0 6px;
-    font-size: clamp(24px, 5vw, 34px);
-    font-weight: 800;
-    letter-spacing: .06em;
-    color: var(--screen-ink);
-    text-shadow: 0 4px 0 rgba(0, 0, 0, .6);
+    margin: 0 0 4px; font-size: 32px; font-weight: 400; color: var(--screen-ink);
+    text-shadow: 3px 3px 0 var(--tint), 0 5px 0 rgba(0, 0, 0, .7);
   }
-  .en {
-    margin: 0 0 22px;
-    font-family: var(--font-arcade);
-    font-size: 11px; letter-spacing: .26em;
-    color: var(--tint);
+  .en { margin: 0 0 18px; font-size: 16px; color: var(--tint); text-shadow: 0 0 10px var(--tint); }
+
+  .demo-box {
+    border: 2px solid rgba(255, 255, 255, .16); background: #05050c;
+    margin: 0 auto 18px; max-width: 512px;
   }
-  .blink {
-    margin: 0 0 10px;
-    font-family: var(--font-arcade);
-    font-size: 13px; letter-spacing: .2em;
-    color: var(--screen-ink);
-    animation: blink 1.1s steps(2, end) infinite;
+  #demo { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+
+  .soon {
+    margin: 0 0 10px; font-size: 32px; color: var(--gold);
+    text-shadow: 0 0 14px var(--gold);
+    animation: blink 1s steps(2, end) infinite;
   }
   @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
-  .desc { margin: 0 auto; max-width: 46ch; font-size: 14px; color: var(--screen-soft); }
+  .desc { margin: 0 auto; max-width: 42ch; font-size: 16px; color: var(--screen-soft); }
 
   footer {
-    padding: 20px 0 44px;
-    font-family: var(--font-arcade);
-    font-size: 11px; letter-spacing: .1em;
-    color: var(--ink-faint); text-align: center;
+    padding: 20px 0 48px; text-align: center; font-size: 16px;
+    color: var(--ink-faint); text-shadow: 0 2px 0 rgba(0, 0, 0, .5);
   }
   footer p { margin: 0; }
-  @media (prefers-reduced-motion: reduce) { .blink { animation: none; } }
+
+  @media (max-width: 560px) { h1 { font-size: 32px; } .cabinet { padding: 8px; } }
+  @media (prefers-reduced-motion: reduce) {
+    .art, .soon, .sync, .bulb { animation: none; }
+  }
 </style>
 </head>
 <body>
 
 <div class="wrap">
-  <nav class="navs">
-    <a href="../../index.html">← 오락실로</a>
-    <a href="../../../../index.html">← 목록으로</a>
+
+  <nav class="topbar">
+    <a class="chip" href="../../index.html">← 오락실로</a>
+    <a class="chip" href="../../../../index.html">← 목록으로</a>
   </nav>
 
-  <div class="crt">
-    <svg class="art" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
-      <g fill="#4cc2ff">
-        <rect x="1" y="3" width="3" height="3"/>
-        <rect x="1" y="7" width="4" height="4"/>
-        <rect x="1" y="11" width="1" height="4"/><rect x="4" y="11" width="1" height="4"/>
-        <rect x="5" y="7" width="3" height="2"/>
-      </g>
-      <rect x="3" y="4" width="1" height="1" fill="#0b0b14"/>
-      <g fill="#ff3b6b">
-        <rect x="12" y="3" width="3" height="3"/>
-        <rect x="11" y="7" width="4" height="4"/>
-        <rect x="11" y="11" width="1" height="4"/><rect x="14" y="11" width="1" height="4"/>
-        <rect x="9" y="9" width="2" height="2"/>
-      </g>
-      <rect x="12" y="4" width="1" height="1" fill="#0b0b14"/>
-      <g fill="#ffd23f">
-        <rect x="8" y="6" width="2" height="1"/>
-        <rect x="7" y="5" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/>
-        <rect x="8" y="4" width="2" height="1"/>
-      </g>
-    </svg>
+  <div class="cabinet">
+    <div class="marquee">
+      <div class="bulbs" aria-hidden="true">
+        <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+        <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+        <span class="bulb"></span>
+      </div>
+      <p>★ 옛날 오락실 ★ RETRO ARCADE ★</p>
+    </div>
+    <div class="crt">
+      <div class="sync" aria-hidden="true"></div>
+      <div class="in">
+        <div class="hud">
+          <span><span class="lab">STAGE</span> 01</span>
+          <span class="hi"><span class="lab">HI-SCORE</span> 066120</span>
+          <span><span class="lab">CREDIT</span> 04</span>
+        </div>
+        <svg class="art" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+          <g fill="#4cc2ff">
+            <rect x="1" y="3" width="3" height="3"/><rect x="1" y="7" width="4" height="4"/>
+            <rect x="1" y="11" width="1" height="4"/><rect x="4" y="11" width="1" height="4"/>
+            <rect x="5" y="7" width="3" height="2"/>
+          </g>
+          <rect x="3" y="4" width="1" height="1" fill="#0b0b14"/>
+          <g fill="#ff3b6b">
+            <rect x="12" y="3" width="3" height="3"/><rect x="11" y="7" width="4" height="4"/>
+            <rect x="11" y="11" width="1" height="4"/><rect x="14" y="11" width="1" height="4"/>
+            <rect x="9" y="9" width="2" height="2"/>
+          </g>
+          <rect x="12" y="4" width="1" height="1" fill="#0b0b14"/>
+          <g fill="#ffd23f">
+            <rect x="8" y="6" width="2" height="1"/>
+            <rect x="7" y="5" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/>
+            <rect x="8" y="4" width="2" height="1"/>
+          </g>
+        </svg>
+        <h1>격투 게임</h1>
+        <p class="en">STREET DUEL</p>
 
-    <h1>격투 게임</h1>
-    <p class="en">Street Duel</p>
-    <p class="blink">COMING SOON</p>
-    <p class="desc">커맨드를 입력해 필살기를 날리는 1대1 대전 격투입니다. 게임은 아직 준비 중입니다.</p>
+        <div class="demo-box">
+          <canvas id="demo" width="256" height="88" aria-hidden="true"></canvas>
+        </div>
+
+        <p class="soon">COMING SOON</p>
+        <p class="desc">커맨드를 입력해 필살기를 날리는 1대1 대전 격투입니다. 게임 본체는 아직 준비 중입니다.</p>
+      </div>
+      <div class="fx" aria-hidden="true"></div>
+    </div>
   </div>
 
   <footer><p>2026 AX 강의 · 옛날 오락실</p></footer>
+
 </div>
+
+<script>
+(function () {
+  "use strict";
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var dm = document.getElementById("demo"), dx = dm.getContext("2d");
+  var DW = dm.width, DH = dm.height;
+  function px(x, y, w, h, col) { dx.fillStyle = col; dx.fillRect(x | 0, y | 0, w, h); }
+  function text(str, x, y, col) {
+    dx.fillStyle = col; dx.font = "8px 'Oraksil', monospace";
+    dx.textBaseline = "top"; dx.fillText(str, x, y);
+  }
+
+  var hp1 = 100, hp2 = 100;
+  function fighter(x, base, col, dark, punch, face) {
+    px(x + 3, base - 26, 6, 6, col);
+    px(x + (face > 0 ? 7 : 3), base - 24, 1, 1, dark);
+    px(x + 2, base - 19, 8, 10, col);
+    px(x + 2, base - 9, 3, 9, dark);
+    px(x + 7, base - 9, 3, 9, dark);
+    if (punch) px(x + (face > 0 ? 10 : -6), base - 17, 6, 3, col);
+    else px(x + (face > 0 ? 9 : -2), base - 17, 3, 6, col);
+  }
+  function scene(t) {
+    px(0, 0, DW, DH, "#170a22");
+    for (var i = 0; i < 8; i++) px(10 + i * 32, 20, 18, 26, "#241035");
+    px(0, DH - 12, DW, 12, "#3a1a4a");
+    px(0, DH - 12, DW, 2, "#5a2a6a");
+    var beat = t % 90, p1 = beat > 20 && beat < 34, p2 = beat > 55 && beat < 69;
+    var x1 = 70 + (p1 ? 6 : 0), x2 = 170 - (p2 ? 6 : 0);
+    fighter(x1, DH - 12, "#4cc2ff", "#1a5f8a", p1, 1);
+    fighter(x2, DH - 12, "#ff3b6b", "#8a1a3a", p2, -1);
+    if (p1) { px(x2 - 6, DH - 30, 6, 6, "#ffd23f"); px(x2 - 9, DH - 33, 3, 3, "#fff"); hp2 = Math.max(0, hp2 - 0.6); }
+    if (p2) { px(x1 + 10, DH - 30, 6, 6, "#ffd23f"); px(x1 + 13, DH - 33, 3, 3, "#fff"); hp1 = Math.max(0, hp1 - 0.5); }
+    if (hp1 <= 0 || hp2 <= 0) { hp1 = 100; hp2 = 100; }
+    px(6, 6, 100, 7, "#3a1a2a"); px(6, 6, hp1, 7, "#35e0a1");
+    px(DW - 106, 6, 100, 7, "#3a1a2a"); px(DW - 6 - hp2, 6, hp2, 7, "#ffd23f");
+    text("VS", DW / 2 - 8, 5, "#f3eee2");
+  }
+
+  var t = 0, last = 0;
+  function loop(ts) {
+    if (ts - last > 33) { last = ts; t++; scene(t); }
+    requestAnimationFrame(loop);
+  }
+  if (reduce) scene(1); else requestAnimationFrame(loop);
+})();
+</script>
 
 </body>
 </html>

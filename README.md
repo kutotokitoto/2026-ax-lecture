@@ -38,6 +38,8 @@
 │   ├── app-f/index.html
 │   ├── app-g/index.html
 │   └── app-h/index.html
+├── tools/
+│   └── pixel-font/         app-a용 픽셀 폰트 생성기 (사이트 실행에는 불필요)
 ├── README.md
 └── CLAUDE.md               작업 규칙 (Claude Code용)
 ```
@@ -61,6 +63,7 @@
    `style="--tint: …"`로 캐비닛 색을 정하고, 16×16 픽셀 SVG를 아트로 넣습니다.
 3. 게임이 완성되면 그 카드의 `<span class="status" data-state="soon">준비 중</span>` 을
    `data-state="ready"`와 `READY`로 바꿉니다.
+4. **한글을 새로 쓰면 픽셀 폰트를 다시 만들어야 합니다.** 아래 「app-a의 픽셀 폰트」 참고.
 
 **app-b (요즘 오락실)**
 
@@ -69,6 +72,19 @@
    `style="--tint: …"`로 카드 색을 정하고, `320×200` viewBox의 SVG를 `.shot` 안에 넣습니다.
    SVG `<defs>`의 그라디언트 `id`는 문서 안에서 겹치지 않게 접두어를 붙입니다.
 3. 상태 표시는 app-a와 같은 규칙(`data-state="soon"` → `"ready"`)을 씁니다.
+
+### app-a의 픽셀 폰트
+
+`app-a`의 페이지들은 8비트 픽셀 폰트를 `@font-face`에 base64로 박아 두고 씁니다.
+외부 웹폰트를 못 쓰는 규칙과 `file://`의 폰트 CORS 제약을 동시에 피하기 위해서입니다.
+**페이지에 실제로 쓰인 글자만** 담기 때문에 파일당 6~14KB 정도입니다.
+
+- 한글 글립: `Noto Sans KR`(SIL OFL 1.1)을 16×16 픽셀 그리드로 래스터화한 파생물입니다.
+- 라틴 대문자·숫자·기호: 직접 찍은 아케이드 서체입니다.
+- 글자를 새로 추가했다면 `tools/pixel-font/`의 생성기를 다시 돌립니다.
+  자세한 내용은 [tools/pixel-font/README.md](tools/pixel-font/README.md) 참고.
+
+돌리지 않아도 페이지는 뜹니다. 다만 폰트에 없는 글자만 시스템 글꼴로 나와 튑니다.
 
 ### lecture-01의 dc 문서 형식
 
@@ -105,3 +121,4 @@ python -m http.server 8000
 - 순수 HTML + CSS (프레임워크·빌드 단계 없음)
 - CSS 변수 기반 테마, `prefers-color-scheme`로 라이트/다크 모두 대응
 - 외부 리소스 없음 — 각 파일이 자체 완결형. 단 `lecture-01`은 예외입니다(위 참고).
+- 이미지·폰트가 필요한 곳은 인라인 SVG, data URI, `<canvas>` 픽셀 드로잉으로 해결합니다.

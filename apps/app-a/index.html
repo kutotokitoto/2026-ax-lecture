@@ -6,526 +6,1184 @@
 <title>옛날 오락실 — 2026 AX 강의</title>
 <meta name="description" content="8비트 레트로 아케이드 게임 선택 화면">
 <style>
-  /* ── Theme tokens ─────────────────────────── */
+  /* ──────────────────────────────────────────────
+     오락실 픽셀 폰트
+     Noto Sans KR(SIL OFL 1.1)을 16x16 픽셀 그리드로 래스터화하고
+     라틴 대문자·숫자는 직접 찍어 만든 서브셋 폰트입니다.
+     외부 요청 없이 data URI로 인라인합니다.
+     ────────────────────────────────────────────── */
+  @font-face {
+    font-family: "Oraksil";
+    src: url("data:font/woff2;base64,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") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  /* ── 테마 토큰 ─────────────────────────────── */
   :root {
-    /* 오락실 '방' */
-    --room: #e7e2d6;
-    --room-2: #d9d3c4;
-    --room-line: rgba(30, 24, 16, .10);
-    --ink: #241f1a;
-    --ink-soft: #6b6254;
-    --ink-faint: #918878;
+    /* 오락실 공간 */
+    --wall: #b9483f;
+    --wall-2: #8f322c;
+    --floor: #2a2340;
+    --ink: #2a1c1a;
+    --ink-soft: #f6e0c8;
+    --ink-faint: #d8a48f;
 
-    /* 캐비닛 몸체 */
-    --panel: #1c1b2e;
-    --panel-hi: #35334f;
-    --panel-lo: #08080f;
+    /* 캐비닛 */
+    --cab: #21203a;
+    --cab-hi: #3a3762;
+    --cab-lo: #0b0a16;
+    --cab-edge: #56528c;
 
-    /* CRT 화면 (라이트/다크 공통 — 화면은 늘 어둡습니다) */
-    --screen: #0b0b14;
-    --screen-2: #12121f;
+    /* CRT (라이트/다크 공통 — 브라운관은 늘 어둡습니다) */
+    --screen: #090913;
+    --screen-2: #14142a;
     --screen-ink: #f3eee2;
-    --screen-soft: #9a94b5;
-    --scan: rgba(0, 0, 0, .30);
+    --screen-soft: #9d97be;
+    /* 주사선은 옅게 — 진하면 16px 글자의 1px 획을 지워 버립니다 */
+    --scan: rgba(0, 0, 0, .2);
 
     /* 네온 */
-    --neon-pink: #ff3b6b;
-    --neon-gold: #ffd23f;
-    --neon-mint: #35e0a1;
-    --neon-sky: #4cc2ff;
-    --neon-lilac: #b98cff;
+    --gold: #ffd23f;
+    --pink: #ff3b6b;
+    --mint: #35e0a1;
+    --sky: #4cc2ff;
+    --lilac: #b98cff;
+    --orange: #ff8c42;
 
-    --shadow-hard: 8px 8px 0 rgba(20, 16, 10, .28);
-    --font-ui: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
-               "Malgun Gothic", system-ui, sans-serif;
-    --font-arcade: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+    --hard: 0 10px 0 rgba(0, 0, 0, .35);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --room: #0a0a11;
-      --room-2: #070709;
-      --room-line: rgba(255, 255, 255, .06);
-      --ink: #ece7dc;
-      --ink-soft: #a09a8d;
-      --ink-faint: #6f6a60;
+      --wall: #2a1420;
+      --wall-2: #170a12;
+      --floor: #0d0a18;
+      --ink: #f6e0c8;
+      --ink-soft: #e7cdb4;
+      --ink-faint: #a3798c;
 
-      --panel: #17162a;
-      --panel-hi: #2e2c49;
-      --panel-lo: #000004;
+      --cab: #171630;
+      --cab-hi: #2b2954;
+      --cab-lo: #04040a;
+      --cab-edge: #4b4788;
 
-      --screen: #07070e;
-      --screen-2: #0d0d18;
-      --screen-ink: #f6f2e8;
-      --screen-soft: #8f89ad;
-      --scan: rgba(0, 0, 0, .42);
-
-      --shadow-hard: 8px 8px 0 rgba(0, 0, 0, .55);
+      --screen: #06060e;
+      --screen-2: #101026;
+      --scan: rgba(0, 0, 0, .26);
     }
   }
 
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
+
   body {
     margin: 0;
-    background: var(--room);
-    background-image:
-      linear-gradient(var(--room-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--room-line) 1px, transparent 1px);
-    background-size: 32px 32px, 32px 32px;
-    color: var(--ink);
-    font-family: var(--font-ui);
-    line-height: 1.65;
-    letter-spacing: -0.01em;
-  }
-
-  .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
-
-  /* ── Back link ────────────────────────────── */
-  .back {
-    display: inline-block;
-    padding: 22px 0 18px;
-    font-family: var(--font-arcade);
-    font-size: 12px;
-    letter-spacing: .08em;
+    min-height: 100vh;
     color: var(--ink-soft);
-    text-decoration: none;
+    font-family: "Oraksil", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                 "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;          /* 24px — 정수라야 글자가 픽셀 격자에 딱 맞습니다 */
+    letter-spacing: 0;
+    /* 벽돌 벽 + 바닥 그라디언트 */
+    background-color: var(--wall);
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='24' shape-rendering='crispEdges'%3E%3Cg stroke='rgba(0,0,0,.34)' stroke-width='2' fill='none'%3E%3Cpath d='M0 1h48M0 13h48M1 0v12M25 0v12M13 12v12M37 12v12'/%3E%3C/g%3E%3Cg stroke='rgba(255,255,255,.05)' stroke-width='1' fill='none'%3E%3Cpath d='M0 3h48M0 15h48'/%3E%3C/g%3E%3C/svg%3E"),
+      linear-gradient(180deg, var(--wall-2) 0%, var(--wall) 30%, var(--wall) 70%, var(--floor) 100%);
+    background-attachment: scroll, fixed;
   }
-  .back:hover, .back:focus-visible { color: var(--neon-pink); outline: none; }
 
-  /* ── Marquee (간판) ───────────────────────── */
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 16px; position: relative; z-index: 2; }
+
+  /* ── 상단 바 ───────────────────────────────── */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+    padding: 20px 0 16px;
+  }
+  .chip {
+    display: inline-block;
+    padding: 7px 12px;
+    font: inherit;
+    font-size: 16px;
+    color: var(--gold);
+    background: rgba(0, 0, 0, .45);
+    border: 2px solid var(--gold);
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, .5);
+  }
+  .chip:hover, .chip:focus-visible {
+    background: var(--gold); color: #14101f; outline: none;
+    transform: translate(1px, 1px); box-shadow: 2px 2px 0 rgba(0, 0, 0, .5);
+  }
+  .chip.off { color: var(--ink-faint); border-color: var(--ink-faint); }
+
+  /* ── 벽 네온 사인 ──────────────────────────── */
+  .neons {
+    position: absolute; inset: 0 0 auto; z-index: 1;
+    pointer-events: none;
+    max-width: 1400px; margin: 0 auto;
+    height: 0;
+  }
+  .neon {
+    position: absolute;
+    padding: 8px 12px;
+    border: 3px solid currentColor;
+    font-size: 16px;
+    white-space: nowrap;
+    text-shadow: 0 0 8px currentColor;
+    box-shadow: 0 0 12px currentColor, inset 0 0 12px rgba(255, 255, 255, .12);
+    opacity: .85;
+  }
+  .neon-1 { top: 92px; left: 16px; color: var(--mint); transform: rotate(-4deg); animation: flicker 5s steps(1, end) infinite; }
+  .neon-2 { top: 232px; right: 16px; color: var(--sky); transform: rotate(3deg); animation: flicker 7s steps(1, end) infinite .8s; }
+  .neon-3 { top: 452px; left: 16px; color: var(--pink); transform: rotate(2deg); animation: flicker 6s steps(1, end) infinite 2.2s; }
+  .neon-4 { top: 604px; right: 16px; color: var(--gold); transform: rotate(-3deg); animation: flicker 9s steps(1, end) infinite 1.4s; }
+  @keyframes flicker {
+    0%, 88%, 100% { opacity: .85; }
+    89% { opacity: .15; } 90% { opacity: .85; }
+    93% { opacity: .2; } 94% { opacity: .85; }
+  }
+  @media (max-width: 1279px) { .neons { display: none; } }
+
+  /* ── 캐비닛 ────────────────────────────────── */
+  .cabinet {
+    border: 4px solid var(--cab-lo);
+    background: linear-gradient(180deg, var(--cab-hi), var(--cab) 40%, var(--cab-lo));
+    box-shadow: var(--hard), 0 0 0 2px var(--cab-edge) inset;
+    padding: 14px;
+  }
+
+  /* 간판 */
   .marquee {
     position: relative;
-    border: 4px solid var(--panel-lo);
-    background: linear-gradient(180deg, var(--panel-hi), var(--panel));
-    box-shadow: var(--shadow-hard);
-    padding: 26px 20px 22px;
+    border: 3px solid var(--cab-lo);
+    background:
+      radial-gradient(120% 160% at 50% 0%, #3b2b6b 0%, #1b1533 60%, #0d0a1c 100%);
+    padding: 18px 14px 16px;
     text-align: center;
     overflow: hidden;
   }
-  .marquee::after {
-    content: "";
-    position: absolute; inset: 0;
-    background: repeating-linear-gradient(180deg, transparent 0 3px, var(--scan) 3px 4px);
-    pointer-events: none;
-  }
-  .bulbs {
-    display: flex; justify-content: center; gap: 10px;
-    margin-bottom: 16px;
-  }
+  .bulbs { display: flex; justify-content: center; gap: 12px; margin-bottom: 14px; }
   .bulb {
-    width: 8px; height: 8px;
-    background: var(--neon-gold);
-    box-shadow: 0 0 8px var(--neon-gold);
-    animation: bulb 1.2s steps(2, end) infinite;
+    width: 10px; height: 10px;
+    background: var(--gold);
+    box-shadow: 0 0 10px var(--gold), 0 0 20px var(--gold);
+    animation: chase 1.6s steps(1, end) infinite;
   }
-  .bulb:nth-child(2n) { background: var(--neon-pink); box-shadow: 0 0 8px var(--neon-pink); animation-delay: .6s; }
-  .bulb:nth-child(3n) { background: var(--neon-sky); box-shadow: 0 0 8px var(--neon-sky); }
-  @keyframes bulb { 0% { opacity: 1; } 50% { opacity: .18; } 100% { opacity: 1; } }
+  .bulb:nth-child(4n+2) { background: var(--pink); box-shadow: 0 0 10px var(--pink), 0 0 20px var(--pink); animation-delay: .4s; }
+  .bulb:nth-child(4n+3) { background: var(--sky);  box-shadow: 0 0 10px var(--sky),  0 0 20px var(--sky);  animation-delay: .8s; }
+  .bulb:nth-child(4n)   { background: var(--mint); box-shadow: 0 0 10px var(--mint), 0 0 20px var(--mint); animation-delay: 1.2s; }
+  @keyframes chase { 0%, 24% { opacity: 1; } 25%, 100% { opacity: .18; } }
 
-  .marquee h1 {
-    position: relative;
-    margin: 0 0 10px;
-    font-size: clamp(30px, 7vw, 54px);
-    font-weight: 800;
-    letter-spacing: .12em;
+  .title {
+    margin: 0 0 12px;
+    font-size: 48px;
+    line-height: 1.25;         /* 60px */
     color: var(--screen-ink);
     text-shadow:
-      3px 0 0 var(--neon-pink),
-      -3px 0 0 var(--neon-sky),
-      0 5px 0 rgba(0, 0, 0, .55);
+      3px 3px 0 var(--pink), -3px -3px 0 var(--sky),
+      0 6px 0 rgba(0, 0, 0, .7), 0 0 24px rgba(255, 210, 63, .35);
+    animation: hover-title 3.6s steps(4, end) infinite alternate;
   }
-  .marquee .sub {
-    position: relative;
+  @keyframes hover-title { from { transform: translateY(0); } to { transform: translateY(-3px); } }
+  .subtitle {
     margin: 0;
-    font-family: var(--font-arcade);
-    font-size: 11px;
-    letter-spacing: .34em;
-    text-transform: uppercase;
-    color: var(--neon-gold);
+    font-size: 16px;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(255, 210, 63, .7);
   }
 
-  /* ── CRT 화면 ─────────────────────────────── */
+  /* ── CRT ───────────────────────────────────── */
+  .crt-shell {
+    margin-top: 14px;
+    padding: 14px;
+    border: 3px solid var(--cab-lo);
+    background: linear-gradient(180deg, #2b2950, #16142c);
+    position: relative;
+  }
+  /* 베젤 나사 */
+  .screw {
+    position: absolute; width: 10px; height: 10px;
+    background: radial-gradient(circle at 35% 35%, #9a96c8, #3a3660 60%, #14122a);
+    border-radius: 50%;
+  }
+  .screw.tl { top: 6px; left: 6px; } .screw.tr { top: 6px; right: 6px; }
+  .screw.bl { bottom: 6px; left: 6px; } .screw.br { bottom: 6px; right: 6px; }
+
   .crt {
     position: relative;
-    margin-top: 26px;
-    border: 4px solid var(--panel-lo);
-    box-shadow: var(--shadow-hard);
-    background: radial-gradient(120% 90% at 50% 0%, var(--screen-2), var(--screen) 70%);
-    padding: 26px 20px 30px;
     overflow: hidden;
+    background: radial-gradient(130% 100% at 50% 0%, var(--screen-2), var(--screen) 72%);
+    border: 3px solid #000;
+    border-radius: 18px / 26px;
+    padding: 20px 16px 26px;
+    isolation: isolate;
   }
-  .crt::after {
-    content: "";
+  #bg {
     position: absolute; inset: 0;
-    background: repeating-linear-gradient(180deg, transparent 0 2px, var(--scan) 2px 3px);
-    pointer-events: none;
-    z-index: 3;
-  }
-
-  .hud {
-    display: flex; flex-wrap: wrap; gap: 8px 22px;
-    justify-content: space-between;
-    font-family: var(--font-arcade);
-    font-size: 11px;
-    letter-spacing: .14em;
-    color: var(--neon-mint);
-    margin-bottom: 22px;
-  }
-  .hud .hi { color: var(--neon-gold); }
-  .hud b { font-weight: 700; }
-
-  .screen-title {
-    text-align: center;
-    margin: 0 0 6px;
-    font-family: var(--font-arcade);
-    font-size: clamp(14px, 3vw, 18px);
-    letter-spacing: .28em;
-    color: var(--screen-ink);
-    text-shadow: 0 3px 0 rgba(0, 0, 0, .6);
-  }
-  .screen-help {
-    text-align: center;
-    margin: 0 0 26px;
-    font-family: var(--font-arcade);
-    font-size: 11px;
-    letter-spacing: .1em;
-    color: var(--screen-soft);
-  }
-  kbd {
-    font-family: inherit;
-    border: 1px solid var(--screen-soft);
-    padding: 1px 5px;
-    color: var(--screen-ink);
-  }
-
-  /* ── 게임 캐비닛 ──────────────────────────── */
-  .cabs {
-    position: relative;
-    z-index: 2;
-    display: grid;
-    gap: 16px;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  }
-  .cab {
-    position: relative;
-    display: block;
-    padding: 18px 16px 16px;
-    text-decoration: none;
-    color: var(--screen-ink);
-    background: linear-gradient(180deg, var(--panel-hi), var(--panel));
-    border: 3px solid var(--panel-lo);
-    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .05);
-    transition: transform .12s steps(2, end), box-shadow .12s steps(2, end);
-  }
-  .cab::before {
-    content: "";
-    position: absolute; left: 0; right: 0; top: 0;
-    height: 4px;
-    background: var(--tint, var(--neon-gold));
-  }
-  .cab:hover, .cab:focus-visible {
-    transform: translate(-3px, -3px);
-    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .08), 6px 6px 0 var(--tint, var(--neon-gold));
-    outline: none;
-  }
-  .cab-art {
-    display: block;
-    width: 88px; height: 88px;
-    margin: 4px auto 14px;
+    width: 100%; height: 100%;
     image-rendering: pixelated;
-    filter: drop-shadow(0 3px 0 rgba(0, 0, 0, .5));
+    opacity: .55;
+    z-index: 0;
   }
-  .cab h3 {
-    margin: 0 0 4px;
-    font-size: 17px;
-    font-weight: 700;
-    letter-spacing: .02em;
-    text-align: center;
-  }
-  .cab .en {
-    display: block;
-    margin: 0 0 12px;
-    font-family: var(--font-arcade);
-    font-size: 10px;
-    letter-spacing: .2em;
-    text-align: center;
-    color: var(--tint, var(--neon-gold));
-  }
-  .cab p {
-    margin: 0 0 14px;
-    font-size: 13px;
-    line-height: 1.55;
-    color: var(--screen-soft);
-    text-align: center;
-    min-height: 40px;
-  }
-  .cab-foot {
-    display: flex; align-items: center; justify-content: space-between;
-    border-top: 2px solid rgba(255, 255, 255, .08);
-    padding-top: 10px;
-    font-family: var(--font-arcade);
-    font-size: 10px;
-    letter-spacing: .12em;
-  }
-  .status { color: var(--screen-soft); }
-  .status[data-state="ready"] { color: var(--neon-mint); }
-  .play { color: var(--tint, var(--neon-gold)); }
-  .cab:hover .play::after, .cab:focus-visible .play::after { content: " ◀"; }
+  .crt-in { position: relative; z-index: 2; }
 
-  /* 선택 커서 */
-  .cab .cursor {
-    position: absolute;
-    left: -2px; top: 50%;
-    transform: translateY(-50%);
-    color: var(--tint, var(--neon-gold));
-    font-family: var(--font-arcade);
-    font-size: 14px;
-    opacity: 0;
+  /* 유리·주사선·비네트 */
+  .fx { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+  .fx::before {
+    content: ""; position: absolute; inset: 0;
+    background: repeating-linear-gradient(180deg, transparent 0 3px, var(--scan) 3px 4px);
   }
-  .cab:hover .cursor, .cab:focus-visible .cursor {
-    opacity: 1;
-    animation: blink .6s steps(2, end) infinite;
+  .fx::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,0,0,.05) 0 1px, rgba(0,255,0,.05) 1px 2px, rgba(0,0,255,.05) 2px 3px),
+      radial-gradient(120% 100% at 50% 50%, transparent 45%, rgba(0,0,0,.55) 100%);
   }
+  .sync {
+    position: absolute; left: 0; right: 0; height: 90px; z-index: 6;
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,.055), transparent);
+    pointer-events: none;
+    animation: roll 7s linear infinite;
+  }
+  @keyframes roll { from { top: -100px; } to { top: 100%; } }
+
+  /* 전원 켜짐 */
+  .boot {
+    position: absolute; inset: 0; z-index: 20; background: #000;
+    animation: boot 1.1s steps(1, end) forwards;
+  }
+  .boot::after {
+    content: ""; position: absolute; left: 0; right: 0; top: 50%;
+    height: 3px; background: #fff; box-shadow: 0 0 22px #fff;
+    animation: bootline 1.1s ease-out forwards;
+  }
+  @keyframes boot { 0% { opacity: 1; } 99% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+  @keyframes bootline {
+    0% { transform: scaleX(0); opacity: 1; }
+    35% { transform: scaleX(1); opacity: 1; }
+    100% { transform: scaleX(1) scaleY(90); opacity: 0; }
+  }
+
+  /* 화면 전환 플래시 */
+  .flash {
+    position: absolute; inset: 0; z-index: 30;
+    display: none; place-items: center;
+    background: rgba(0, 0, 0, .82);
+    text-align: center;
+  }
+  .flash.on { display: grid; }
+  .flash b {
+    display: block; font-size: 32px; font-weight: 400; color: var(--gold);
+    text-shadow: 0 0 16px var(--gold);
+    animation: blink .28s steps(2, end) infinite;
+  }
+  .flash span { display: block; margin-top: 10px; font-size: 16px; color: var(--screen-ink); }
+
+  /* ── HUD ───────────────────────────────────── */
+  .hud {
+    display: flex; flex-wrap: wrap; gap: 6px 20px; justify-content: space-between;
+    font-size: 16px; color: var(--mint);
+    border-bottom: 2px solid rgba(255, 255, 255, .12);
+    padding-bottom: 10px; margin-bottom: 14px;
+  }
+  .hud .lab { color: var(--screen-soft); }
+  .hud .hi { color: var(--gold); }
+  .hud .cr { color: var(--pink); }
+  .blink { animation: blink 1s steps(2, end) infinite; }
   @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
 
-  /* ── 동전 투입구 ──────────────────────────── */
-  .coin {
+  /* ── 어트랙트 데모 ─────────────────────────── */
+  .demo-box {
     position: relative;
-    z-index: 2;
-    margin: 28px auto 0;
-    display: block;
-    padding: 12px 20px;
-    background: transparent;
-    border: 2px dashed var(--neon-gold);
-    color: var(--neon-gold);
-    font-family: var(--font-arcade);
-    font-size: 12px;
-    letter-spacing: .2em;
-    cursor: pointer;
-    animation: blink 1.1s steps(2, end) infinite;
+    border: 2px solid rgba(255, 255, 255, .16);
+    background: #05050c;
+    margin-bottom: 16px;
+    overflow: hidden;
   }
-  .coin:hover, .coin:focus-visible {
-    background: var(--neon-gold);
-    color: var(--screen);
-    animation: none;
-    outline: none;
+  #demo { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+  .demo-tag {
+    position: absolute; top: 6px; right: 8px;
+    font-size: 16px; color: var(--gold);
+    text-shadow: 0 2px 0 #000;
   }
 
-  /* ── Footer ───────────────────────────────── */
-  footer {
-    margin-top: 26px;
-    padding: 18px 0 44px;
-    font-family: var(--font-arcade);
-    font-size: 11px;
-    letter-spacing: .1em;
-    color: var(--ink-faint);
-    text-align: center;
+  /* ── 선택 타이틀 ───────────────────────────── */
+  .sel {
+    text-align: center; margin: 0 0 4px;
+    font-size: 32px; font-weight: 400;
+    animation: cycle 1.2s steps(1, end) infinite;
   }
-  footer p { margin: 0; }
+  @keyframes cycle {
+    0%   { color: var(--gold); text-shadow: 0 0 14px var(--gold); }
+    25%  { color: var(--pink); text-shadow: 0 0 14px var(--pink); }
+    50%  { color: var(--sky);  text-shadow: 0 0 14px var(--sky); }
+    75%  { color: var(--mint); text-shadow: 0 0 14px var(--mint); }
+    100% { color: var(--gold); text-shadow: 0 0 14px var(--gold); }
+  }
+  .howto {
+    text-align: center; margin: 0 0 20px;
+    font-size: 16px; color: var(--screen-soft);
+  }
+  .howto kbd {
+    font: inherit; border: 2px solid var(--screen-soft);
+    padding: 0 5px; color: var(--screen-ink);
+  }
+
+  /* ── 게임 캐비닛 카드 ──────────────────────── */
+  .cabs {
+    display: grid; gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+  .cab {
+    position: relative; display: block; padding: 14px 12px 12px;
+    text-decoration: none; color: var(--screen-ink);
+    background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.35));
+    border: 3px solid rgba(255, 255, 255, .18);
+    transition: transform .1s steps(2, end), box-shadow .1s steps(2, end), border-color .1s;
+  }
+  .cab::before {
+    content: ""; position: absolute; left: -3px; right: -3px; top: -3px; height: 5px;
+    background: var(--tint);
+  }
+  .cab:hover, .cab:focus-visible, .cab.on {
+    outline: none;
+    border-color: var(--tint);
+    transform: translate(-4px, -4px);
+    box-shadow: 8px 8px 0 var(--tint), 0 0 26px color-mix(in srgb, var(--tint) 55%, transparent);
+  }
+  .cab .cursor {
+    position: absolute; left: -22px; top: 50%; transform: translateY(-50%);
+    color: var(--tint); font-size: 16px; opacity: 0;
+    text-shadow: 0 0 10px var(--tint);
+  }
+  .cab:hover .cursor, .cab:focus-visible .cursor, .cab.on .cursor {
+    opacity: 1; animation: blink .5s steps(2, end) infinite;
+  }
+  .art {
+    display: block; width: 96px; height: 96px; margin: 2px auto 10px;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 4px 0 rgba(0, 0, 0, .6));
+  }
+  .cab:hover .art, .cab:focus-visible .art, .cab.on .art { animation: bob .5s steps(2, end) infinite alternate; }
+  @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+
+  .cab h3 { margin: 0 0 2px; font-size: 16px; font-weight: 400; text-align: center; }
+  .cab .en { display: block; margin-bottom: 8px; font-size: 16px; text-align: center; color: var(--tint); }
+  .cab p { margin: 0 0 10px; font-size: 16px; color: var(--screen-soft); text-align: center; min-height: 78px; }
+  .cab-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 2px solid rgba(255, 255, 255, .14); padding-top: 8px; font-size: 16px;
+  }
+  .status { color: var(--screen-soft); }
+  .status[data-state="ready"] { color: var(--mint); }
+  .play { color: var(--tint); }
+
+  /* ── 동전 투입 ─────────────────────────────── */
+  .coinbar { position: relative; margin-top: 22px; text-align: center; }
+  .coin-btn {
+    font: inherit; font-size: 16px;
+    padding: 10px 18px;
+    color: var(--gold); background: rgba(0, 0, 0, .4);
+    border: 3px dashed var(--gold); cursor: pointer;
+    animation: blink 1.2s steps(2, end) infinite;
+  }
+  .coin-btn:hover, .coin-btn:focus-visible {
+    background: var(--gold); color: #14101f; animation: none; outline: none;
+  }
+  .coin {
+    position: absolute; left: 50%; top: 0; width: 14px; height: 14px;
+    margin-left: -7px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff3b0, var(--gold) 55%, #a97a12);
+    box-shadow: 0 0 10px var(--gold);
+    animation: drop .5s ease-in forwards;
+  }
+  @keyframes drop {
+    from { transform: translateY(-60px) scale(1); opacity: 1; }
+    to   { transform: translateY(14px) scale(.3); opacity: 0; }
+  }
+
+  /* ── 컨트롤 패널 ───────────────────────────── */
+  .panel {
+    margin-top: 14px; padding: 16px 18px;
+    border: 3px solid var(--cab-lo);
+    background:
+      repeating-linear-gradient(135deg, rgba(255,255,255,.05) 0 6px, transparent 6px 12px),
+      linear-gradient(180deg, #322e5c, #1a1834);
+    display: flex; align-items: center; justify-content: center; gap: 26px; flex-wrap: wrap;
+  }
+  .stick { position: relative; width: 96px; height: 96px; }
+  .stick .base {
+    position: absolute; inset: 26px;
+    background: radial-gradient(circle at 40% 35%, #4a4680, #14122a 70%);
+    border: 3px solid #0a0918; border-radius: 50%;
+  }
+  .stick .ball {
+    position: absolute; left: 50%; top: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px;
+    border-radius: 50%; z-index: 2;
+    background: radial-gradient(circle at 34% 30%, #ff9cb4, var(--pink) 55%, #7d1130);
+    box-shadow: 0 0 14px rgba(255, 59, 107, .8);
+    transition: transform .08s steps(2, end);
+  }
+  .dir {
+    position: absolute; width: 30px; height: 30px; padding: 0;
+    background: rgba(255, 255, 255, .06); border: 2px solid rgba(255, 255, 255, .18);
+    color: var(--screen-ink); font: inherit; font-size: 16px; cursor: pointer;
+  }
+  .dir:hover, .dir:focus-visible { background: var(--sky); color: #10101f; outline: none; }
+  .dir.u { top: 0; left: 33px; } .dir.d { bottom: 0; left: 33px; }
+  .dir.l { left: 0; top: 33px; } .dir.r { right: 0; top: 33px; }
+
+  .btns { display: flex; gap: 14px; }
+  .bigbtn {
+    width: 62px; height: 62px; border-radius: 50%; cursor: pointer;
+    font: inherit; font-size: 16px; color: #1a0d12;
+    border: 3px solid rgba(0, 0, 0, .6);
+    box-shadow: 0 6px 0 rgba(0, 0, 0, .55), inset 0 -6px 0 rgba(0, 0, 0, .25);
+    transition: transform .06s steps(1, end), box-shadow .06s steps(1, end);
+  }
+  .bigbtn:active, .bigbtn.press { transform: translateY(5px); box-shadow: 0 1px 0 rgba(0, 0, 0, .55), inset 0 -6px 0 rgba(0, 0, 0, .25); }
+  .bigbtn.a { background: radial-gradient(circle at 35% 30%, #ff8fa8, var(--pink) 60%, #8d1533); }
+  .bigbtn.b { background: radial-gradient(circle at 35% 30%, #9ee7ff, var(--sky) 60%, #14618d); }
+  .panel-note { font-size: 16px; color: var(--ink-faint); text-align: center; width: 100%; margin: 0; }
+
+  /* ── 푸터 ──────────────────────────────────── */
+  footer {
+    padding: 20px 0 48px; text-align: center;
+    font-size: 16px; color: var(--ink-faint);
+    text-shadow: 0 2px 0 rgba(0, 0, 0, .5);
+  }
+  footer p { margin: 0 0 6px; }
+
+  /* ── 레인보우 모드(숨은 커맨드) ────────────── */
+  body.rainbow .cabinet { animation: hue 2.4s linear infinite; }
+  @keyframes hue { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
+  .spark {
+    position: fixed; width: 8px; height: 8px; z-index: 60; pointer-events: none;
+    animation: sparkfall 1.4s linear forwards;
+  }
+  @keyframes sparkfall {
+    from { transform: translateY(0) scale(1); opacity: 1; }
+    to   { transform: translateY(70vh) scale(.4); opacity: 0; }
+  }
 
   @media (max-width: 560px) {
-    .crt { padding: 20px 14px 24px; }
-    .marquee { padding: 20px 14px 18px; }
+    .title { font-size: 32px; }
+    .crt { padding: 16px 10px 20px; }
+    .cabinet { padding: 8px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .bulb, .coin, .cab .cursor { animation: none; }
+    .bulb, .title, .sel, .blink, .coin-btn, .sync, .boot, .cab .cursor,
+    body.rainbow .cabinet, .neon, .cab:hover .art { animation: none !important; }
+    .boot { display: none; }
     .cab { transition: none; }
   }
 </style>
 </head>
 <body>
 
+<div class="neons" aria-hidden="true">
+  <div class="neon neon-1">OPEN 24H</div>
+  <div class="neon neon-2">동전교환</div>
+  <div class="neon neon-3">100원 1판</div>
+  <div class="neon neon-4">GAME CENTER</div>
+</div>
+
 <div class="wrap">
 
-  <a class="back" href="../../index.html">← 목록으로</a>
+  <nav class="topbar">
+    <a class="chip" href="../../index.html">← 목록으로</a>
+    <button class="chip" id="soundBtn" type="button" aria-pressed="false">♪ SOUND OFF</button>
+  </nav>
 
-  <!-- 간판 -->
-  <div class="marquee">
-    <div class="bulbs" aria-hidden="true">
-      <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
-      <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
-      <span class="bulb"></span>
-    </div>
-    <h1>옛날 오락실</h1>
-    <p class="sub">Retro Arcade · 8-Bit</p>
-  </div>
+  <div class="cabinet">
 
-  <!-- CRT 화면 -->
-  <div class="crt">
-    <div class="hud">
-      <span><b>1UP</b> <span id="score">000000</span></span>
-      <span class="hi"><b>HI-SCORE</b> <span>087650</span></span>
-      <span><b>CREDIT</b> <span id="credit">04</span></span>
+    <!-- 간판 -->
+    <div class="marquee">
+      <div class="bulbs" aria-hidden="true">
+        <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+        <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+        <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+      </div>
+      <h1 class="title">옛날 오락실</h1>
+      <p class="subtitle">★ RETRO ARCADE ★ 8-BIT ★ SINCE 1983 ★</p>
     </div>
 
-    <h2 class="screen-title">SELECT GAME</h2>
-    <p class="screen-help">
-      <kbd>←</kbd> <kbd>→</kbd> 이동 · <kbd>Enter</kbd> 시작 · 마우스로 눌러도 됩니다
-    </p>
+    <!-- 브라운관 -->
+    <div class="crt-shell">
+      <span class="screw tl"></span><span class="screw tr"></span>
+      <span class="screw bl"></span><span class="screw br"></span>
 
-    <div class="cabs" id="cabs">
+      <div class="crt">
+        <canvas id="bg" width="400" height="300" aria-hidden="true"></canvas>
+        <div class="sync" aria-hidden="true"></div>
 
-      <!-- 너구리 -->
-      <a class="cab" href="games/neoguri/index.html" style="--tint: var(--neon-gold);">
-        <span class="cursor" aria-hidden="true">▶</span>
-        <svg class="cab-art" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
-          <g fill="#6b6b7a">
-            <rect x="2" y="2" width="2" height="3"/><rect x="12" y="2" width="2" height="3"/>
-            <rect x="3" y="4" width="10" height="9"/>
-            <rect x="4" y="3" width="8" height="1"/>
-          </g>
-          <g fill="#2b2b38">
-            <rect x="2" y="2" width="1" height="2"/><rect x="13" y="2" width="1" height="2"/>
-            <rect x="3" y="6" width="4" height="3"/><rect x="9" y="6" width="4" height="3"/>
-          </g>
-          <g fill="#f3eee2">
-            <rect x="4" y="7" width="2" height="2"/><rect x="10" y="7" width="2" height="2"/>
-            <rect x="6" y="11" width="4" height="2"/>
-          </g>
-          <g fill="#12121f">
-            <rect x="5" y="7" width="1" height="1"/><rect x="10" y="7" width="1" height="1"/>
-            <rect x="7" y="9" width="2" height="2"/>
-          </g>
-          <rect x="6" y="12" width="1" height="1" fill="#2b2b38"/>
-          <rect x="9" y="12" width="1" height="1" fill="#2b2b38"/>
-        </svg>
-        <h3>너구리</h3>
-        <span class="en">Raccoon Run</span>
-        <p>사다리를 오르내리며 과일을 먹고 뱀을 피하는 고전 액션.</p>
-        <span class="cab-foot">
-          <span class="status" data-state="soon">준비 중</span>
-          <span class="play">PLAY</span>
-        </span>
-      </a>
+        <div class="crt-in">
+          <div class="hud">
+            <span><span class="lab">1UP</span> <span id="score">000000</span></span>
+            <span class="hi"><span class="lab">HI-SCORE</span> <span id="hiscore">087650</span></span>
+            <span class="cr"><span class="lab">CREDIT</span> <span id="credit">04</span></span>
+          </div>
 
-      <!-- 벽돌깨기 -->
-      <a class="cab" href="games/breakout/index.html" style="--tint: var(--neon-pink);">
-        <span class="cursor" aria-hidden="true">▶</span>
-        <svg class="cab-art" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
-          <g>
-            <rect x="1" y="2" width="4" height="2" fill="#ff3b6b"/>
-            <rect x="6" y="2" width="4" height="2" fill="#ffd23f"/>
-            <rect x="11" y="2" width="4" height="2" fill="#4cc2ff"/>
-            <rect x="1" y="5" width="4" height="2" fill="#35e0a1"/>
-            <rect x="6" y="5" width="4" height="2" fill="#b98cff"/>
-            <rect x="11" y="5" width="4" height="2" fill="#ff3b6b"/>
-          </g>
-          <rect x="9" y="9" width="2" height="2" fill="#f3eee2"/>
-          <rect x="5" y="13" width="6" height="2" fill="#f3eee2"/>
-          <rect x="5" y="13" width="6" height="1" fill="#9a94b5"/>
-        </svg>
-        <h3>벽돌깨기</h3>
-        <span class="en">Brick Breaker</span>
-        <p>공을 튕겨 벽돌을 부수는 원조 반사신경 게임.</p>
-        <span class="cab-foot">
-          <span class="status" data-state="soon">준비 중</span>
-          <span class="play">PLAY</span>
-        </span>
-      </a>
+          <div class="demo-box">
+            <canvas id="demo" width="256" height="88" aria-hidden="true"></canvas>
+            <span class="demo-tag blink" id="demoTag">DEMO</span>
+          </div>
 
-      <!-- 갤러그 -->
-      <a class="cab" href="games/galaga/index.html" style="--tint: var(--neon-sky);">
-        <span class="cursor" aria-hidden="true">▶</span>
-        <svg class="cab-art" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
-          <g fill="#4cc2ff">
-            <rect x="6" y="1" width="4" height="2"/>
-            <rect x="4" y="3" width="8" height="2"/>
-            <rect x="2" y="3" width="2" height="1"/><rect x="12" y="3" width="2" height="1"/>
-          </g>
-          <g fill="#ff3b6b">
-            <rect x="5" y="5" width="2" height="1"/><rect x="9" y="5" width="2" height="1"/>
-          </g>
-          <rect x="7" y="7" width="2" height="2" fill="#ffd23f"/>
-          <g fill="#35e0a1">
-            <rect x="7" y="12" width="2" height="3"/>
-            <rect x="5" y="13" width="6" height="2"/>
-            <rect x="4" y="14" width="1" height="1"/><rect x="11" y="14" width="1" height="1"/>
-          </g>
-          <rect x="7" y="10" width="2" height="1" fill="#f3eee2"/>
-        </svg>
-        <h3>갤러그</h3>
-        <span class="en">Galaxy Fighter</span>
-        <p>편대로 몰려오는 외계 전투기를 격추하는 종스크롤 슈팅.</p>
-        <span class="cab-foot">
-          <span class="status" data-state="soon">준비 중</span>
-          <span class="play">PLAY</span>
-        </span>
-      </a>
+          <h2 class="sel">SELECT GAME</h2>
+          <p class="howto">
+            <kbd>←</kbd><kbd>→</kbd> 이동 · <kbd>ENTER</kbd> 시작 · 아래 조이스틱도 됩니다
+          </p>
 
-      <!-- 격투 게임 -->
-      <a class="cab" href="games/fighter/index.html" style="--tint: var(--neon-mint);">
-        <span class="cursor" aria-hidden="true">▶</span>
-        <svg class="cab-art" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
-          <!-- 왼쪽 파이터 -->
-          <g fill="#4cc2ff">
-            <rect x="1" y="3" width="3" height="3"/>
-            <rect x="1" y="7" width="4" height="4"/>
-            <rect x="1" y="11" width="1" height="4"/><rect x="4" y="11" width="1" height="4"/>
-          </g>
-          <rect x="5" y="7" width="3" height="2" fill="#4cc2ff"/>
-          <rect x="3" y="4" width="1" height="1" fill="#0b0b14"/>
-          <!-- 오른쪽 파이터 -->
-          <g fill="#ff3b6b">
-            <rect x="12" y="3" width="3" height="3"/>
-            <rect x="11" y="7" width="4" height="4"/>
-            <rect x="11" y="11" width="1" height="4"/><rect x="14" y="11" width="1" height="4"/>
-          </g>
-          <rect x="9" y="9" width="2" height="2" fill="#ff3b6b"/>
-          <rect x="12" y="4" width="1" height="1" fill="#0b0b14"/>
-          <!-- 임팩트 -->
-          <g fill="#ffd23f">
-            <rect x="8" y="6" width="2" height="1"/>
-            <rect x="7" y="5" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/>
-            <rect x="8" y="4" width="2" height="1"/>
-          </g>
-        </svg>
-        <h3>격투 게임</h3>
-        <span class="en">Street Duel</span>
-        <p>커맨드를 입력해 필살기를 날리는 1대1 대전 격투.</p>
-        <span class="cab-foot">
-          <span class="status" data-state="soon">준비 중</span>
-          <span class="play">PLAY</span>
-        </span>
-      </a>
+          <div class="cabs" id="cabs">
 
+            <a class="cab" href="games/neoguri/index.html" style="--tint: #ffd23f;" data-key="neoguri">
+              <span class="cursor" aria-hidden="true">▶</span>
+              <svg class="art" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+                <g fill="#8a8a9e">
+                  <rect x="2" y="2" width="2" height="3"/><rect x="12" y="2" width="2" height="3"/>
+                  <rect x="3" y="4" width="10" height="9"/><rect x="4" y="3" width="8" height="1"/>
+                </g>
+                <g fill="#2b2b38">
+                  <rect x="2" y="2" width="1" height="2"/><rect x="13" y="2" width="1" height="2"/>
+                  <rect x="3" y="6" width="4" height="3"/><rect x="9" y="6" width="4" height="3"/>
+                </g>
+                <g fill="#f3eee2">
+                  <rect x="4" y="7" width="2" height="2"/><rect x="10" y="7" width="2" height="2"/>
+                  <rect x="6" y="11" width="4" height="2"/>
+                </g>
+                <g fill="#12121f">
+                  <rect x="5" y="7" width="1" height="1"/><rect x="10" y="7" width="1" height="1"/>
+                  <rect x="7" y="9" width="2" height="2"/>
+                </g>
+                <rect x="6" y="12" width="1" height="1" fill="#2b2b38"/>
+                <rect x="9" y="12" width="1" height="1" fill="#2b2b38"/>
+              </svg>
+              <h3>너구리</h3>
+              <span class="en">RACCOON RUN</span>
+              <p>사다리를 오르내리며 과일을 먹고 뱀을 피하는 고전 액션.</p>
+              <span class="cab-foot">
+                <span class="status" data-state="soon">준비 중</span>
+                <span class="play">PLAY ▶</span>
+              </span>
+            </a>
+
+            <a class="cab" href="games/breakout/index.html" style="--tint: #ff3b6b;" data-key="breakout">
+              <span class="cursor" aria-hidden="true">▶</span>
+              <svg class="art" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+                <rect x="1" y="2" width="4" height="2" fill="#ff3b6b"/>
+                <rect x="6" y="2" width="4" height="2" fill="#ffd23f"/>
+                <rect x="11" y="2" width="4" height="2" fill="#4cc2ff"/>
+                <rect x="1" y="5" width="4" height="2" fill="#35e0a1"/>
+                <rect x="6" y="5" width="4" height="2" fill="#b98cff"/>
+                <rect x="11" y="5" width="4" height="2" fill="#ff8c42"/>
+                <rect x="9" y="9" width="2" height="2" fill="#f3eee2"/>
+                <rect x="5" y="13" width="6" height="2" fill="#f3eee2"/>
+                <rect x="5" y="13" width="6" height="1" fill="#9d97be"/>
+              </svg>
+              <h3>벽돌깨기</h3>
+              <span class="en">BRICK BREAKER</span>
+              <p>공을 튕겨 벽돌을 부수는 원조 반사신경 게임.</p>
+              <span class="cab-foot">
+                <span class="status" data-state="soon">준비 중</span>
+                <span class="play">PLAY ▶</span>
+              </span>
+            </a>
+
+            <a class="cab" href="games/galaga/index.html" style="--tint: #4cc2ff;" data-key="galaga">
+              <span class="cursor" aria-hidden="true">▶</span>
+              <svg class="art" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+                <g fill="#4cc2ff">
+                  <rect x="6" y="1" width="4" height="2"/><rect x="4" y="3" width="8" height="2"/>
+                  <rect x="2" y="3" width="2" height="1"/><rect x="12" y="3" width="2" height="1"/>
+                </g>
+                <g fill="#ff3b6b">
+                  <rect x="5" y="5" width="2" height="1"/><rect x="9" y="5" width="2" height="1"/>
+                </g>
+                <rect x="7" y="7" width="2" height="2" fill="#ffd23f"/>
+                <g fill="#35e0a1">
+                  <rect x="7" y="12" width="2" height="3"/><rect x="5" y="13" width="6" height="2"/>
+                  <rect x="4" y="14" width="1" height="1"/><rect x="11" y="14" width="1" height="1"/>
+                </g>
+                <rect x="7" y="10" width="2" height="1" fill="#f3eee2"/>
+              </svg>
+              <h3>갤러그</h3>
+              <span class="en">GALAXY FIGHTER</span>
+              <p>편대로 몰려오는 외계 전투기를 격추하는 종스크롤 슈팅.</p>
+              <span class="cab-foot">
+                <span class="status" data-state="soon">준비 중</span>
+                <span class="play">PLAY ▶</span>
+              </span>
+            </a>
+
+            <a class="cab" href="games/fighter/index.html" style="--tint: #35e0a1;" data-key="fighter">
+              <span class="cursor" aria-hidden="true">▶</span>
+              <svg class="art" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+                <g fill="#4cc2ff">
+                  <rect x="1" y="3" width="3" height="3"/><rect x="1" y="7" width="4" height="4"/>
+                  <rect x="1" y="11" width="1" height="4"/><rect x="4" y="11" width="1" height="4"/>
+                  <rect x="5" y="7" width="3" height="2"/>
+                </g>
+                <rect x="3" y="4" width="1" height="1" fill="#0b0b14"/>
+                <g fill="#ff3b6b">
+                  <rect x="12" y="3" width="3" height="3"/><rect x="11" y="7" width="4" height="4"/>
+                  <rect x="11" y="11" width="1" height="4"/><rect x="14" y="11" width="1" height="4"/>
+                  <rect x="9" y="9" width="2" height="2"/>
+                </g>
+                <rect x="12" y="4" width="1" height="1" fill="#0b0b14"/>
+                <g fill="#ffd23f">
+                  <rect x="8" y="6" width="2" height="1"/>
+                  <rect x="7" y="5" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/>
+                  <rect x="8" y="4" width="2" height="1"/>
+                </g>
+              </svg>
+              <h3>격투 게임</h3>
+              <span class="en">STREET DUEL</span>
+              <p>커맨드를 입력해 필살기를 날리는 1대1 대전 격투.</p>
+              <span class="cab-foot">
+                <span class="status" data-state="soon">준비 중</span>
+                <span class="play">PLAY ▶</span>
+              </span>
+            </a>
+
+          </div>
+
+          <div class="coinbar">
+            <button class="coin-btn" id="coinBtn" type="button">▶ INSERT COIN ◀</button>
+          </div>
+        </div>
+
+        <div class="fx" aria-hidden="true"></div>
+        <div class="boot" aria-hidden="true"></div>
+        <div class="flash" id="flash" aria-hidden="true">
+          <div>
+            <b>PLAYER 1 READY</b>
+            <span id="flashName">GET READY!</span>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <button class="coin" id="coin" type="button">▷ INSERT COIN</button>
+    <!-- 조작부 -->
+    <div class="panel">
+      <div class="stick">
+        <span class="base" aria-hidden="true"></span>
+        <span class="ball" id="ball" aria-hidden="true"></span>
+        <button class="dir u" data-dir="up" type="button" aria-label="위">▲</button>
+        <button class="dir d" data-dir="down" type="button" aria-label="아래">▼</button>
+        <button class="dir l" data-dir="left" type="button" aria-label="왼쪽">◀</button>
+        <button class="dir r" data-dir="right" type="button" aria-label="오른쪽">▶</button>
+      </div>
+      <div class="btns">
+        <button class="bigbtn a" id="btnA" type="button">START</button>
+        <button class="bigbtn b" id="btnB" type="button">COIN</button>
+      </div>
+      <p class="panel-note">조이스틱으로 고르고 빨간 버튼으로 시작합니다</p>
+    </div>
+
   </div>
 
   <footer>
     <p>2026 AX 강의 · 예제 A — 옛날 오락실</p>
+    <p>© 1983 ORAKSIL CORP. ALL RIGHTS RESERVED</p>
   </footer>
 
 </div>
 
 <script>
 (function () {
-  var cabs = Array.prototype.slice.call(document.querySelectorAll('#cabs .cab'));
+  "use strict";
 
-  /* 방향키로 캐비닛 사이를 옮겨 다닙니다. Enter는 링크 기본 동작입니다. */
-  document.addEventListener('keydown', function (e) {
-    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' &&
-        e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
-    var i = cabs.indexOf(document.activeElement);
-    var step = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1;
-    var next = i === -1 ? (step > 0 ? 0 : cabs.length - 1)
-                        : (i + step + cabs.length) % cabs.length;
-    cabs[next].focus();
-    e.preventDefault();
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var cabs = Array.prototype.slice.call(document.querySelectorAll(".cab"));
+  var idx = 0;
+
+  /* ══ 소리 ══════════════════════════════════════
+     외부 파일 없이 WebAudio 로 사각파를 만들어 씁니다. */
+  var actx = null, soundOn = false;
+  var soundBtn = document.getElementById("soundBtn");
+
+  function ensureCtx() {
+    if (!actx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) actx = new AC();
+    }
+    if (actx && actx.state === "suspended") actx.resume();
+    return actx;
+  }
+  function beep(freq, dur, type, vol, slideTo) {
+    if (!soundOn) return;
+    var ctx = ensureCtx();
+    if (!ctx) return;
+    var osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.type = type || "square";
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    if (slideTo) osc.frequency.linearRampToValueAtTime(slideTo, ctx.currentTime + dur);
+    gain.gain.setValueAtTime(vol || 0.05, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + dur);
+  }
+  function chord(list) {
+    list.forEach(function (n, i) {
+      setTimeout(function () { beep(n, 0.09, "square", 0.05); }, i * 70);
+    });
+  }
+  soundBtn.addEventListener("click", function () {
+    soundOn = !soundOn;
+    soundBtn.textContent = soundOn ? "♪ SOUND ON" : "♪ SOUND OFF";
+    soundBtn.classList.toggle("off", !soundOn);
+    soundBtn.setAttribute("aria-pressed", String(soundOn));
+    if (soundOn) { ensureCtx(); chord([440, 660, 880]); }
   });
 
-  /* 동전 투입 — 크레딧과 점수만 올라갑니다. */
+  /* ══ 점수판 ════════════════════════════════════ */
   var credit = 4, score = 0;
-  var creditEl = document.getElementById('credit');
-  var scoreEl = document.getElementById('score');
-  document.getElementById('coin').addEventListener('click', function () {
-    credit = Math.min(credit + 1, 99);
-    score += 1250;
-    creditEl.textContent = String(credit).padStart(2, '0');
-    scoreEl.textContent = String(score % 1000000).padStart(6, '0');
-    if (cabs[0]) cabs[0].focus();
+  var creditEl = document.getElementById("credit");
+  var scoreEl = document.getElementById("score");
+  function pad(n, w) { n = String(n); while (n.length < w) n = "0" + n; return n; }
+  function addScore(n) { score = (score + n) % 1000000; scoreEl.textContent = pad(score, 6); }
+
+  /* ══ 선택 ══════════════════════════════════════ */
+  function select(i, silent) {
+    idx = (i + cabs.length) % cabs.length;
+    cabs.forEach(function (c, k) { c.classList.toggle("on", k === idx); });
+    cabs[idx].focus({ preventScroll: true });
+    if (!silent) beep(880, 0.05, "square", 0.04);
+    attractOff();
+  }
+  function move(step) { select(idx + step); }
+
+  var ball = document.getElementById("ball");
+  function tiltStick(dx, dy) {
+    ball.style.transform = "translate(" + dx * 12 + "px," + dy * 12 + "px)";
+    setTimeout(function () { ball.style.transform = ""; }, 130);
+  }
+
+  /* 게임 시작 연출 */
+  var flash = document.getElementById("flash");
+  var flashName = document.getElementById("flashName");
+  var starting = false;
+  function start(cab) {
+    if (starting) return;
+    starting = true;
+    var name = cab.querySelector("h3").textContent;
+    flashName.textContent = name + " 시작합니다";
+    flash.classList.add("on");
+    chord([523, 659, 784, 1047]);
+    addScore(100);
+    setTimeout(function () { location.href = cab.getAttribute("href"); }, reduce ? 120 : 850);
+  }
+
+  cabs.forEach(function (cab, i) {
+    cab.addEventListener("mouseenter", function () { select(i, true); });
+    cab.addEventListener("focus", function () { idx = i; attractOff(); });
+    cab.addEventListener("click", function (e) {
+      /* 새 탭으로 열기 같은 조합키 클릭은 브라우저에 맡깁니다. */
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      e.preventDefault();
+      start(cab);
+    });
   });
+
+  /* ══ 키보드 ════════════════════════════════════ */
+  document.addEventListener("keydown", function (e) {
+    var k = e.key;
+    if (k === "ArrowRight" || k === "ArrowDown") { move(1); tiltStick(k === "ArrowRight" ? 1 : 0, k === "ArrowDown" ? 1 : 0); e.preventDefault(); }
+    else if (k === "ArrowLeft" || k === "ArrowUp") { move(-1); tiltStick(k === "ArrowLeft" ? -1 : 0, k === "ArrowUp" ? -1 : 0); e.preventDefault(); }
+    else if (k === "Enter" || k === " ") {
+      if (document.activeElement && document.activeElement.tagName === "BUTTON") return;
+      start(cabs[idx]); e.preventDefault();
+    }
+    konami(k);
+    attractOff();
+  });
+
+  /* ══ 조이스틱·버튼 ═════════════════════════════ */
+  Array.prototype.forEach.call(document.querySelectorAll(".dir"), function (b) {
+    b.addEventListener("click", function () {
+      var d = b.getAttribute("data-dir");
+      move(d === "right" || d === "down" ? 1 : -1);
+      tiltStick(d === "left" ? -1 : d === "right" ? 1 : 0, d === "up" ? -1 : d === "down" ? 1 : 0);
+    });
+  });
+  document.getElementById("btnA").addEventListener("click", function () { start(cabs[idx]); });
+
+  /* ══ 동전 투입 ═════════════════════════════════ */
+  var coinBtn = document.getElementById("coinBtn");
+  function insertCoin() {
+    credit = Math.min(credit + 1, 99);
+    creditEl.textContent = pad(credit, 2);
+    addScore(1250);
+    beep(1200, 0.06, "square", 0.05, 1600);
+    setTimeout(function () { beep(1600, 0.09, "square", 0.05, 900); }, 70);
+    var c = document.createElement("span");
+    c.className = "coin";
+    coinBtn.parentNode.appendChild(c);
+    setTimeout(function () { c.remove(); }, 520);
+    attractOff();
+  }
+  coinBtn.addEventListener("click", insertCoin);
+  document.getElementById("btnB").addEventListener("click", insertCoin);
+
+  /* ══ 숨은 커맨드 ═══════════════════════════════ */
+  var CODE = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
+  var pos = 0;
+  function konami(key) {
+    var want = CODE[pos];
+    if (key === want || (key && key.toLowerCase && key.toLowerCase() === want)) {
+      pos++;
+      if (pos === CODE.length) { pos = 0; rainbow(); }
+    } else {
+      pos = (key === CODE[0]) ? 1 : 0;
+    }
+  }
+  function rainbow() {
+    document.body.classList.toggle("rainbow");
+    credit = 99; creditEl.textContent = "99";
+    addScore(9999);
+    chord([523, 659, 784, 1047, 1319]);
+    if (reduce) return;
+    var colors = ["#ffd23f", "#ff3b6b", "#4cc2ff", "#35e0a1", "#b98cff"];
+    for (var i = 0; i < 40; i++) {
+      (function (i) {
+        setTimeout(function () {
+          var s = document.createElement("span");
+          s.className = "spark";
+          s.style.background = colors[i % colors.length];
+          s.style.left = Math.floor(Math.random() * 100) + "vw";
+          s.style.top = "-10px";
+          document.body.appendChild(s);
+          setTimeout(function () { s.remove(); }, 1500);
+        }, i * 40);
+      })(i);
+    }
+  }
+
+  /* ══ 어트랙트 모드 ═════════════════════════════
+     15초 동안 아무 입력이 없으면 커서가 저 혼자 돕니다. */
+  var attract = null, attractTimer = null;
+  var demoTag = document.getElementById("demoTag");
+  function attractOn() {
+    if (attract) return;
+    demoTag.textContent = "ATTRACT MODE";
+    attract = setInterval(function () {
+      idx = (idx + 1) % cabs.length;
+      cabs.forEach(function (c, k) { c.classList.toggle("on", k === idx); });
+    }, 1400);
+  }
+  function attractOff() {
+    if (attract) { clearInterval(attract); attract = null; demoTag.textContent = "DEMO"; }
+    clearTimeout(attractTimer);
+    attractTimer = setTimeout(attractOn, 15000);
+  }
+  document.addEventListener("mousemove", attractOff, { passive: true });
+  attractOff();
+  cabs[0].classList.add("on");
+
+  /* ══════════════════════════════════════════════
+     배경 별밭 + 신스웨이브 지평선
+     ══════════════════════════════════════════════ */
+  var bg = document.getElementById("bg"), bx = bg.getContext("2d");
+  var BW = 400, BH = 400, stars = [];
+
+  /* 화면 비율에 맞춰 캔버스 해상도를 잡습니다 — 픽셀이 정사각형으로 남습니다. */
+  function sizeBg() {
+    var r = bg.getBoundingClientRect();
+    if (!r.width) return;
+    var h = Math.max(160, Math.min(900, Math.round(BW * r.height / r.width)));
+    if (h === BH && bg.width === BW) return;
+    BH = h; bg.width = BW; bg.height = BH;
+    stars = [];
+    var n = Math.round(BW * BH / 2400);
+    for (var i = 0; i < n; i++) {
+      stars.push({
+        x: Math.random() * BW, y: Math.random() * BH * 0.6,
+        s: 1 + (i % 3), v: 0.12 + (i % 3) * 0.18
+      });
+    }
+  }
+  sizeBg();
+  window.addEventListener("resize", sizeBg);
+
+  var ufo = { x: -30, y: 26, on: false };
+
+  function drawBg(t) {
+    bx.fillStyle = "#07070f";
+    bx.fillRect(0, 0, BW, BH);
+
+    /* 별 */
+    for (var i = 0; i < stars.length; i++) {
+      var st = stars[i];
+      st.x -= st.v;
+      if (st.x < 0) { st.x = BW; st.y = Math.random() * BH * 0.62; }
+      var tw = (t * 0.06 + i) % 20 < 3 ? 0.35 : 1;
+      bx.fillStyle = st.s > 2 ? "rgba(255,255,255," + tw + ")"
+                   : st.s > 1 ? "rgba(180,200,255," + tw + ")"
+                              : "rgba(120,140,220," + tw + ")";
+      bx.fillRect(Math.floor(st.x), Math.floor(st.y), st.s, st.s);
+    }
+
+    /* 지평선 해 */
+    var hz = BH * 0.88;
+    var grd = bx.createLinearGradient(0, hz - 40, 0, hz);
+    grd.addColorStop(0, "#ffd23f"); grd.addColorStop(1, "#ff3b6b");
+    bx.fillStyle = grd;
+    bx.beginPath(); bx.arc(BW / 2, hz, 26, Math.PI, 0); bx.fill();
+    bx.fillStyle = "#07070f";
+    for (var s = 0; s < 4; s++) bx.fillRect(BW / 2 - 30, hz - 22 + s * 6, 60, 2);
+
+    /* 신스웨이브 바닥 — 가로선이 앞으로 흘러옵니다 */
+    bx.lineWidth = 1;
+    bx.strokeStyle = "rgba(255,59,107,.34)";
+    var ph = (t * 0.008) % 1;
+    for (var g = 0; g <= 9; g++) {
+      var y = hz + Math.pow((g + ph) / 9, 2.2) * (BH - hz);
+      if (y <= hz || y > BH) continue;
+      bx.beginPath(); bx.moveTo(0, y); bx.lineTo(BW, y); bx.stroke();
+    }
+    bx.strokeStyle = "rgba(76,194,255,.26)";
+    for (var v = -8; v <= 8; v++) {
+      bx.beginPath();
+      bx.moveTo(BW / 2 + v * 14, hz);
+      bx.lineTo(BW / 2 + v * 90, BH);
+      bx.stroke();
+    }
+
+    /* 가끔 지나가는 UFO */
+    if (!ufo.on && Math.floor(t) % 900 === 0) { ufo.on = true; ufo.x = -30; ufo.y = 20 + (t % 40); }
+    if (ufo.on) {
+      ufo.x += 1.1;
+      if (ufo.x > BW + 30) ufo.on = false;
+      var ux = Math.floor(ufo.x), uy = Math.floor(ufo.y);
+      bx.fillStyle = "#b98cff"; bx.fillRect(ux - 8, uy, 16, 3);
+      bx.fillStyle = "#35e0a1"; bx.fillRect(ux - 4, uy - 3, 8, 3);
+      bx.fillStyle = "#ffd23f"; bx.fillRect(ux - 6, uy + 3, 2, 2); bx.fillRect(ux + 4, uy + 3, 2, 2);
+    }
+  }
+
+  /* ══════════════════════════════════════════════
+     어트랙트 데모 — 네 게임 장면이 돌아가며 재생됩니다
+     ══════════════════════════════════════════════ */
+  var dm = document.getElementById("demo"), dx = dm.getContext("2d");
+  var DW = dm.width, DH = dm.height;
+  var scene = 0, sceneT = 0, SCENE_LEN = 380;
+
+  function px(x, y, w, h, col) { dx.fillStyle = col; dx.fillRect(x | 0, y | 0, w, h); }
+
+  function text(str, x, y, col) {
+    dx.fillStyle = col;
+    dx.font = "8px 'Oraksil', monospace";
+    dx.textBaseline = "top";
+    dx.fillText(str, x, y);
+  }
+
+  /* ── 1. 너구리 ── */
+  var rac = { x: 20, y: 58, dir: 1, climb: 0 };
+  function sceneRaccoon(t) {
+    px(0, 0, DW, DH, "#0a1a12");
+    /* 발판 */
+    for (var f = 0; f < 3; f++) px(0, 26 + f * 22, DW, 3, "#2e7d5b");
+    /* 사다리 */
+    for (var l = 0; l < 2; l++) {
+      var lx = 60 + l * 120;
+      px(lx, 26, 2, 44, "#8a6a3a"); px(lx + 10, 26, 2, 44, "#8a6a3a");
+      for (var r = 0; r < 7; r++) px(lx, 30 + r * 6, 12, 2, "#c49a5a");
+    }
+    /* 과일 */
+    for (var i = 0; i < 5; i++) {
+      var fx = 24 + i * 46, fy = 40 + (i % 2) * 22;
+      if ((t + i * 40) % 200 > 60) { px(fx, fy, 5, 5, "#ff3b6b"); px(fx + 1, fy - 2, 2, 2, "#35e0a1"); }
+    }
+    /* 뱀 */
+    var sx = (t * 0.9) % (DW + 40) - 20;
+    for (var s = 0; s < 5; s++) px(sx - s * 5, 62 + Math.sin((t * 0.15) + s) * 2, 4, 4, "#7ee06b");
+    px(sx + 4, 62, 4, 4, "#b7ff8a"); px(sx + 6, 63, 1, 1, "#000");
+
+    /* 너구리 */
+    rac.x += rac.dir * 0.7;
+    if (rac.x > DW - 24) rac.dir = -1;
+    if (rac.x < 10) rac.dir = 1;
+    var rx = rac.x | 0, ry = 56, step = (t % 16 < 8) ? 0 : 1;
+    px(rx + 1, ry - 10, 2, 3, "#8a8a9e"); px(rx + 8, ry - 10, 2, 3, "#8a8a9e");
+    px(rx, ry - 8, 11, 8, "#8a8a9e");
+    px(rx + 1, ry - 5, 3, 3, "#2b2b38"); px(rx + 7, ry - 5, 3, 3, "#2b2b38");
+    px(rx + 2, ry - 4, 1, 1, "#f3eee2"); px(rx + 8, ry - 4, 1, 1, "#f3eee2");
+    px(rx + 4, ry - 2, 3, 2, "#f3eee2");
+    px(rx + 1, ry, 9, 4, "#9a9aae");
+    px(rx + 1 + step * 2, ry + 4, 3, 2, "#2b2b38");
+    px(rx + 6 - step * 2, ry + 4, 3, 2, "#2b2b38");
+
+    text("NEOGURI", 6, 6, "#ffd23f");
+    text("STAGE 1", DW - 60, 6, "#35e0a1");
+  }
+
+  /* ── 2. 벽돌깨기 ── */
+  var bricks = [], ball2 = { x: 128, y: 60, vx: 1.4, vy: -1.2 }, pad = { x: 110 };
+  function resetBricks() {
+    bricks = [];
+    var cols = ["#ff3b6b", "#ff8c42", "#ffd23f", "#35e0a1", "#4cc2ff"];
+    for (var r = 0; r < 4; r++)
+      for (var c = 0; c < 12; c++)
+        bricks.push({ x: 8 + c * 20, y: 18 + r * 8, w: 18, h: 6, c: cols[r % cols.length], on: true });
+  }
+  resetBricks();
+  function sceneBreak(t) {
+    px(0, 0, DW, DH, "#0a0a1e");
+    var alive = 0;
+    for (var i = 0; i < bricks.length; i++) {
+      var b = bricks[i];
+      if (!b.on) continue;
+      alive++;
+      px(b.x, b.y, b.w, b.h, b.c);
+      px(b.x, b.y, b.w, 1, "rgba(255,255,255,.35)");
+    }
+    if (!alive) resetBricks();
+
+    ball2.x += ball2.vx; ball2.y += ball2.vy;
+    if (ball2.x < 2 || ball2.x > DW - 6) ball2.vx *= -1;
+    if (ball2.y < 14) ball2.vy *= -1;
+    if (ball2.y > DH - 12) { ball2.vy = -Math.abs(ball2.vy); ball2.y = DH - 12; }
+    for (var j = 0; j < bricks.length; j++) {
+      var bb = bricks[j];
+      if (bb.on && ball2.x + 4 > bb.x && ball2.x < bb.x + bb.w &&
+          ball2.y + 4 > bb.y && ball2.y < bb.y + bb.h) {
+        bb.on = false; ball2.vy *= -1;
+        px(bb.x, bb.y, bb.w, bb.h, "#ffffff");
+        break;
+      }
+    }
+    pad.x += ((ball2.x - 14) - pad.x) * 0.18;
+    px(pad.x, DH - 8, 30, 4, "#f3eee2");
+    px(pad.x, DH - 8, 30, 1, "#9d97be");
+    px(ball2.x, ball2.y, 4, 4, "#ffd23f");
+
+    text("BRICK BREAKER", 6, 6, "#ff3b6b");
+  }
+
+  /* ── 3. 갤러그 ── */
+  var shots = [], boom = [];
+  function sceneGalaga(t) {
+    px(0, 0, DW, DH, "#05050f");
+    for (var s = 0; s < 24; s++) {
+      var sy = ((s * 37 + t * 1.4) % DH) | 0;
+      px((s * 53) % DW, sy, 1, 1, "#6a7ac0");
+    }
+    var sway = Math.sin(t * 0.04) * 12;
+    var enemies = [];
+    for (var r = 0; r < 3; r++) {
+      for (var c = 0; c < 8; c++) {
+        var ex = 24 + c * 26 + sway, ey = 16 + r * 14;
+        var hit = false;
+        for (var k = 0; k < boom.length; k++)
+          if (boom[k].r === r && boom[k].c === c) hit = true;
+        if (hit) continue;
+        enemies.push({ x: ex, y: ey, r: r, c: c });
+        var wing = (t % 24 < 12) ? 1 : 0;
+        var col = r === 0 ? "#ff3b6b" : r === 1 ? "#b98cff" : "#4cc2ff";
+        px(ex, ey, 8, 4, col);
+        px(ex + 2, ey - 2, 4, 2, col);
+        px(ex - 2 - wing, ey + 1, 2, 2, "#ffd23f");
+        px(ex + 8 + wing, ey + 1, 2, 2, "#ffd23f");
+      }
+    }
+    /* 플레이어 */
+    var pxx = DW / 2 + Math.sin(t * 0.03) * 60;
+    px(pxx, DH - 14, 10, 4, "#35e0a1");
+    px(pxx + 4, DH - 18, 2, 4, "#f3eee2");
+    px(pxx - 2, DH - 12, 2, 3, "#35e0a1"); px(pxx + 10, DH - 12, 2, 3, "#35e0a1");
+
+    if (t % 22 === 0) shots.push({ x: pxx + 4, y: DH - 20 });
+    for (var i = shots.length - 1; i >= 0; i--) {
+      shots[i].y -= 3.2;
+      px(shots[i].x, shots[i].y, 2, 5, "#ffd23f");
+      for (var e = 0; e < enemies.length; e++) {
+        var en = enemies[e];
+        if (Math.abs(shots[i].x - (en.x + 4)) < 6 && Math.abs(shots[i].y - en.y) < 6) {
+          boom.push({ r: en.r, c: en.c, x: en.x, y: en.y, life: 12 });
+          shots.splice(i, 1);
+          break;
+        }
+      }
+      if (shots[i] && shots[i].y < 8) shots.splice(i, 1);
+    }
+    for (var b2 = boom.length - 1; b2 >= 0; b2--) {
+      var bm = boom[b2];
+      if (bm.life > 0) {
+        bm.life--;
+        var sz = 12 - bm.life;
+        px(bm.x + 4 - sz / 2, bm.y + 2 - sz / 2, sz, sz, bm.life % 2 ? "#ffd23f" : "#ff8c42");
+      }
+    }
+    if (boom.length >= 24) boom = [];
+    text("GALAXY FIGHTER", 6, 6, "#4cc2ff");
+  }
+
+  /* ── 4. 격투 ── */
+  var hp1 = 100, hp2 = 100;
+  function fighter(x, base, col, dark, punch, face) {
+    px(x + 3, base - 26, 6, 6, col);                    /* 머리 */
+    px(x + (face > 0 ? 7 : 3), base - 24, 1, 1, dark);  /* 눈 */
+    px(x + 2, base - 19, 8, 10, col);                   /* 몸통 */
+    px(x + 2, base - 9, 3, 9, dark);                    /* 다리 */
+    px(x + 7, base - 9, 3, 9, dark);
+    if (punch) px(x + (face > 0 ? 10 : -6), base - 17, 6, 3, col);
+    else px(x + (face > 0 ? 9 : -2), base - 17, 3, 6, col);
+  }
+  function sceneFight(t) {
+    px(0, 0, DW, DH, "#170a22");
+    for (var i = 0; i < 8; i++) px(10 + i * 32, 20, 18, 26, "#241035");
+    px(0, DH - 12, DW, 12, "#3a1a4a");
+    px(0, DH - 12, DW, 2, "#5a2a6a");
+
+    var beat = t % 90;
+    var p1 = beat > 20 && beat < 34, p2 = beat > 55 && beat < 69;
+    var x1 = 70 + (p1 ? 6 : 0), x2 = 170 - (p2 ? 6 : 0);
+    fighter(x1, DH - 12, "#4cc2ff", "#1a5f8a", p1, 1);
+    fighter(x2, DH - 12, "#ff3b6b", "#8a1a3a", p2, -1);
+    if (p1) { px(x2 - 6, DH - 30, 6, 6, "#ffd23f"); px(x2 - 9, DH - 33, 3, 3, "#fff"); hp2 = Math.max(0, hp2 - 0.6); }
+    if (p2) { px(x1 + 10, DH - 30, 6, 6, "#ffd23f"); px(x1 + 13, DH - 33, 3, 3, "#fff"); hp1 = Math.max(0, hp1 - 0.5); }
+    if (hp1 <= 0 || hp2 <= 0) { hp1 = 100; hp2 = 100; }
+
+    /* 체력 게이지 */
+    px(6, 6, 100, 7, "#3a1a2a"); px(6, 6, hp1, 7, "#35e0a1");
+    px(DW - 106, 6, 100, 7, "#3a1a2a"); px(DW - 6 - hp2, 6, hp2, 7, "#ffd23f");
+    text("VS", DW / 2 - 8, 5, "#f3eee2");
+  }
+
+  var SCENES = [sceneRaccoon, sceneBreak, sceneGalaga, sceneFight];
+
+  /* ══ 메인 루프 ═════════════════════════════════ */
+  var frame = 0, last = 0;
+  function loop(ts) {
+    if (ts - last > 33) {                 /* 약 30fps — 레트로답게 */
+      last = ts;
+      frame++;
+      if (frame % 30 === 0) sizeBg();     /* 폰트 로딩 등으로 높이가 바뀌면 다시 맞춥니다 */
+      drawBg(frame);
+      SCENES[scene](sceneT);
+      sceneT++;
+      if (sceneT > SCENE_LEN) {
+        sceneT = 0;
+        scene = (scene + 1) % SCENES.length;
+        boom = []; shots = [];
+      }
+      /* 장면 전환 와이프 */
+      if (sceneT < 10) {
+        var w = DW * (1 - sceneT / 10);
+        px(DW - w, 0, w, DH, "#000");
+      }
+    }
+    requestAnimationFrame(loop);
+  }
+  if (!reduce) {
+    requestAnimationFrame(loop);
+  } else {
+    drawBg(1); SCENES[0](1);
+  }
 })();
 </script>
 
