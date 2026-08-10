@@ -14,6 +14,14 @@
   --bg0:#05060d; --bg1:#0c0f1a; --line:rgba(255,255,255,.10);
   --text:#edf1ff; --text-soft:#9aa4c2;
   --c5:#b48cff; /* 05 태양계 시그니처 — 라이트 바이올렛 */
+  --label:#e8ecf4;                       /* HUD 라벨 최소 밝기 */
+  --glass:linear-gradient(180deg, rgba(19,23,40,.84), rgba(10,13,24,.80));
+  --edge:rgba(150,162,204,.24);          /* 유리 외곽 */
+  --edge-hi:rgba(255,255,255,.09);       /* 상단 1px 하이라이트 */
+  --shadow-chip:inset 0 1px 0 var(--edge-hi), 0 4px 14px rgba(0,0,0,.38), 0 1px 3px rgba(0,0,0,.45);
+  --shadow-card:inset 0 1px 0 var(--edge-hi), 0 18px 44px rgba(0,0,0,.52), 0 4px 12px rgba(0,0,0,.42);
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --r-chip:12px; --r-card:16px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
@@ -22,93 +30,179 @@ body{
   font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
   -webkit-user-select:none; user-select:none;
 }
+::selection{background:rgba(180,140,255,.34);color:var(--text)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--c5);outline-offset:2px}
+kbd{display:inline-block;min-width:20px;text-align:center;padding:2px 7px 3px;border-radius:6px;
+  font-family:inherit;font-size:11px;font-weight:600;color:var(--label);letter-spacing:.04em;
+  font-variant-numeric:tabular-nums;vertical-align:middle;
+  background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+  border:1px solid rgba(255,255,255,.17);border-bottom-color:rgba(255,255,255,.08);
+  box-shadow:0 1px 0 rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06)}
 #stage{position:fixed;inset:0}
 #stage canvas{display:block;width:100%;height:100%;cursor:grab}
 #stage canvas.dragging{cursor:grabbing}
 .vignette{position:fixed;inset:0;pointer-events:none;z-index:2;
-  background:radial-gradient(ellipse at 50% 44%, transparent 55%, rgba(0,0,0,.42) 100%);}
+  background:
+    radial-gradient(ellipse at 50% 44%, transparent 55%, rgba(0,0,0,.46) 100%),
+    radial-gradient(120% 60% at 50% 118%, rgba(88,60,160,.09), transparent 62%);}
+.grain{position:fixed;inset:0;pointer-events:none;z-index:2;opacity:.05;background-size:160px 160px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E")}
 
-/* ---------- 라벨 ---------- */
+/* ---------- 라벨 (필 디자인) ---------- */
 #labels{position:fixed;inset:0;pointer-events:none;z-index:3;overflow:hidden}
-.pl-label{position:absolute;left:0;top:0;font-size:11.5px;letter-spacing:.4px;color:var(--text-soft);
-  text-shadow:0 1px 4px rgba(0,0,0,.9), 0 0 10px rgba(0,0,0,.6);white-space:nowrap;will-change:transform}
-.pl-label b{color:var(--c5);font-weight:600;margin-right:4px}
+.pl-label{position:absolute;left:0;top:0;font-size:11.5px;letter-spacing:.4px;color:#dfe5f4;
+  padding:3px 10px 4px;border-radius:999px;
+  background:rgba(10,13,24,.62);border:1px solid rgba(180,140,255,.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 2px 8px rgba(0,0,0,.45);
+  text-shadow:0 1px 3px rgba(0,0,0,.85);white-space:nowrap;will-change:transform}
+.pl-label b{color:var(--c5);font-weight:700;margin-right:5px;font-variant-numeric:tabular-nums}
 
 /* ---------- HUD 공통 ---------- */
-.hud{position:fixed;z-index:10;transition:opacity .45s}
+.hud{position:fixed;z-index:10;transition:opacity .45s var(--ease)}
 body.ui-idle .fade{opacity:0;pointer-events:none}
-#title{top:18px;left:22px;font-size:15px;font-weight:700;letter-spacing:.4px}
-#title .no{color:var(--c5)}
-#title .sub{display:block;margin-top:4px;font-size:11.5px;font-weight:500;color:var(--text-soft)}
+#title{top:18px;left:22px;font-size:15.5px;font-weight:800;letter-spacing:.02em;
+  text-shadow:0 1px 6px rgba(0,0,0,.7)}
+#title .no{color:var(--c5);letter-spacing:.08em;text-shadow:0 0 18px rgba(180,140,255,.45)}
+#title .sub{display:block;margin-top:5px;font-size:11.5px;font-weight:500;color:var(--text-soft);
+  letter-spacing:.06em;text-shadow:0 1px 4px rgba(0,0,0,.8)}
 #hub{bottom:16px;left:22px}
-#hub a{display:inline-block;color:var(--text-soft);text-decoration:none;font-size:13px;
-  padding:8px 13px;border:1px solid var(--line);border-radius:9px;background:rgba(12,15,26,.66)}
-#hub a:hover,#hub a:focus-visible{color:var(--text);border-color:var(--c5)}
-#badge{bottom:16px;right:22px;font-size:12px;color:var(--text-soft);background:rgba(12,15,26,.75);
-  border:1px solid var(--line);border-radius:9px;padding:7px 11px;font-variant-numeric:tabular-nums}
-#badge b{color:var(--c5);font-weight:600}
+#hub a{display:inline-block;color:var(--label);text-decoration:none;font-size:13px;
+  padding:8px 14px;border:1px solid var(--edge);border-radius:var(--r-chip);
+  background:var(--glass);box-shadow:var(--shadow-chip);backdrop-filter:blur(10px);
+  transition:color .18s var(--ease),border-color .18s var(--ease),transform .18s var(--ease),box-shadow .18s var(--ease)}
+#hub a:hover,#hub a:focus-visible{color:var(--text);border-color:rgba(180,140,255,.55);transform:translateY(-1px);
+  box-shadow:inset 0 1px 0 var(--edge-hi), 0 6px 18px rgba(0,0,0,.42), 0 0 0 1px rgba(180,140,255,.12)}
+#hub a:active{transform:translateY(0) scale(.98)}
+#badge{bottom:16px;right:22px;font-size:12px;color:var(--label);background:var(--glass);
+  border:1px solid var(--edge);border-radius:var(--r-chip);padding:8px 12px;letter-spacing:.02em;
+  font-variant-numeric:tabular-nums;box-shadow:var(--shadow-chip);backdrop-filter:blur(10px)}
+#badge b{color:var(--c5);font-weight:700;font-size:13px}
 
-/* ---------- 배속 바 ---------- */
-#speedbar{bottom:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:11px;
-  background:rgba(12,15,26,.75);border:1px solid var(--line);border-radius:11px;padding:9px 16px}
-#speedbar .lb{font-size:12px;color:var(--text-soft)}
-#speed{width:min(32vw,290px);accent-color:var(--c5)}
-#speedVal{min-width:76px;text-align:right;font-size:13px;font-weight:600;color:var(--c5);
-  font-variant-numeric:tabular-nums}
+/* ---------- 배속 콘솔 ---------- */
+#speedbar{bottom:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;
+  background:var(--glass);border:1px solid var(--edge);border-radius:var(--r-chip);
+  padding:10px 16px;box-shadow:var(--shadow-chip);backdrop-filter:blur(10px)}
+#speedbar .lb{font-size:11px;font-weight:600;color:var(--label);letter-spacing:.14em}
+.slider-wrap{position:relative;display:flex;align-items:center}
+.slider-wrap::after{content:"";position:absolute;left:8px;right:8px;bottom:0;height:3px;
+  pointer-events:none;opacity:.5;
+  background:
+    linear-gradient(var(--c5),var(--c5)) 0 0/1px 100% no-repeat,
+    linear-gradient(var(--c5),var(--c5)) 25% 0/1px 100% no-repeat,
+    linear-gradient(var(--c5),var(--c5)) 50% 0/1px 100% no-repeat,
+    linear-gradient(var(--c5),var(--c5)) 75% 0/1px 100% no-repeat,
+    linear-gradient(var(--c5),var(--c5)) 100% 0/1px 100% no-repeat}
+#speed{-webkit-appearance:none;appearance:none;width:min(32vw,290px);height:22px;
+  background:transparent;cursor:pointer;accent-color:var(--c5);border-radius:8px}
+#speed::-webkit-slider-runnable-track{height:4px;border-radius:2px;
+  background:linear-gradient(90deg,rgba(180,140,255,.55),rgba(180,140,255,.16));
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
+#speed::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;margin-top:-5px;
+  background:radial-gradient(circle at 35% 30%,#f2eaff,var(--c5) 60%,#7d5bd6);
+  border:1px solid rgba(255,255,255,.35);
+  box-shadow:0 0 10px rgba(180,140,255,.6), 0 2px 5px rgba(0,0,0,.5);
+  transition:box-shadow .18s var(--ease)}
+#speed:hover::-webkit-slider-thumb,#speed:focus-visible::-webkit-slider-thumb{
+  box-shadow:0 0 16px rgba(180,140,255,.85), 0 2px 5px rgba(0,0,0,.5)}
+#speed::-moz-range-track{height:4px;border-radius:2px;
+  background:linear-gradient(90deg,rgba(180,140,255,.55),rgba(180,140,255,.16))}
+#speed::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
+  background:var(--c5);border:1px solid rgba(255,255,255,.35);
+  box-shadow:0 0 10px rgba(180,140,255,.6)}
+#speedVal{min-width:80px;text-align:center;font-size:13px;font-weight:700;color:var(--c5);
+  font-variant-numeric:tabular-nums;letter-spacing:.02em;padding:4px 8px;border-radius:8px;
+  background:rgba(180,140,255,.10);border:1px solid rgba(180,140,255,.28);
+  text-shadow:0 0 12px rgba(180,140,255,.35)}
 
 /* ---------- 토스트 ---------- */
-#toast{top:22px;left:50%;transform:translateX(-50%);max-width:min(88vw,560px);text-align:center;
-  font-size:13px;color:var(--text);background:rgba(12,15,26,.88);border:1px solid rgba(180,140,255,.4);
-  border-radius:10px;padding:10px 18px;opacity:0;pointer-events:none;transition:opacity .35s;z-index:30}
-#toast.on{opacity:1}
+#toast{top:22px;left:50%;transform:translate(-50%,-8px);max-width:min(88vw,560px);text-align:center;
+  font-size:13px;color:var(--text);background:var(--glass);border:1px solid rgba(180,140,255,.45);
+  border-radius:var(--r-chip);padding:11px 20px;opacity:0;pointer-events:none;z-index:30;
+  box-shadow:var(--shadow-chip), 0 0 24px rgba(180,140,255,.10);backdrop-filter:blur(10px);
+  transition:opacity .3s var(--ease),transform .3s var(--ease)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
 
-/* ---------- 정보 카드 ---------- */
-#info{top:50%;right:22px;transform:translateY(-50%) translateX(14px);width:min(300px,78vw);
-  background:rgba(12,15,26,.88);border:1px solid rgba(180,140,255,.42);border-radius:14px;
-  padding:18px 20px;opacity:0;pointer-events:none;transition:opacity .35s, transform .35s;z-index:20}
+/* ---------- 정보 카드 (관측소 패널) ---------- */
+#info{top:50%;right:22px;transform:translateY(-50%) translateX(16px);width:min(304px,78vw);
+  --accent:var(--c5);overflow:hidden;
+  background:var(--glass);border:1px solid var(--edge);border-radius:var(--r-card);
+  padding:20px 20px 16px;opacity:0;pointer-events:none;z-index:20;
+  box-shadow:var(--shadow-card);backdrop-filter:blur(12px);
+  transition:opacity .32s var(--ease), transform .32s var(--ease)}
+#info::before{content:"";position:absolute;left:0;top:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--accent),transparent 85%)}
 #info.on{opacity:1;pointer-events:auto;transform:translateY(-50%) translateX(0)}
-#info h2{font-size:19px;color:var(--c5);letter-spacing:.5px;margin-bottom:10px}
-#info dl{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:12.5px;
+#info .kicker{font-size:10.5px;font-weight:600;letter-spacing:.22em;color:var(--text-soft);
+  margin-bottom:4px}
+#info h2{font-size:20px;font-weight:800;color:var(--accent);letter-spacing:.04em;margin-bottom:12px;
+  text-shadow:0 1px 8px rgba(0,0,0,.5)}
+#info dl{display:grid;grid-template-columns:auto 1fr;gap:7px 12px;font-size:12.5px;
   font-variant-numeric:tabular-nums}
-#info dt{color:var(--text-soft)}
-#info dd{text-align:right}
-#info p{margin-top:12px;font-size:12.5px;line-height:1.6;color:var(--text-soft);
-  border-top:1px solid var(--line);padding-top:10px}
-#info .close{position:absolute;top:10px;right:12px;background:none;border:0;color:var(--text-soft);
-  font-size:16px;cursor:pointer;font-family:inherit}
-#info .close:hover{color:var(--text)}
-#info .esc{margin-top:10px;font-size:11px;color:var(--text-soft);opacity:.75}
+#info dt{color:var(--text-soft);letter-spacing:.02em}
+#info dd{text-align:right;color:var(--label);font-weight:600}
+#info p{margin-top:14px;font-size:12.5px;line-height:1.65;color:#c6cde4;
+  border-top:1px solid var(--line);padding-top:12px}
+#info .close{position:absolute;top:8px;right:8px;width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;line-height:1;
+  background:transparent;border:1px solid transparent;border-radius:8px;color:var(--text-soft);
+  font-size:15px;cursor:pointer;font-family:inherit;
+  transition:color .18s var(--ease),background .18s var(--ease),border-color .18s var(--ease)}
+#info .close:hover{color:var(--text);background:rgba(255,255,255,.07);border-color:var(--edge)}
+#info .close:active{transform:scale(.94)}
+#info .esc{margin-top:12px;font-size:11px;color:var(--text-soft)}
 
 /* ---------- 도움말 ---------- */
 #help{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;
-  background:rgba(5,6,13,.82);opacity:0;pointer-events:none;transition:opacity .3s}
+  background:rgba(5,6,13,.78);backdrop-filter:blur(4px);
+  opacity:0;pointer-events:none;transition:opacity .28s var(--ease)}
 #help.on{opacity:1;pointer-events:auto}
-#help .card{width:min(430px,90vw);max-height:86vh;overflow-y:auto;background:var(--bg1);
-  border:1px solid rgba(180,140,255,.42);border-radius:16px;padding:24px 26px}
-#help h2{font-size:16px;color:var(--c5);margin-bottom:14px}
+#help .card{width:min(440px,90vw);max-height:86vh;overflow-y:auto;
+  background:linear-gradient(180deg,#11152a,#0b0e1c);
+  border:1px solid rgba(180,140,255,.4);border-radius:var(--r-card);padding:24px 26px 20px;
+  box-shadow:var(--shadow-card), 0 0 60px rgba(180,140,255,.08);
+  scrollbar-width:thin;scrollbar-color:rgba(180,140,255,.35) transparent}
+#help .card::-webkit-scrollbar{width:10px}
+#help .card::-webkit-scrollbar-track{background:transparent}
+#help .card::-webkit-scrollbar-thumb{background:rgba(180,140,255,.28);border-radius:8px;
+  border:3px solid #0b0e1c}
+#help h2{font-size:16px;font-weight:800;color:var(--c5);letter-spacing:.06em;margin-bottom:14px;
+  padding-left:10px;border-left:3px solid var(--c5)}
 #help table{width:100%;border-collapse:collapse;font-size:13px}
-#help td{padding:5.5px 4px;border-bottom:1px solid var(--line)}
+#help td{padding:6.5px 4px;border-bottom:1px solid rgba(255,255,255,.07)}
+#help tr:last-child td{border-bottom:0}
 #help td:first-child{color:var(--c5);font-weight:600;white-space:nowrap;padding-right:16px}
-#help .note{margin-top:13px;font-size:11.5px;line-height:1.65;color:var(--text-soft)}
+#help td:last-child{color:#cfd6ea}
+#help .note{margin-top:14px;font-size:11.5px;line-height:1.7;color:var(--text-soft);
+  background:rgba(180,140,255,.06);border:1px solid rgba(180,140,255,.16);
+  border-radius:10px;padding:10px 12px}
 #help .dismiss{margin-top:14px;font-size:12px;color:var(--text-soft);text-align:center}
 
-/* ---------- 부팅 오버레이 / 에러 카드 ---------- */
+/* ---------- 부팅 오버레이 (미션 로딩) / 에러 카드 ---------- */
 #boot{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:22px;background:var(--bg0);transition:opacity .7s}
+  justify-content:center;gap:20px;
+  background:radial-gradient(110% 80% at 50% 34%, #0b0e20 0%, var(--bg0) 62%);
+  transition:opacity .7s var(--ease)}
 #boot.off{opacity:0;pointer-events:none}
 #boot .orb{width:74px;height:74px;border-radius:50%;
   background:radial-gradient(circle at 38% 34%, #efe4ff 0%, var(--c5) 34%, #4d2f8f 72%, transparent 100%);
   box-shadow:0 0 44px rgba(180,140,255,.55), 0 0 110px rgba(180,140,255,.28);
   animation:orb 1.9s ease-in-out infinite}
 @keyframes orb{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
-#boot .msg{font-size:15px;letter-spacing:.6px}
-#boot .step{font-size:12px;color:var(--text-soft);font-variant-numeric:tabular-nums}
+#boot .msg{font-size:15px;font-weight:600;letter-spacing:.18em}
+#boot .bar{width:min(240px,60vw);height:3px;border-radius:2px;overflow:hidden;
+  background:rgba(255,255,255,.08);box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
+#boot .bar i{display:block;height:100%;width:0;border-radius:2px;
+  background:linear-gradient(90deg,#7d5bd6,var(--c5));
+  box-shadow:0 0 10px rgba(180,140,255,.7);transition:width .25s var(--ease)}
+#boot .step{font-size:11.5px;color:var(--text-soft);font-variant-numeric:tabular-nums;
+  letter-spacing:.14em}
 @media (prefers-reduced-motion: reduce){ #boot .orb{animation:none} }
 #err{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
   background:var(--bg0)}
 #err.on{display:flex}
-#err .card{width:min(420px,88vw);background:var(--bg1);border:1px solid rgba(255,120,120,.45);
-  border-radius:16px;padding:26px 28px;text-align:center}
+#err .card{width:min(420px,88vw);background:linear-gradient(180deg,#171022,#0c0a16);
+  border:1px solid rgba(255,120,120,.45);border-radius:var(--r-card);padding:26px 28px;
+  text-align:center;box-shadow:var(--shadow-card)}
 #err h2{font-size:17px;color:#ff9a9a;margin-bottom:12px}
 #err p{font-size:13px;line-height:1.7;color:var(--text-soft);margin-bottom:16px}
 #err a{color:var(--c5)}
@@ -117,6 +211,7 @@ body.ui-idle .fade{opacity:0;pointer-events:none}
 <body>
   <div id="stage"></div>
   <div class="vignette"></div>
+  <div class="grain" aria-hidden="true"></div>
   <div id="labels"></div>
 
   <div id="title" class="hud fade"><span class="no">05</span> · 3D 태양계
@@ -126,7 +221,7 @@ body.ui-idle .fade{opacity:0;pointer-events:none}
 
   <div id="speedbar" class="hud fade">
     <span class="lb">배속</span>
-    <input id="speed" type="range" min="0" max="1000" step="1" value="811" aria-label="시간 배속">
+    <span class="slider-wrap"><input id="speed" type="range" min="0" max="1000" step="1" value="811" aria-label="시간 배속"></span>
     <span id="speedVal">×100만</span>
   </div>
 
@@ -134,6 +229,7 @@ body.ui-idle .fade{opacity:0;pointer-events:none}
 
   <div id="info" class="hud">
     <button class="close" id="infoClose" aria-label="닫기">×</button>
+    <div class="kicker">관측 대상</div>
     <h2 id="infoName">지구</h2>
     <dl>
       <dt>지름</dt><dd id="infoDia"></dd>
@@ -142,7 +238,7 @@ body.ui-idle .fade{opacity:0;pointer-events:none}
       <dt>자전 주기</dt><dd id="infoRot"></dd>
     </dl>
     <p id="infoDesc"></p>
-    <div class="esc">ESC — 전체 뷰로 돌아가기</div>
+    <div class="esc"><kbd>ESC</kbd> 전체 뷰로 돌아가기</div>
   </div>
 
   <div id="help" class="hud">
@@ -151,28 +247,29 @@ body.ui-idle .fade{opacity:0;pointer-events:none}
       <table>
         <tr><td>드래그 / 휠</td><td>궤도 회전 / 확대·축소</td></tr>
         <tr><td>행성 클릭</td><td>추적 포커스 + 정보 카드</td></tr>
-        <tr><td>1 ~ 9</td><td>천체 직접 선택 (1 태양 … 9 해왕성)</td></tr>
-        <tr><td>ESC</td><td>전체 뷰 복귀</td></tr>
-        <tr><td>Space</td><td>시간 일시정지 / 재개</td></tr>
-        <tr><td>+ / −</td><td>배속 2배 / 절반</td></tr>
-        <tr><td>O</td><td>궤도선 표시 토글</td></tr>
-        <tr><td>L</td><td>행성 라벨 토글</td></tr>
-        <tr><td>R</td><td>리셋 (시간·카메라·배속)</td></tr>
-        <tr><td>F</td><td>전체화면</td></tr>
-        <tr><td>P</td><td>FPS / 품질 배지 토글</td></tr>
-        <tr><td>Q</td><td>품질 단계 수동 순환</td></tr>
-        <tr><td>H</td><td>이 도움말</td></tr>
+        <tr><td><kbd>1</kbd> ~ <kbd>9</kbd></td><td>천체 직접 선택 (1 태양 … 9 해왕성)</td></tr>
+        <tr><td><kbd>ESC</kbd></td><td>전체 뷰 복귀</td></tr>
+        <tr><td><kbd>Space</kbd></td><td>시간 일시정지 / 재개</td></tr>
+        <tr><td><kbd>+</kbd> / <kbd>−</kbd></td><td>배속 2배 / 절반</td></tr>
+        <tr><td><kbd>O</kbd></td><td>궤도선 표시 토글</td></tr>
+        <tr><td><kbd>L</kbd></td><td>행성 라벨 토글</td></tr>
+        <tr><td><kbd>R</kbd></td><td>리셋 (시간·카메라·배속)</td></tr>
+        <tr><td><kbd>F</kbd></td><td>전체화면</td></tr>
+        <tr><td><kbd>P</kbd></td><td>FPS / 품질 배지 토글</td></tr>
+        <tr><td><kbd>Q</kbd></td><td>품질 단계 수동 순환</td></tr>
+        <tr><td><kbd>H</kbd></td><td>이 도움말</td></tr>
       </table>
       <div class="note">공전 속도는 실제 주기 비율 그대로입니다(수성 88일 ~ 해왕성 165년,
         금성 역자전·천왕성 97.8° 기울기 포함). 다만 화면의 자전 표시 속도만
         초당 0.4회전으로 제한해 고배속에서의 스트로빙을 막았습니다.</div>
-      <div class="dismiss">H 또는 ESC로 닫기</div>
+      <div class="dismiss"><kbd>H</kbd> 또는 <kbd>ESC</kbd>로 닫기</div>
     </div>
   </div>
 
   <div id="boot">
     <div class="orb"></div>
     <div class="msg">행성 생성 중…</div>
+    <div class="bar"><i id="bootBar"></i></div>
     <div class="step" id="bootStep">준비</div>
   </div>
 
@@ -274,6 +371,7 @@ function texCanvas(w,h){ var cv=document.createElement('canvas'); cv.width=w; cv
 /* ================= DOM 참조 ================= */
 var stageEl=document.getElementById('stage');
 var elBoot=document.getElementById('boot'), elBootStep=document.getElementById('bootStep');
+var elBootBar=document.getElementById('bootBar');
 var elErr=document.getElementById('err'), elErrTitle=document.getElementById('errTitle'), elErrBody=document.getElementById('errBody');
 var elToast=document.getElementById('toast');
 var elHelp=document.getElementById('help');
@@ -334,31 +432,31 @@ var startTier= storedTier!==null? storedTier : (weakGPU?1:0);
 
 /* ================= 천체 데이터 (공전·자전은 실제 주기 비율) ================= */
 var SPECS=[
-{key:'sun',name:'태양',r:5.0,orbit:0,period:0,rot:25.38,tilt:7.25,a0:0,
+{key:'sun',name:'태양',r:5.0,orbit:0,period:0,rot:25.38,tilt:7.25,a0:0,ac:'#ffc24d',
  dia:'139만 2,700 km',dist:'—',op:'—',rp:'약 25.4일',
  desc:'태양계 질량의 99.86%를 차지하는 항성입니다. 표면 온도는 약 5,500℃에 이릅니다.'},
-{key:'mercury',name:'수성',r:0.38,orbit:11,period:87.97,rot:58.65,tilt:0.03,a0:0.7,
+{key:'mercury',name:'수성',r:0.38,orbit:11,period:87.97,rot:58.65,tilt:0.03,a0:0.7,ac:'#cbc4b8',
  dia:'4,879 km',dist:'5,790만 km',op:'88일',rp:'58.6일',
  desc:'태양에 가장 가까운 행성입니다. 대기가 거의 없어 표면이 크레이터로 덮여 있습니다.'},
-{key:'venus',name:'금성',r:0.95,orbit:14.5,period:224.70,rot:-243.02,tilt:2.64,a0:2.4,
+{key:'venus',name:'금성',r:0.95,orbit:14.5,period:224.70,rot:-243.02,tilt:2.64,a0:2.4,ac:'#eec98c',
  dia:'12,104 km',dist:'1억 820만 km',op:'224.7일',rp:'243일 (역방향)',
  desc:'두꺼운 이산화탄소 대기의 온실 효과로 태양계에서 가장 뜨겁고, 다른 행성과 반대로 자전합니다.'},
-{key:'earth',name:'지구',r:1.0,orbit:18.5,period:365.25,rot:0.9973,tilt:23.44,a0:4.0,
+{key:'earth',name:'지구',r:1.0,orbit:18.5,period:365.25,rot:0.9973,tilt:23.44,a0:4.0,ac:'#62b0f0',
  dia:'12,756 km',dist:'1억 4,960만 km',op:'365.25일',rp:'23시간 56분',
  desc:'표면에 액체 바다가 있는, 지금까지 알려진 유일한 생명의 행성입니다.'},
-{key:'mars',name:'화성',r:0.53,orbit:23,period:686.98,rot:1.026,tilt:25.19,a0:5.3,
+{key:'mars',name:'화성',r:0.53,orbit:23,period:686.98,rot:1.026,tilt:25.19,a0:5.3,ac:'#f08a5c',
  dia:'6,792 km',dist:'2억 2,790만 km',op:'687일',rp:'24시간 37분',
  desc:'산화철 먼지로 붉게 보이는 행성입니다. 얼음 극관과 태양계 최대의 화산이 있습니다.'},
-{key:'jupiter',name:'목성',r:2.7,orbit:35,period:4332.59,rot:0.4135,tilt:3.13,a0:0.2,
+{key:'jupiter',name:'목성',r:2.7,orbit:35,period:4332.59,rot:0.4135,tilt:3.13,a0:0.2,ac:'#e0b184',
  dia:'14만 2,984 km',dist:'7억 7,850만 km',op:'11.9년',rp:'9시간 56분',
  desc:'태양계에서 가장 큰 행성입니다. 대적점은 수백 년째 이어지는 거대한 폭풍입니다.'},
-{key:'saturn',name:'토성',r:2.25,orbit:44,period:10759.22,rot:0.444,tilt:26.73,a0:2.9,
+{key:'saturn',name:'토성',r:2.25,orbit:44,period:10759.22,rot:0.444,tilt:26.73,a0:2.9,ac:'#ecd9a4',
  dia:'12만 536 km',dist:'14억 3,400만 km',op:'29.5년',rp:'10시간 33분',
  desc:'얼음과 암석 조각으로 이루어진 고리를 두른 행성입니다. 평균 밀도가 물보다 낮습니다.'},
-{key:'uranus',name:'천왕성',r:1.12,orbit:53,period:30688.5,rot:-0.7183,tilt:97.77,a0:4.8,
+{key:'uranus',name:'천왕성',r:1.12,orbit:53,period:30688.5,rot:-0.7183,tilt:97.77,a0:4.8,ac:'#a4dee6',
  dia:'5만 1,118 km',dist:'28억 6,700만 km',op:'84.0년',rp:'17시간 14분 (역방향)',
  desc:'자전축이 97.8도 기울어 거의 누운 채로 공전하는 얼음 거인입니다.'},
-{key:'neptune',name:'해왕성',r:1.05,orbit:62,period:60182,rot:0.6713,tilt:28.32,a0:1.3,
+{key:'neptune',name:'해왕성',r:1.05,orbit:62,period:60182,rot:0.6713,tilt:28.32,a0:1.3,ac:'#6f9bf5',
  dia:'4만 9,528 km',dist:'45억 1,500만 km',op:'164.8년',rp:'16시간 6분',
  desc:'태양계 가장 바깥의 행성입니다. 시속 2,000km에 이르는 강풍이 붑니다.'}
 ];
@@ -672,6 +770,7 @@ function updateBadge(){
 
 /* ================= 정보 카드 ================= */
 function showInfoCard(sp){
+  elInfo.style.setProperty('--accent',sp.ac||'#b48cff'); // 행성 시그니처 색 — 상단 바·이름
   elInfoName.textContent=sp.name;
   elInfoDia.textContent=sp.dia;
   elInfoDist.textContent=sp.dist;
@@ -953,12 +1052,15 @@ function specByKey(k){
   return null;
 }
 
-var buildQueue=[];
+var buildQueue=[], bootTotal=0, bootDone=0;
 function queueStep(label,fn){ buildQueue.push({label:label,fn:fn}); }
 function runQueue(){
   if(!buildQueue.length){ finishBoot(); return; }
+  if(!bootTotal) bootTotal=bootDone+buildQueue.length;
   var it=buildQueue.shift();
-  elBootStep.textContent=it.label;
+  bootDone++;
+  elBootStep.textContent=bootDone+' / '+bootTotal+' · '+it.label;
+  if(elBootBar) elBootBar.style.width=Math.round(bootDone/bootTotal*100)+'%';
   setTimeout(function(){
     try{ it.fn(); }
     catch(stepErr){
@@ -1002,10 +1104,16 @@ queueStep('별빛',function(){
     pos[i*3]=rxy*Math.cos(ph)*rad;
     pos[i*3+1]=z*rad;
     pos[i*3+2]=rxy*Math.sin(ph)*rad;
-    var lum=0.55+rnd()*0.45, warm=rnd();
-    col[i*3]=lum*(warm>0.7?1:0.85);
-    col[i*3+1]=lum*0.9;
-    col[i*3+2]=lum*(warm>0.7?0.8:1);
+    // 색 온도 5분류(청색·청백·온백·주황·적색 소수) — 빌드 1회, 프레임 비용 없음
+    var lum=0.5+rnd()*0.5, cls=rnd(), tr,tg,tb;
+    if(cls<0.18){ tr=1.0; tg=0.80; tb=0.62; }
+    else if(cls<0.40){ tr=1.0; tg=0.93; tb=0.80; }
+    else if(cls<0.74){ tr=0.92; tg=0.95; tb=1.0; }
+    else if(cls<0.95){ tr=0.78; tg=0.86; tb=1.0; }
+    else{ tr=1.0; tg=0.60; tb=0.48; lum=Math.min(1,lum*1.1); }
+    col[i*3]=lum*tr;
+    col[i*3+1]=lum*tg;
+    col[i*3+2]=lum*tb;
   }
   starGeo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
   starGeo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
@@ -1141,7 +1249,7 @@ queueStep('소행성대',function(){
 
 queueStep('궤도선과 라벨',function(){
   orbitGrp=new THREE.Group();
-  var orbMat=new THREE.LineBasicMaterial({color:0xb48cff,transparent:true,opacity:0.22});
+  var orbMat=new THREE.LineBasicMaterial({color:0xb48cff,transparent:true,opacity:0.3});
   for(var i=0;i<bodies.length;i++){
     var sp=bodies[i].spec;
     if(sp.orbit<=0) continue;

@@ -17,7 +17,19 @@
     --text-faint: #8b919b;
     --accent: #2f5cff;
     --accent-soft: #eef2ff;
+    --selection: #d6e0ff;
+    --head-glow: rgba(47, 92, 255, .06);
+    --head-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M14 11v6M11 14h6' fill='none' stroke='%23161b26' stroke-opacity='.06' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    --card-top: rgba(255, 255, 255, .6);
     --shadow: 0 1px 2px rgba(16, 18, 24, .04), 0 8px 24px rgba(16, 18, 24, .06);
+    --shadow-lift: 0 1px 2px rgba(16, 18, 24, .05), 0 6px 16px rgba(16, 18, 24, .07),
+                   0 18px 40px rgba(16, 18, 24, .08);
+    --ease: cubic-bezier(.22, .61, .25, 1);
+    /* 완성 항목별 액센트 (강의 01 · 예제 A/B/C) */
+    --tint-l1: #a05a12;  --tint-l1-soft: #faeeda;  /* 강의 01 — 앰버(모험) */
+    --tint-a:  #1d7a43;  --tint-a-soft:  #e0f3e7;  /* A — 레트로 그린 */
+    --tint-b:  #6540d8;  --tint-b-soft:  #efeafd;  /* B — 3D 바이올렛 */
+    --tint-c:  #b62b7e;  --tint-c-soft:  #fbe9f3;  /* C — 네온 마젠타 */
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -31,12 +43,34 @@
       --text-faint: #737b88;
       --accent: #7f9bff;
       --accent-soft: #1b2237;
+      --selection: #2b3a66;
+      --head-glow: rgba(127, 155, 255, .08);
+      --head-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M14 11v6M11 14h6' fill='none' stroke='%23ffffff' stroke-opacity='.05' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+      --card-top: rgba(255, 255, 255, .05);
       --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+      --shadow-lift: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 20px rgba(0, 0, 0, .35),
+                     0 20px 48px rgba(0, 0, 0, .3);
+      --tint-l1: #f2b45c;  --tint-l1-soft: #2f2412;
+      --tint-a:  #5bd68d;  --tint-a-soft:  #11291b;
+      --tint-b:  #a992ff;  --tint-b-soft:  #251d3e;
+      --tint-c:  #ff77c2;  --tint-c-soft:  #331728;
     }
   }
 
   * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
+  html {
+    -webkit-text-size-adjust: 100%;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+  ::selection { background: var(--selection); }
+  ::-webkit-scrollbar { width: 12px; height: 12px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 10px;
+    border: 3px solid var(--bg);
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
   body {
     margin: 0;
     background: var(--bg);
@@ -52,7 +86,10 @@
   /* ── Header ───────────────────────────────── */
   header {
     border-bottom: 1px solid var(--border);
-    background: var(--bg-soft);
+    background-color: var(--bg-soft);
+    background-image:
+      radial-gradient(720px 320px at 86% -12%, var(--head-glow), transparent 70%),
+      var(--head-pattern);
   }
   .head-inner { padding: 72px 0 56px; }
   .eyebrow {
@@ -73,6 +110,7 @@
     font-weight: 700;
     letter-spacing: -0.03em;
     line-height: 1.25;
+    text-wrap: balance;
   }
   .lede {
     margin: 0;
@@ -97,7 +135,12 @@
     font-weight: 700;
     letter-spacing: -0.02em;
   }
-  .sec-note { margin: 0; font-size: 14px; color: var(--text-faint); }
+  .sec-note {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+  }
 
   /* ── Cards ────────────────────────────────── */
   .grid {
@@ -112,21 +155,42 @@
     border: 1px solid var(--border);
     border-radius: 14px;
     background: var(--card);
+    box-shadow: inset 0 1px 0 var(--card-top);
     text-decoration: none;
     color: inherit;
-    transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+    transition: border-color .18s var(--ease), transform .18s var(--ease),
+                box-shadow .18s var(--ease);
   }
-  .card:hover, .card:focus-visible {
+  .card:hover {
     border-color: var(--border-strong);
     transform: translateY(-2px);
-    box-shadow: var(--shadow);
-    outline: none;
+    box-shadow: inset 0 1px 0 var(--card-top), var(--shadow-lift);
   }
-  .card:focus-visible { border-color: var(--accent); }
+  .card:active {
+    transform: translateY(0);
+    transition-duration: .06s;
+  }
+  .card:focus-visible {
+    outline: 2px solid var(--tint, var(--accent));
+    outline-offset: 3px;
+    transform: translateY(-2px);
+    box-shadow: inset 0 1px 0 var(--card-top), var(--shadow-lift);
+  }
+  /* 완성 항목: 카드별 액센트 한 방울 */
+  .t-l1 { --tint: var(--tint-l1); --tint-soft: var(--tint-l1-soft); }
+  .t-a  { --tint: var(--tint-a);  --tint-soft: var(--tint-a-soft); }
+  .t-b  { --tint: var(--tint-b);  --tint-soft: var(--tint-b-soft); }
+  .t-c  { --tint: var(--tint-c);  --tint-soft: var(--tint-c-soft); }
+  .is-ready:hover {
+    border-color: var(--border-strong);
+    border-color: color-mix(in srgb, var(--tint) 40%, var(--border));
+  }
+  .is-ready .badge { background: var(--tint-soft); color: var(--tint); }
   .badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    vertical-align: middle;
     min-width: 34px;
     height: 26px;
     padding: 0 9px;
@@ -139,6 +203,31 @@
     font-variant-numeric: tabular-nums;
     letter-spacing: 0;
   }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    vertical-align: middle;
+    height: 20px;
+    padding: 0 8px;
+    margin: 0 0 12px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .02em;
+  }
+  .chip-ready { background: var(--tint-soft); color: var(--tint); }
+  .chip-ready::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .chip-soon {
+    color: var(--text-soft);
+    border: 1px solid var(--border);
+  }
   .card h3 {
     margin: 0 0 4px;
     font-size: 16px;
@@ -150,15 +239,23 @@
     font-size: 14px;
     color: var(--text-soft);
   }
+  /* 준비 중 항목: 살짝 낮은 대비 (본문은 가독성 위해 --text-soft 유지) */
+  .is-soon h3 { color: var(--text-soft); }
+  .is-soon .badge { background: var(--bg-soft); color: var(--text-faint); }
+  .is-soon:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 var(--card-top), var(--shadow); }
   .arrow {
     position: absolute;
     top: 20px;
     right: 20px;
     color: var(--text-faint);
     font-size: 15px;
-    transition: transform .15s ease, color .15s ease;
+    transition: transform .18s var(--ease), color .18s var(--ease);
   }
-  .card:hover .arrow { transform: translateX(3px); color: var(--accent); }
+  .card:hover .arrow,
+  .card:focus-visible .arrow {
+    transform: translateX(3px);
+    color: var(--tint, var(--accent));
+  }
 
   /* ── Footer ───────────────────────────────── */
   footer {
@@ -169,10 +266,21 @@
     color: var(--text-faint);
   }
   footer p { margin: 0; }
+  .foot-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px 24px;
+    flex-wrap: wrap;
+  }
 
   @media (max-width: 560px) {
     .head-inner { padding: 48px 0 40px; }
     section { padding: 40px 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card, .arrow { transition: none; }
+    .card:hover, .card:focus-visible, .card:active { transform: none; }
   }
 </style>
 </head>
@@ -197,39 +305,39 @@
       <p class="sec-note">Lecture 01 – 06</p>
     </div>
     <div class="grid">
-      <a class="card" href="lectures/lecture-01/index.html">
+      <a class="card is-ready t-l1" href="lectures/lecture-01/index.html">
         <span class="arrow">→</span>
-        <span class="badge">01</span>
+        <span class="badge">01</span><span class="chip chip-ready">공개</span>
         <h3>AI 전사의 모험</h3>
         <p>1일차 · 바이브 코딩과 웹앱. 전 76장면.</p>
       </a>
-      <a class="card" href="lectures/lecture-02/index.html">
+      <a class="card is-soon" href="lectures/lecture-02/index.html">
         <span class="arrow">→</span>
-        <span class="badge">02</span>
+        <span class="badge">02</span><span class="chip chip-soon">준비 중</span>
         <h3>강의 02</h3>
         <p>내용 준비 중입니다.</p>
       </a>
-      <a class="card" href="lectures/lecture-03/index.html">
+      <a class="card is-soon" href="lectures/lecture-03/index.html">
         <span class="arrow">→</span>
-        <span class="badge">03</span>
+        <span class="badge">03</span><span class="chip chip-soon">준비 중</span>
         <h3>강의 03</h3>
         <p>내용 준비 중입니다.</p>
       </a>
-      <a class="card" href="lectures/lecture-04/index.html">
+      <a class="card is-soon" href="lectures/lecture-04/index.html">
         <span class="arrow">→</span>
-        <span class="badge">04</span>
+        <span class="badge">04</span><span class="chip chip-soon">준비 중</span>
         <h3>강의 04</h3>
         <p>내용 준비 중입니다.</p>
       </a>
-      <a class="card" href="lectures/lecture-05/index.html">
+      <a class="card is-soon" href="lectures/lecture-05/index.html">
         <span class="arrow">→</span>
-        <span class="badge">05</span>
+        <span class="badge">05</span><span class="chip chip-soon">준비 중</span>
         <h3>강의 05</h3>
         <p>내용 준비 중입니다.</p>
       </a>
-      <a class="card" href="lectures/lecture-06/index.html">
+      <a class="card is-soon" href="lectures/lecture-06/index.html">
         <span class="arrow">→</span>
-        <span class="badge">06</span>
+        <span class="badge">06</span><span class="chip chip-soon">준비 중</span>
         <h3>강의 06</h3>
         <p>내용 준비 중입니다.</p>
       </a>
@@ -242,51 +350,51 @@
       <p class="sec-note">App A – H</p>
     </div>
     <div class="grid">
-      <a class="card" href="apps/app-a/index.html">
+      <a class="card is-ready t-a" href="apps/app-a/index.html">
         <span class="arrow">→</span>
-        <span class="badge">A</span>
+        <span class="badge">A</span><span class="chip chip-ready">공개</span>
         <h3>옛날 오락실</h3>
         <p>8비트 레트로 아케이드. 게임 4종 플레이 가능.</p>
       </a>
-      <a class="card" href="apps/app-b/index.html">
+      <a class="card is-ready t-b" href="apps/app-b/index.html">
         <span class="arrow">→</span>
-        <span class="badge">B</span>
+        <span class="badge">B</span><span class="chip chip-ready">공개</span>
         <h3>요즘 오락실</h3>
         <p>실시간 3D 아케이드. 게임 4종 선택 화면입니다.</p>
       </a>
-      <a class="card" href="apps/app-c/index.html">
+      <a class="card is-ready t-c" href="apps/app-c/index.html">
         <span class="arrow">→</span>
-        <span class="badge">C</span>
+        <span class="badge">C</span><span class="chip chip-ready">공개</span>
         <h3>인터랙티브 아트</h3>
         <p>브라우저 파일 하나로 만든 비주얼 데모 5종. 심야 전시실 선택 화면입니다.</p>
       </a>
-      <a class="card" href="apps/app-d/index.html">
+      <a class="card is-soon" href="apps/app-d/index.html">
         <span class="arrow">→</span>
-        <span class="badge">D</span>
+        <span class="badge">D</span><span class="chip chip-soon">준비 중</span>
         <h3>예제 D</h3>
         <p>내용 준비 중입니다.</p>
       </a>
-      <a class="card" href="apps/app-e/index.html">
+      <a class="card is-soon" href="apps/app-e/index.html">
         <span class="arrow">→</span>
-        <span class="badge">E</span>
+        <span class="badge">E</span><span class="chip chip-soon">준비 중</span>
         <h3>예제 E</h3>
         <p>내용 준비 중입니다.</p>
       </a>
-      <a class="card" href="apps/app-f/index.html">
+      <a class="card is-soon" href="apps/app-f/index.html">
         <span class="arrow">→</span>
-        <span class="badge">F</span>
+        <span class="badge">F</span><span class="chip chip-soon">준비 중</span>
         <h3>예제 F</h3>
         <p>내용 준비 중입니다.</p>
       </a>
-      <a class="card" href="apps/app-g/index.html">
+      <a class="card is-soon" href="apps/app-g/index.html">
         <span class="arrow">→</span>
-        <span class="badge">G</span>
+        <span class="badge">G</span><span class="chip chip-soon">준비 중</span>
         <h3>예제 G</h3>
         <p>내용 준비 중입니다.</p>
       </a>
-      <a class="card" href="apps/app-h/index.html">
+      <a class="card is-soon" href="apps/app-h/index.html">
         <span class="arrow">→</span>
-        <span class="badge">H</span>
+        <span class="badge">H</span><span class="chip chip-soon">준비 중</span>
         <h3>예제 H</h3>
         <p>내용 준비 중입니다.</p>
       </a>
@@ -296,8 +404,9 @@
 </main>
 
 <footer>
-  <div class="wrap">
+  <div class="wrap foot-inner">
     <p>2026 AX 강의 · 바이브 코딩</p>
+    <p>순수 HTML/CSS/JS · 빌드 도구 없음 · 브라우저에서 바로 열립니다</p>
   </div>
 </footer>
 
