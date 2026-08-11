@@ -33,9 +33,9 @@
    위 1·2·5번 규칙은 이렇게 가져온 자료에는 적용하지 않습니다(외부 CDN 의존을 허용).
 10. **커밋 앤 푸시는 기본 동작입니다.** 사용자가 별도로 말하지 않아도 작업을 마치면 커밋하고 origin에 푸시합니다.
 
-## dc 문서(`lecture-01`) 다룰 때
+## dc 문서(`lecture-01`~`03`) 다룰 때
 
-`lectures/lecture-01/index.html`은 dc 런타임(`support.js`)이 렌더하는 문서입니다. 일반 HTML이 아닙니다.
+`lectures/lecture-01`~`03`의 `index.html`은 dc 런타임(`support.js`)이 렌더하는 문서입니다. 일반 HTML이 아닙니다.
 
 - 구조: `<x-dc>` 안이 템플릿(`{{ 보간 }}`, `<sc-if>`), 문서 끝 `<script type="text/x-dc" data-dc-script>`가 상태·로직.
 - 부팅 시 `support.js`가 `<x-dc>` 엘리먼트 **하나만** `#dc-root`로 교체합니다.
@@ -44,6 +44,11 @@
   런타임이 `fetch(location.href)`로 원본을 다시 받아 정규식으로 파싱하는데, 첫 매칭을 템플릿 시작점으로 잡습니다.
   실제로 이 문제로 주석 잔여 텍스트가 화면에 노출된 적이 있습니다.
 - React·ReactDOM·Babel을 unpkg에서, 픽셀 폰트를 jsdelivr·Google Fonts에서 받습니다. 오프라인에서는 렌더되지 않습니다.
+- **덱의 `chapters`/`nodes` 배열 인덱스는 슬라이드의 `data-i`/`data-chapter`와 일치해야 합니다.**
+  어긋나면 월드맵·우측 내비가 챕터 중간으로 점프하고 하이라이트가 밀립니다 — lecture-03을 가져올 때
+  실제로 이 버그(+1~+2 어긋남)를 수정했습니다. 검증은 슬라이드의 data-chapter 전환 지점을 실측해 대조합니다.
+- 헤드리스 크롬에서는 rAF 스로틀 때문에 smooth scroll·rAF 의존 검증이 완주되지 않을 수 있습니다.
+  장면 이동 검증은 scrollTop 직접 설정으로, 상태 검증은 DOM 덤프로 합니다.
 
 ## app-d (Quality Lab) 다룰 때
 
