@@ -12,7 +12,7 @@
 - `lectures/lecture-01` ~ `03` — 강의본 "AI 용사의 모험" 시리즈. **호칭은 '용사'입니다** ('전사' 아님 —
   2026-08-11에 전부 용사로 통일했습니다).
 - `apps/app-a` ~ `app-d` — 예제 웹앱 4종.
-- `playbook/` — 플레이북. 현재 임시 페이지이며, 사용자가 파일을 주면 `index.html`을 교체합니다.
+- `playbook/` — 바이브 코딩 플레이북. 강의와 같은 dc 형식의 인터랙티브 문서(0부~5부, 목차·검색).
 
 상세는 `README.md` 참고.
 
@@ -37,9 +37,10 @@
    위 1·2·5번 규칙은 이렇게 가져온 자료에는 적용하지 않습니다(외부 CDN 의존을 허용).
 10. **커밋 앤 푸시는 기본 동작입니다.** 사용자가 별도로 말하지 않아도 작업을 마치면 커밋하고 origin에 푸시합니다.
 
-## dc 문서(`lecture-01`~`03`) 다룰 때
+## dc 문서(`lecture-01`~`03`, `playbook`) 다룰 때
 
-`lectures/lecture-01`~`03`의 `index.html`은 dc 런타임(`support.js`)이 렌더하는 문서입니다. 일반 HTML이 아닙니다.
+`lectures/lecture-01`~`03`과 `playbook`의 `index.html`은 dc 런타임(`support.js`)이 렌더하는 문서입니다. 일반 HTML이 아닙니다.
+(플레이북은 helmet에 자체 `<title>`이 있어 head에 별도 title을 넣지 않았고, back 링크는 한 단계 위 `../index.html`입니다.)
 
 - 구조: `<x-dc>` 안이 템플릿(`{{ 보간 }}`, `<sc-if>`), 문서 끝 `<script type="text/x-dc" data-dc-script>`가 상태·로직.
 - 부팅 시 `support.js`가 `<x-dc>` 엘리먼트 **하나만** `#dc-root`로 교체합니다.
@@ -75,7 +76,6 @@
 ## 작업 시 주의
 
 - Windows PowerShell 5.1 환경입니다. `.ps1` 스크립트에 한글을 넣을 때는 UTF-8 BOM을 붙여야 파싱이 깨지지 않습니다.
-- 하위 페이지 레이아웃은 서로 일관되게 유지합니다. 새 페이지는 기존 자리표시자 페이지(`lectures/lecture-02/index.html`)를 기준으로 삼습니다.
-  `lecture-01`은 형식이 달라 기준이 되지 않습니다.
+- 구성이 닫혀 있어 새 페이지를 만들 일은 없지만, 만들게 되면 랜딩(`index.html`)의 레트로 픽셀 문법을 기준으로 삼습니다.
 - 렌더 검증이 필요하면 헤드리스 크롬을 씁니다:
   `chrome --headless=new --virtual-time-budget=15000 --dump-dom <url>` (로컬 서버 필요).
