@@ -1,22 +1,20 @@
 # 2026 AX 강의 — 바이브 코딩
 
-바이브 코딩 강의본과 예제 웹앱을 모아 둔 정적 사이트입니다.
-최상위 `index.html`이 랜딩 페이지 역할을 하며, 여기서 각 강의본과 예제로 이동합니다.
+바이브 코딩 강의본·예제 웹앱·플레이북을 모아 둔 정적 사이트입니다.
+구성은 **닫혀 있습니다**: 강의 3종 + 예제 앱 4종 + 플레이북 1종.
+최상위 `index.html`이 레트로 아케이드 스타일의 랜딩 페이지이며, 여기서 모든 곳으로 이동합니다.
 
 ## 구조
 
 ```
 .
-├── index.html              랜딩 페이지 (강의본 6개 + 예제 8개 링크)
+├── index.html              랜딩 페이지 (레트로 아케이드 · 강의 3 + 앱 4 + 플레이북 1)
 ├── lectures/
-│   ├── lecture-01/              AI 전사의 모험 1일차 (76장면 슬라이드)
+│   ├── lecture-01/              AI 용사의 모험 1일차 (76장면 슬라이드)
 │   │   ├── index.html               dc 문서 (템플릿 + 로직)
 │   │   └── support.js               dc 런타임
-│   ├── lecture-02/              AI 전사의 모험 2일차 1부 (66장면, 같은 dc 형식)
-│   ├── lecture-03/              그릇의 비밀 — 2일차 2부·최종장 (60장면, 같은 dc 형식)
-│   ├── lecture-04/index.html
-│   ├── lecture-05/index.html
-│   └── lecture-06/index.html
+│   ├── lecture-02/              AI 용사의 모험 2일차 1부 (66장면, 같은 dc 형식)
+│   └── lecture-03/              그릇의 비밀 — 2일차 2부·최종장 (60장면, 같은 dc 형식)
 ├── apps/
 │   ├── app-a/                  옛날 오락실 (8비트 레트로 아케이드)
 │   │   ├── index.html              게임 선택 화면
@@ -47,11 +45,9 @@
 │   │       ├── 03-particle-typography.html 파티클 모프 타이포그래피
 │   │       ├── 04-fluid-simulation.html    유체 시뮬레이션 (WebGL Stable Fluids)
 │   │       └── 05-solar-system.html        3D 태양계 (three.js r147 인라인)
-│   ├── app-d/index.html        Quality Lab (품질 데이터 분석 대시보드)
-│   ├── app-e/index.html
-│   ├── app-f/index.html
-│   ├── app-g/index.html
-│   └── app-h/index.html
+│   └── app-d/index.html        Quality Lab (품질 데이터 분석 대시보드)
+├── playbook/
+│   └── index.html          플레이북 (임시 자리 — 파일 도착 시 교체)
 ├── tools/
 │   ├── pixel-font/         app-a용 픽셀 폰트 생성기 (사이트 실행에는 불필요)
 │   └── qlab-check/         app-d 데이터 생성기 검증 스크립트 (사이트 실행에는 불필요)
@@ -59,9 +55,13 @@
 └── CLAUDE.md               작업 규칙 (Claude Code용)
 ```
 
-- **강의본(lectures)**: `lecture-01` ~ `lecture-06`. 바이브 코딩 강의 자료.
-- **예제(apps)**: `app-a` ~ `app-h`. 강의에서 다루는 예제 웹앱.
+- **강의본(lectures)**: `lecture-01` ~ `lecture-03`. "AI 용사의 모험" 시리즈 (전사→용사로 통일).
+- **예제(apps)**: `app-a` ~ `app-d`. 강의에서 다루는 예제 웹앱.
+- **플레이북(playbook)**: 실전 안내서. 현재는 임시 페이지이고 파일이 오면 교체합니다.
 - 각 폴더는 `index.html` 하나로 완결되며, 상단의 `← 목록으로` 링크로 랜딩 페이지에 돌아옵니다.
+- **랜딩은 강의 덱과 같은 레트로 픽셀 문법**(다크 고정 — 규칙 4의 의도적 예외)이며,
+  강의 덱과 동일한 소스의 픽셀 폰트(Galmuri11·Press Start 2P)를 CDN에서 받습니다(규칙 2의 예외).
+  오프라인이면 시스템 글꼴로 대체될 뿐 내용은 그대로 보입니다.
 - `app-a`와 `app-b`는 예외로 하위에 `games/`를 둡니다. 각 앱의 `index.html`이 오락실 선택 화면이고,
   게임은 `games/<이름>/index.html` 한 파일로 완결됩니다.
 - `app-c`도 예외로 하위에 `apps/`를 둡니다. `index.html`이 전시실(허브)이고,
@@ -69,7 +69,7 @@
 - `app-a`는 8비트 레트로(CRT·픽셀 아트), `app-b`는 실시간 3D(글래스·네온),
   `app-c`는 인터랙티브 아트(심야 전시실·다크 고정) 콘셉트입니다.
 
-`lecture-01`, `app-a`, `app-b`, `app-c`, `app-d`를 제외한 하위 페이지는 아직 자리표시자(placeholder)입니다. 내용은 차차 채웁니다.
+플레이북을 제외한 모든 페이지가 완성 상태입니다.
 `app-a`는 게임 4종(너구리·벽돌깨기·갤러그·격투)이 모두 플레이 가능합니다.
 하이스코어는 실제 플레이로 얻은 값만 sessionStorage에 세션 한정으로 기록합니다(조작된 초기값 없음).
 `app-b`는 게임 4종(블록 월드·제로 프론트·인형뽑기·뉴럴 리듬)이 모두 플레이 가능합니다.

@@ -3,415 +3,340 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>2026 AX 강의 — 바이브 코딩</title>
-<meta name="description" content="바이브 코딩 강의본과 예제 웹앱 모음">
+<meta name="color-scheme" content="dark">
+<title>2026 AX — 바이브 코딩</title>
+<meta name="description" content="AI 용사의 모험 — 바이브 코딩 강의 3종, 예제 웹앱 4종, 플레이북">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="%230b0a1c"/><rect x="6" y="6" width="20" height="20" fill="%23241c4e"/><rect x="10" y="11" width="4" height="4" fill="%23ffd166"/><rect x="18" y="11" width="4" height="4" fill="%23ffd166"/><rect x="11" y="20" width="10" height="3" fill="%236ee7ff"/></svg>'>
 <style>
-  :root {
-    --bg: #ffffff;
-    --bg-soft: #f6f7f9;
-    --card: #ffffff;
-    --border: #e4e6ea;
-    --border-strong: #d2d6dc;
-    --text: #16181d;
-    --text-soft: #5c626c;
-    --text-faint: #8b919b;
-    --accent: #2f5cff;
-    --accent-soft: #eef2ff;
-    --selection: #d6e0ff;
-    --head-glow: rgba(47, 92, 255, .06);
-    --head-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M14 11v6M11 14h6' fill='none' stroke='%23161b26' stroke-opacity='.06' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-    --card-top: rgba(255, 255, 255, .6);
-    --shadow: 0 1px 2px rgba(16, 18, 24, .04), 0 8px 24px rgba(16, 18, 24, .06);
-    --shadow-lift: 0 1px 2px rgba(16, 18, 24, .05), 0 6px 16px rgba(16, 18, 24, .07),
-                   0 18px 40px rgba(16, 18, 24, .08);
-    --ease: cubic-bezier(.22, .61, .25, 1);
-    /* 완성 항목별 액센트 (강의 01 · 예제 A/B/C) */
-    --tint-l1: #a05a12;  --tint-l1-soft: #faeeda;  /* 강의 01 — 앰버(모험) */
-    --tint-a:  #1d7a43;  --tint-a-soft:  #e0f3e7;  /* A — 레트로 그린 */
-    --tint-b:  #6540d8;  --tint-b-soft:  #efeafd;  /* B — 3D 바이올렛 */
-    --tint-c:  #b62b7e;  --tint-c-soft:  #fbe9f3;  /* C — 네온 마젠타 */
-    --tint-d:  #1c5fae;  --tint-d-soft:  #e4eefb;  /* D — 애널리틱스 블루 */
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0e1013;
-      --bg-soft: #14171c;
-      --card: #171a20;
-      --border: #262a32;
-      --border-strong: #343a44;
-      --text: #eceef2;
-      --text-soft: #a2a9b5;
-      --text-faint: #737b88;
-      --accent: #7f9bff;
-      --accent-soft: #1b2237;
-      --selection: #2b3a66;
-      --head-glow: rgba(127, 155, 255, .08);
-      --head-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M14 11v6M11 14h6' fill='none' stroke='%23ffffff' stroke-opacity='.05' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-      --card-top: rgba(255, 255, 255, .05);
-      --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
-      --shadow-lift: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 20px rgba(0, 0, 0, .35),
-                     0 20px 48px rgba(0, 0, 0, .3);
-      --tint-l1: #f2b45c;  --tint-l1-soft: #2f2412;
-      --tint-a:  #5bd68d;  --tint-a-soft:  #11291b;
-      --tint-b:  #a992ff;  --tint-b-soft:  #251d3e;
-      --tint-c:  #ff77c2;  --tint-c-soft:  #331728;
-      --tint-d:  #7fb0f2;  --tint-d-soft:  #142440;
-    }
-  }
+  /* ── 레트로 아케이드 랜딩 — 강의 덱(AI 용사의 모험)과 같은 픽셀 문법 ──
+     다크 고정(의도적), 폰트는 강의 덱과 동일한 소스(Galmuri·Press Start 2P).
+     오프라인이면 시스템 글꼴로 대체되어 내용은 그대로 보인다. */
+  @font-face{font-family:'Galmuri11';font-weight:400;font-style:normal;font-display:swap;src:url('https://cdn.jsdelivr.net/gh/fonts-archive/Galmuri11/Galmuri11-Regular.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/fonts-archive/Galmuri11/Galmuri11-Regular.woff') format('woff')}
+  @font-face{font-family:'Galmuri11';font-weight:700;font-style:normal;font-display:swap;src:url('https://cdn.jsdelivr.net/gh/fonts-archive/Galmuri11/Galmuri11-Bold.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/fonts-archive/Galmuri11/Galmuri11-Bold.woff') format('woff')}
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
+  :root {
+    --bg: #0b0a1c;
+    --panel: #171334;
+    --panel-2: #241c4e;
+    --rail: #1a1436;
+    --cream: #f2ecd7;
+    --gold: #ffd166;
+    --cyan: #6ee7ff;
+    --pink: #ff6ec7;
+    --green: #7ee787;
+    --violet: #b18cff;
+    --muted: #9d97c9;
+    --dim: #4a4470;
+    --px-font: 'Press Start 2P', monospace;
+  }
   * { box-sizing: border-box; }
-  html {
-    -webkit-text-size-adjust: 100%;
-    scrollbar-color: var(--border-strong) transparent;
-  }
-  ::selection { background: var(--selection); }
-  ::-webkit-scrollbar { width: 12px; height: 12px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb {
-    background: var(--border-strong);
-    border-radius: 10px;
-    border: 3px solid var(--bg);
-  }
-  ::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+  html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0;
     background: var(--bg);
-    color: var(--text);
-    font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
-                 "Malgun Gothic", system-ui, sans-serif;
-    line-height: 1.65;
-    letter-spacing: -0.01em;
+    color: var(--cream);
+    font-family: 'Galmuri11', 'Galmuri14', 'DungGeunMo', monospace;
+    font-size: 15px;
+    line-height: 1.7;
+    -webkit-font-smoothing: none;
+    overflow-x: hidden;
   }
 
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
-
-  /* ── Header ───────────────────────────────── */
-  header {
-    border-bottom: 1px solid var(--border);
-    background-color: var(--bg-soft);
+  /* ── CRT·배경 데코 ─────────────────────── */
+  .fx-scan {
+    position: fixed; inset: 0; z-index: 60; pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgba(0,0,0,.22) 0 1px, transparent 1px 3px);
+    mix-blend-mode: multiply;
+  }
+  .fx-vignette {
+    position: fixed; inset: 0; z-index: 59; pointer-events: none;
+    box-shadow: inset 0 0 180px rgba(0,0,0,.75);
+  }
+  .fx-stars {
+    position: fixed; inset: 0; pointer-events: none;
     background-image:
-      radial-gradient(720px 320px at 86% -12%, var(--head-glow), transparent 70%),
-      var(--head-pattern);
+      radial-gradient(#f2ecd7 1px, transparent 1px),
+      radial-gradient(#6ee7ff 1px, transparent 1px),
+      radial-gradient(#ff6ec7 1px, transparent 1px);
+    background-size: 120px 120px, 260px 260px, 340px 340px;
+    background-position: 0 0, 60px 40px, 180px 120px;
+    opacity: .16;
   }
-  .head-inner { padding: 72px 0 56px; }
-  .eyebrow {
-    display: inline-block;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: var(--accent);
-    background: var(--accent-soft);
-    border-radius: 999px;
-    padding: 5px 12px;
-    margin: 0 0 20px;
+  .rail { position: fixed; top: 0; bottom: 0; width: 16px; z-index: 58; pointer-events: none;
+    background: repeating-linear-gradient(180deg, var(--panel-2) 0 10px, var(--rail) 10px 20px); }
+  .rail.l { left: 0; border-right: 3px solid var(--bg); }
+  .rail.r { right: 0; border-left: 3px solid var(--bg); }
+  .coin-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; height: 18px; z-index: 58; pointer-events: none;
+    background: var(--bg); border-top: 3px solid var(--panel-2);
+    display: flex; align-items: center; gap: 10px; padding: 0 28px; overflow: hidden;
+  }
+  .coin-bar span { font-family: var(--px-font); font-size: 7px; color: #3a3468; white-space: nowrap; }
+  .coin-bar i { flex: 1; height: 3px; background: repeating-linear-gradient(90deg, var(--panel-2) 0 6px, transparent 6px 14px); }
+
+  @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+  @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 36px 60px; }
+
+  /* ── 타이틀 ────────────────────────────── */
+  header {
+    text-align: center;
+    padding: 64px 0 40px;
+  }
+  .presents {
+    font-family: var(--px-font);
+    font-size: 11px;
+    color: var(--pink);
+    letter-spacing: .25em;
   }
   h1 {
-    margin: 0 0 14px;
-    font-size: clamp(30px, 5vw, 44px);
+    margin: 20px 0 10px;
+    font-size: clamp(40px, 7vw, 64px);
     font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1.25;
-    text-wrap: balance;
+    line-height: 1.15;
+    letter-spacing: .02em;
+    color: var(--gold);
+    text-shadow: 0 4px 0 #8a5a12, 0 8px 0 rgba(0,0,0,.55);
   }
-  .lede {
-    margin: 0;
-    max-width: 60ch;
-    font-size: 16px;
-    color: var(--text-soft);
+  .tagline {
+    margin: 0 0 22px;
+    font-size: clamp(15px, 2.4vw, 19px);
+    color: var(--cream);
+  }
+  .title-badges { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .tb {
+    display: inline-block;
+    padding: 7px 16px;
+    font-size: 14px;
+    border: 3px solid var(--cyan);
+    color: var(--cyan);
+    box-shadow: 0 0 0 3px var(--bg), 5px 5px 0 0 rgba(0,0,0,.6);
+    background: rgba(11,10,28,.6);
+  }
+  .tb.gold { border-color: var(--gold); color: var(--gold); }
+  .presenter { margin-top: 22px; font-size: 14px; color: var(--muted); }
+  .press-start {
+    margin-top: 30px;
+    font-family: var(--px-font);
+    font-size: 10px;
+    color: var(--cream);
+    animation: blink 1.2s steps(1) infinite;
   }
 
-  /* ── Sections ─────────────────────────────── */
-  section { padding: 56px 0; }
-  section + section { border-top: 1px solid var(--border); }
+  /* ── 섹션 ──────────────────────────────── */
+  section { margin-top: 46px; }
   .sec-head {
     display: flex;
-    align-items: baseline;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 24px;
-  }
-  h2 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-  .sec-note {
-    margin: 0;
-    font-size: 14px;
-    color: var(--text-faint);
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* ── Cards ────────────────────────────────── */
-  .grid {
-    display: grid;
+    align-items: center;
     gap: 14px;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    margin-bottom: 20px;
   }
+  .sec-head .px {
+    font-family: var(--px-font);
+    font-size: 12px;
+    color: var(--gold);
+    white-space: nowrap;
+  }
+  .sec-head .ko { font-size: 16px; font-weight: 700; color: var(--cream); white-space: nowrap; }
+  .sec-head .line { flex: 1; height: 3px; background: repeating-linear-gradient(90deg, var(--panel-2) 0 8px, transparent 8px 16px); }
+
+  .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  /* 앱 4종은 와이드에서 한 줄에 — 3+1 줄바꿈 방지 */
+  #apps .grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+
+  /* ── 카드 (픽셀 캐비닛) ─────────────────── */
   .card {
-    display: block;
+    --tint: var(--gold);
     position: relative;
-    padding: 20px;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    background: var(--card);
-    box-shadow: inset 0 1px 0 var(--card-top);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px 20px 18px;
+    background: var(--panel);
+    border: 4px solid var(--cream);
+    box-shadow: 0 0 0 4px var(--bg), 8px 8px 0 0 rgba(0,0,0,.6);
     text-decoration: none;
     color: inherit;
-    transition: border-color .18s var(--ease), transform .18s var(--ease),
-                box-shadow .18s var(--ease);
+    transition: transform .1s steps(2), box-shadow .1s steps(2);
   }
-  .card:hover {
-    border-color: var(--border-strong);
-    transform: translateY(-2px);
-    box-shadow: inset 0 1px 0 var(--card-top), var(--shadow-lift);
+  .card:hover, .card:focus-visible {
+    transform: translate(-3px, -3px);
+    box-shadow: 0 0 0 4px var(--bg), 12px 12px 0 0 rgba(0,0,0,.6);
+    border-color: var(--tint);
+    outline: none;
   }
   .card:active {
-    transform: translateY(0);
-    transition-duration: .06s;
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 4px var(--bg), 4px 4px 0 0 rgba(0,0,0,.6);
   }
-  .card:focus-visible {
-    outline: 2px solid var(--tint, var(--accent));
-    outline-offset: 3px;
-    transform: translateY(-2px);
-    box-shadow: inset 0 1px 0 var(--card-top), var(--shadow-lift);
-  }
-  /* 완성 항목: 카드별 액센트 한 방울 */
-  .t-l1 { --tint: var(--tint-l1); --tint-soft: var(--tint-l1-soft); }
-  .t-a  { --tint: var(--tint-a);  --tint-soft: var(--tint-a-soft); }
-  .t-b  { --tint: var(--tint-b);  --tint-soft: var(--tint-b-soft); }
-  .t-c  { --tint: var(--tint-c);  --tint-soft: var(--tint-c-soft); }
-  .t-d  { --tint: var(--tint-d);  --tint-soft: var(--tint-d-soft); }
-  .is-ready:hover {
-    border-color: var(--border-strong);
-    border-color: color-mix(in srgb, var(--tint) 40%, var(--border));
-  }
-  .is-ready .badge { background: var(--tint-soft); color: var(--tint); }
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    vertical-align: middle;
-    min-width: 34px;
-    height: 26px;
-    padding: 0 9px;
-    margin-bottom: 12px;
-    border-radius: 7px;
-    background: var(--accent-soft);
-    color: var(--accent);
-    font-size: 13px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0;
-  }
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    vertical-align: middle;
-    height: 20px;
-    padding: 0 8px;
-    margin: 0 0 12px 8px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: .02em;
-  }
-  .chip-ready { background: var(--tint-soft); color: var(--tint); }
-  .chip-ready::before {
-    content: "";
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: currentColor;
-  }
-  .chip-soon {
-    color: var(--text-soft);
-    border: 1px solid var(--border);
-  }
-  .card h3 {
-    margin: 0 0 4px;
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-  }
-  .card p {
-    margin: 0;
-    font-size: 14px;
-    color: var(--text-soft);
-  }
-  /* 준비 중 항목: 살짝 낮은 대비 (본문은 가독성 위해 --text-soft 유지) */
-  .is-soon h3 { color: var(--text-soft); }
-  .is-soon .badge { background: var(--bg-soft); color: var(--text-faint); }
-  .is-soon:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 var(--card-top), var(--shadow); }
-  .arrow {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    color: var(--text-faint);
-    font-size: 15px;
-    transition: transform .18s var(--ease), color .18s var(--ease);
-  }
-  .card:hover .arrow,
-  .card:focus-visible .arrow {
-    transform: translateX(3px);
-    color: var(--tint, var(--accent));
-  }
-
-  /* ── Footer ───────────────────────────────── */
-  footer {
-    border-top: 1px solid var(--border);
-    background: var(--bg-soft);
-    padding: 28px 0 40px;
-    font-size: 13px;
-    color: var(--text-faint);
-  }
-  footer p { margin: 0; }
-  .foot-inner {
+  .card .top {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: baseline;
-    gap: 8px 24px;
-    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .card .day {
+    font-family: var(--px-font);
+    font-size: 9px;
+    color: var(--tint);
+    letter-spacing: .08em;
+  }
+  .card .status {
+    font-family: var(--px-font);
+    font-size: 8px;
+    padding: 4px 7px;
+    color: var(--bg);
+    background: var(--tint);
+  }
+  .card .status.soon { background: var(--dim); color: var(--cream); }
+  .card .icon { margin: 6px 0 2px; }
+  .card .icon svg { width: 56px; height: 56px; image-rendering: pixelated; display: block; }
+  .card:hover .icon svg { animation: bob 1s steps(4) infinite; }
+  .card h3 {
+    margin: 2px 0 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--cream);
+  }
+  .card p { margin: 0; font-size: 13.5px; line-height: 1.65; color: var(--muted); }
+  .card .go {
+    margin-top: auto;
+    padding-top: 10px;
+    font-size: 13px;
+    color: var(--tint);
+  }
+  .card:hover .go::after { content: ' ▶'; }
+
+  /* 플레이북 와이드 카드 */
+  .card.wide { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 22px; }
+  .card.wide .icon { margin: 0; }
+  .card.wide .body { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .card.wide .go { margin: 0; padding: 0; white-space: nowrap; }
+
+  footer {
+    margin-top: 56px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--dim);
   }
 
-  @media (max-width: 560px) {
-    .head-inner { padding: 48px 0 40px; }
-    section { padding: 40px 0; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .card, .arrow { transition: none; }
-    .card:hover, .card:focus-visible, .card:active { transform: none; }
+  @media (max-width: 640px) {
+    .wrap { padding: 0 24px 60px; }
+    .rail { display: none; }
+    header { padding: 48px 0 32px; }
+    .card.wide { flex-direction: column; align-items: flex-start; }
   }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="wrap head-inner">
-    <p class="eyebrow">2026 AX Lecture</p>
-    <h1>바이브 코딩 강의본과 예제</h1>
-    <p class="lede">
-      강의본 6개와 예제 웹앱 8개로 구성했습니다. 각 항목은 독립된 페이지이며,
-      아래에서 바로 열 수 있습니다.
-    </p>
-  </div>
-</header>
+<div class="fx-stars"></div>
+<div class="fx-vignette"></div>
+<div class="fx-scan"></div>
+<div class="rail l"></div>
+<div class="rail r"></div>
+<div class="coin-bar"><span>INSERT COIN</span><i></i><span>1 PLAYER</span></div>
 
-<main class="wrap">
+<div class="wrap">
+
+  <header>
+    <div class="presents">AX TF PRESENTS</div>
+    <h1>바이브 코딩</h1>
+    <p class="tagline">~ AI 용사의 모험 : 말로 만드는 개발의 세계 ~</p>
+    <div class="title-badges">
+      <span class="tb gold">강의 3 · 예제 4 · 플레이북 1</span>
+      <span class="tb">스마트폰기구개발2그룹 AX TF</span>
+    </div>
+    <div class="press-start">▼ SELECT YOUR QUEST ▼</div>
+  </header>
 
   <section id="lectures">
     <div class="sec-head">
-      <h2>강의본</h2>
-      <p class="sec-note">Lecture 01 – 06</p>
+      <span class="px">QUEST</span><span class="ko">강의</span><span class="line"></span>
     </div>
     <div class="grid">
-      <a class="card is-ready t-l1" href="lectures/lecture-01/index.html">
-        <span class="arrow">→</span>
-        <span class="badge">01</span><span class="chip chip-ready">공개</span>
-        <h3>AI 전사의 모험</h3>
-        <p>1일차 · 바이브 코딩과 웹앱. 전 76장면.</p>
+      <a class="card" href="lectures/lecture-01/index.html" style="--tint:var(--gold)">
+        <div class="top"><span class="day">DAY 1</span><span class="status">PLAY</span></div>
+        <div class="icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" aria-hidden="true"><rect x="7" y="1" width="2" height="8" fill="#6ee7ff"/><rect x="6" y="2" width="1" height="6" fill="#bdefff"/><rect x="4" y="9" width="8" height="2" fill="#ffd166"/><rect x="7" y="11" width="2" height="4" fill="#8a5a12"/><rect x="6" y="14" width="4" height="1" fill="#8a5a12"/></svg></div>
+        <h3>AI 용사의 모험</h3>
+        <p>1일차 · 바이브 코딩과 웹앱. 말로 시키는 개발의 첫걸음. 전 76장면.</p>
+        <span class="go">모험 시작</span>
       </a>
-      <a class="card is-ready t-l1" href="lectures/lecture-02/index.html">
-        <span class="arrow">→</span>
-        <span class="badge">02</span><span class="chip chip-ready">공개</span>
-        <h3>AI 전사의 모험</h3>
-        <p>2일차 1부 · 브라우저의 담 밖으로. 전 66장면.</p>
+      <a class="card" href="lectures/lecture-02/index.html" style="--tint:var(--gold)">
+        <div class="top"><span class="day">DAY 2 · PART 1</span><span class="status">PLAY</span></div>
+        <div class="icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" y="3" width="12" height="12" fill="#241c4e"/><rect x="3" y="4" width="10" height="10" fill="#0b0a1c"/><rect x="5" y="6" width="6" height="8" fill="#12304a"/><rect x="6" y="7" width="4" height="7" fill="#6ee7ff"/><rect x="9" y="10" width="1" height="1" fill="#0b0a1c"/><rect x="1" y="2" width="14" height="1" fill="#7ee787"/></svg></div>
+        <h3>AI 용사의 모험</h3>
+        <p>2일차 1부 · 브라우저의 담 밖으로. 익스텐션·파이썬·API. 전 66장면.</p>
+        <span class="go">모험 계속</span>
       </a>
-      <a class="card is-ready t-l1" href="lectures/lecture-03/index.html">
-        <span class="arrow">→</span>
-        <span class="badge">03</span><span class="chip chip-ready">공개</span>
+      <a class="card" href="lectures/lecture-03/index.html" style="--tint:var(--gold)">
+        <div class="top"><span class="day">DAY 2 · PART 2 — FINAL</span><span class="status">PLAY</span></div>
+        <div class="icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" y="3" width="12" height="11" fill="#7a5a1a"/><rect x="3" y="4" width="10" height="9" fill="#ffd166"/><rect x="4" y="5" width="8" height="7" fill="#b8892a"/><rect x="5" y="6" width="6" height="5" fill="#ffd166"/><rect x="6" y="7" width="4" height="3" fill="#7a5a1a"/><rect x="7" y="1" width="2" height="2" fill="#ff6ec7"/></svg></div>
         <h3>그릇의 비밀</h3>
-        <p>2일차 2부 · 최종장. 정보를 담는 거의 모든 것. 전 60장면.</p>
-      </a>
-      <a class="card is-soon" href="lectures/lecture-04/index.html">
-        <span class="arrow">→</span>
-        <span class="badge">04</span><span class="chip chip-soon">준비 중</span>
-        <h3>강의 04</h3>
-        <p>내용 준비 중입니다.</p>
-      </a>
-      <a class="card is-soon" href="lectures/lecture-05/index.html">
-        <span class="arrow">→</span>
-        <span class="badge">05</span><span class="chip chip-soon">준비 중</span>
-        <h3>강의 05</h3>
-        <p>내용 준비 중입니다.</p>
-      </a>
-      <a class="card is-soon" href="lectures/lecture-06/index.html">
-        <span class="arrow">→</span>
-        <span class="badge">06</span><span class="chip chip-soon">준비 중</span>
-        <h3>강의 06</h3>
-        <p>내용 준비 중입니다.</p>
+        <p>2일차 2부 · 최종장. 정보를 담는 거의 모든 것 — JSON·CSV·md. 전 60장면.</p>
+        <span class="go">최종장 입장</span>
       </a>
     </div>
   </section>
 
   <section id="apps">
     <div class="sec-head">
-      <h2>예제 웹앱</h2>
-      <p class="sec-note">App A – H</p>
+      <span class="px">ARCADE</span><span class="ko">예제 웹앱</span><span class="line"></span>
     </div>
     <div class="grid">
-      <a class="card is-ready t-a" href="apps/app-a/index.html">
-        <span class="arrow">→</span>
-        <span class="badge">A</span><span class="chip chip-ready">공개</span>
+      <a class="card" href="apps/app-a/index.html" style="--tint:var(--green)">
+        <div class="top"><span class="day">STAGE A</span><span class="status">PLAY</span></div>
+        <div class="icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" y="8" width="12" height="6" fill="#241c4e"/><rect x="3" y="9" width="10" height="4" fill="#171334"/><rect x="7" y="3" width="2" height="5" fill="#f2ecd7"/><rect x="6" y="2" width="4" height="3" fill="#7ee787"/><rect x="4" y="10" width="2" height="2" fill="#ffd166"/><rect x="10" y="10" width="2" height="2" fill="#ff6ec7"/></svg></div>
         <h3>옛날 오락실</h3>
-        <p>8비트 레트로 아케이드. 게임 4종 플레이 가능.</p>
+        <p>8비트 레트로 아케이드. 너구리·벽돌깨기·갤러그·격투, 게임 4종.</p>
+        <span class="go">동전 넣기</span>
       </a>
-      <a class="card is-ready t-b" href="apps/app-b/index.html">
-        <span class="arrow">→</span>
-        <span class="badge">B</span><span class="chip chip-ready">공개</span>
+      <a class="card" href="apps/app-b/index.html" style="--tint:var(--violet)">
+        <div class="top"><span class="day">STAGE B</span><span class="status">PLAY</span></div>
+        <div class="icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" aria-hidden="true"><rect x="3" y="5" width="7" height="7" fill="#b18cff"/><rect x="10" y="3" width="4" height="7" fill="#241c4e" transform="skewY(0)"/><rect x="5" y="3" width="7" height="2" fill="#8a6ee0"/><rect x="10" y="5" width="3" height="7" fill="#5a3fae"/><rect x="4" y="6" width="2" height="2" fill="#f2ecd7"/></svg></div>
         <h3>요즘 오락실</h3>
-        <p>실시간 3D 아케이드. 게임 4종 선택 화면입니다.</p>
+        <p>실시간 3D 아케이드. 직접 만든 WebGL2 엔진 위의 게임 4종.</p>
+        <span class="go">동전 넣기</span>
       </a>
-      <a class="card is-ready t-c" href="apps/app-c/index.html">
-        <span class="arrow">→</span>
-        <span class="badge">C</span><span class="chip chip-ready">공개</span>
+      <a class="card" href="apps/app-c/index.html" style="--tint:var(--pink)">
+        <div class="top"><span class="day">STAGE C</span><span class="status">PLAY</span></div>
+        <div class="icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" y="2" width="12" height="12" fill="#171334"/><rect x="3" y="3" width="10" height="10" fill="#0b0a1c"/><rect x="4" y="8" width="2" height="4" fill="#ff6ec7"/><rect x="7" y="5" width="2" height="7" fill="#6ee7ff"/><rect x="10" y="6" width="2" height="6" fill="#ffd166"/><rect x="4" y="4" width="3" height="1" fill="#7ee787"/></svg></div>
         <h3>인터랙티브 아트</h3>
-        <p>브라우저 파일 하나로 만든 비주얼 데모 5종. 심야 전시실 선택 화면입니다.</p>
+        <p>심야 전시실. 모래·유체·파티클·태양계, 비주얼 데모 5종.</p>
+        <span class="go">전시실 입장</span>
       </a>
-      <a class="card is-ready t-d" href="apps/app-d/index.html">
-        <span class="arrow">→</span>
-        <span class="badge">D</span><span class="chip chip-ready">공개</span>
+      <a class="card" href="apps/app-d/index.html" style="--tint:var(--cyan)">
+        <div class="top"><span class="day">STAGE D</span><span class="status">PLAY</span></div>
+        <div class="icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" y="2" width="12" height="12" fill="#171334"/><rect x="3" y="3" width="10" height="10" fill="#0b0a1c"/><rect x="4" y="9" width="2" height="4" fill="#6ee7ff"/><rect x="7" y="6" width="2" height="7" fill="#6ee7ff"/><rect x="10" y="4" width="2" height="9" fill="#2a78d6"/><rect x="4" y="5" width="7" height="1" fill="#ff6ec7"/></svg></div>
         <h3>Quality Lab</h3>
-        <p>품질 데이터 분석 대시보드. 통계 차트 7종이 실시간 연동됩니다.</p>
-      </a>
-      <a class="card is-soon" href="apps/app-e/index.html">
-        <span class="arrow">→</span>
-        <span class="badge">E</span><span class="chip chip-soon">준비 중</span>
-        <h3>예제 E</h3>
-        <p>내용 준비 중입니다.</p>
-      </a>
-      <a class="card is-soon" href="apps/app-f/index.html">
-        <span class="arrow">→</span>
-        <span class="badge">F</span><span class="chip chip-soon">준비 중</span>
-        <h3>예제 F</h3>
-        <p>내용 준비 중입니다.</p>
-      </a>
-      <a class="card is-soon" href="apps/app-g/index.html">
-        <span class="arrow">→</span>
-        <span class="badge">G</span><span class="chip chip-soon">준비 중</span>
-        <h3>예제 G</h3>
-        <p>내용 준비 중입니다.</p>
-      </a>
-      <a class="card is-soon" href="apps/app-h/index.html">
-        <span class="arrow">→</span>
-        <span class="badge">H</span><span class="chip chip-soon">준비 중</span>
-        <h3>예제 H</h3>
-        <p>내용 준비 중입니다.</p>
+        <p>품질 데이터 분석 대시보드. 통계 차트 7종이 실시간 연동.</p>
+        <span class="go">분석 시작</span>
       </a>
     </div>
   </section>
 
-</main>
+  <section id="playbook">
+    <div class="sec-head">
+      <span class="px">MANUAL</span><span class="ko">플레이북</span><span class="line"></span>
+    </div>
+    <div class="grid">
+      <a class="card wide" href="playbook/index.html" style="--tint:var(--cream)">
+        <div class="icon"><svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" y="2" width="12" height="12" fill="#8a7a5a"/><rect x="3" y="3" width="10" height="10" fill="#e8dcae"/><rect x="4" y="5" width="8" height="1" fill="#5a4a34"/><rect x="4" y="7" width="6" height="1" fill="#5a4a34"/><rect x="4" y="9" width="7" height="1" fill="#5a4a34"/><rect x="4" y="11" width="5" height="1" fill="#5a4a34"/></svg></div>
+        <div class="body">
+          <div class="top"><span class="day">SIDE QUEST</span><span class="status soon">COMING SOON</span></div>
+          <h3>플레이북</h3>
+          <p>모험을 마친 용사를 위한 실전 안내서. 준비 중입니다.</p>
+        </div>
+        <span class="go">미리 보기</span>
+      </a>
+    </div>
+  </section>
 
-<footer>
-  <div class="wrap foot-inner">
-    <p>2026 AX 강의 · 바이브 코딩</p>
-    <p>순수 HTML/CSS/JS · 빌드 도구 없음 · 브라우저에서 바로 열립니다</p>
-  </div>
-</footer>
+  <footer>2026 AX · 바이브 코딩 — THE END IS THE BEGINNING</footer>
+
+</div>
 
 </body>
 </html>
