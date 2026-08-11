@@ -1875,6 +1875,28 @@ const CUBE = [
 "....kkkkkkkk....","................","................","................"];
 const CUBE_PAL = {k:"#1a3a2a",w:"#7ee787",d:"#16302a"};
 
+// 복제됨 — 똑같은 상자 두 개
+const CUBE2 = [
+"................","................","................","................",
+".kkkkk...kkkkk..","kwwwwwk.kwwwwwk.","kwdddwk.kwdddwk.","kwdddwk.kwdddwk.",
+"kwdddwk.kwdddwk.","kwwwwwk.kwwwwwk.",".kkkkk...kkkkk..","................",
+"................","................","................","................"];
+
+// 오프셋됨 — 원본(안쪽 어두운 상자)을 일정 간격 부풀린 상태
+const CUBE_OFF = [
+"................",".kkkkkkkkkkkkkk.","kwwwwwwwwwwwwwwk","kwwwwwwwwwwwwwwk",
+"kwwkkkkkkkkkkwwk","kwwkddddddddkwwk","kwwkddddddddkwwk","kwwkddddddddkwwk",
+"kwwkddddddddkwwk","kwwkddddddddkwwk","kwwkddddddddkwwk","kwwkkkkkkkkkkwwk",
+"kwwwwwwwwwwwwwwk","kwwwwwwwwwwwwwwk",".kkkkkkkkkkkkkk.","................"];
+
+// 셸 완료 — 속을 파내고 위가 열린 케이스
+const CUBE_SHELL = [
+"................",".kkkk......kkkk.","kwwwwk....kwwwwk","kwwkkk....kkkwwk",
+"kwwk........kwwk","kwwk........kwwk","kwwk........kwwk","kwwk........kwwk",
+"kwwk........kwwk","kwwk........kwwk","kwwk........kwwk","kwwkkkkkkkkkkwwk",
+"kwwwwwwwwwwwwwwk","kwwwwwwwwwwwwwwk",".kkkkkkkkkkkkkk.","................"];
+const CUBE_STEPS = [CUBE, CUBE2, CUBE_OFF, CUBE_SHELL];
+
 const CAGE = [
 "................",".kkkkkkkkkkkkkk.",".kddddddddddddk.",".kdcdcdcdcdcdck.",
 ".kdcdcdcdcdcdck.",".kdcdcdcdcdcdck.",".kdcdcdcdcdcdck.",".kdcdcdcdcdcdck.",
@@ -2157,6 +2179,12 @@ class Component extends DCLogic {
         ? "도시를 바꿔 다시 주문해 보자. 주소와 양식은 그대로, 값만 바뀐다 — 창구를 쓴다는 건 이게 전부다."
         : "주문서에 뭘 적는지 보자. 주소 · 값 · (필요하면) 열쇠. 세 줄이면 끝난다.",
 
+      // 설명서 뒷장 넘기기 — 템플릿이 참조하지만 빠져 있던 배선
+      flipManual: () => this.setState((s) => ({ manual: !s.manual })),
+      manualClosed: !st.manual,
+      manualOpen: st.manual,
+      manualBg: st.manual ? "#f2ecd7" : "#221d4a",
+
       combo: COMBO.map((c, i) => ({
         no:c.no, name:c.name, desc:c.desc,
         border: st.comboStep > i ? "#7ee787" : st.comboStep === i ? "#ffd166" : "#4a4470",
@@ -2164,7 +2192,7 @@ class Component extends DCLogic {
         go: () => this.setState((s) => ({ comboStep: s.comboStep === i ? i + 1 : s.comboStep }))
       })),
       comboBorder: st.comboStep >= 3 ? "#7ee787" : "#4a4470",
-      comboSprite: this.sprite(CUBE, CUBE_PAL, px + (st.comboStep >= 3 ? 3 : 1)),
+      comboSprite: this.sprite(CUBE_STEPS[st.comboStep], CUBE_PAL, px + (st.comboStep >= 3 ? 3 : 1)),
       comboLabel: ["원본 상자","복제됨","오프셋됨","✅ 케이스 완성!"][st.comboStep],
       comboNote: ["왼쪽부터 순서대로 눌러 보자. 손으로 하면 여러 단계인 작업이다.",
                   "복제 완료 — 원본과 똑같은 상자가 하나 더 생겼다.",
@@ -2180,7 +2208,7 @@ class Component extends DCLogic {
         go: () => this.setState((s) => ({ blocks: s.blocks === i ? i + 1 : s.blocks }))
       })),
       blocksBorder: st.blocks >= 3 ? "#ffd166" : "#4a4470",
-      blocksSprite: this.sprite(CUBE, CUBE_PAL, px + (st.blocks >= 3 ? 3 : 1)),
+      blocksSprite: this.sprite(CUBE_STEPS[st.blocks], CUBE_PAL, px + (st.blocks >= 3 ? 3 : 1)),
       blocksLabel: st.blocks >= 3 ? "🧱 나만의 기능" : "블록을 왼쪽부터 눌러 끼운다",
       blocksDone: st.blocks >= 3,
 
