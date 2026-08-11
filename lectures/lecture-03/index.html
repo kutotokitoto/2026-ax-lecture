@@ -16,16 +16,16 @@
   display:inline-block;padding:8px 14px;line-height:1;
   font-family:'Galmuri11','Galmuri14',monospace;font-size:14px;
   color:#f2ecd7;background:#171334;text-decoration:none;
-  border:3px solid #f2ecd7;box-shadow:0 0 0 3px #0b0a1c,4px 4px 0 0 rgba(0,0,0,.6)}
+  border:3px solid #f2ecd7;box-shadow:0 0 0 3px #121028,4px 4px 0 0 rgba(0,0,0,.6)}
 #dc-back:hover,#dc-back:focus-visible{background:#ffd166;color:#241a3a;outline:none}
-#dc-back:active{transform:translate(2px,2px);box-shadow:0 0 0 3px #0b0a1c,2px 2px 0 0 rgba(0,0,0,.6)}
+#dc-back:active{transform:translate(2px,2px);box-shadow:0 0 0 3px #121028,2px 2px 0 0 rgba(0,0,0,.6)}
 @media print{#dc-back{display:none}}
 </style>
 <a id="dc-back" href="../../index.html">← 목록으로</a>
 
 <x-dc>
 <helmet>
-<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#0b0a1c"/><rect x="52" y="60" width="96" height="80" fill="#2b1f57"/><rect x="64" y="74" width="72" height="8" fill="#ffd166"/><rect x="64" y="92" width="52" height="8" fill="#7ee787"/><rect x="64" y="110" width="62" height="8" fill="#6ee7ff"/><rect x="52" y="60" width="96" height="6" fill="#ff6ec7"/><rect x="52" y="134" width="96" height="6" fill="#ff6ec7"/></svg></template>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#121028"/><rect x="52" y="60" width="96" height="80" fill="#2b1f57"/><rect x="64" y="74" width="72" height="8" fill="#ffd166"/><rect x="64" y="92" width="52" height="8" fill="#7ee787"/><rect x="64" y="110" width="62" height="8" fill="#6ee7ff"/><rect x="52" y="60" width="96" height="6" fill="#ff6ec7"/><rect x="52" y="134" width="96" height="6" fill="#ff6ec7"/></svg></template>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -33,7 +33,7 @@
 <style>
 @font-face{font-family:'Galmuri11';font-weight:400;font-style:normal;font-display:swap;src:url('https://cdn.jsdelivr.net/gh/fonts-archive/Galmuri11/Galmuri11-Regular.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/fonts-archive/Galmuri11/Galmuri11-Regular.woff') format('woff')}
 @font-face{font-family:'Galmuri11';font-weight:700;font-style:normal;font-display:swap;src:url('https://cdn.jsdelivr.net/gh/fonts-archive/Galmuri11/Galmuri11-Bold.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/fonts-archive/Galmuri11/Galmuri11-Bold.woff') format('woff')}
-html,body{margin:0;padding:0;background:#0b0a1c;color:#f2ecd7;-webkit-font-smoothing:none}
+html,body{margin:0;padding:0;background:#121028;color:#f2ecd7;-webkit-font-smoothing:none}
 *{box-sizing:border-box}
 a{color:#6ee7ff;text-decoration:none}
 a:hover{color:#ffd166}
@@ -48,12 +48,12 @@ button{font-family:inherit;color:inherit}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
 </style>
 </helmet>
-<div ref="{{ setScroller }}" style="height:100vh;overflow-y:auto;overflow-x:hidden;scroll-snap-type:y mandatory;background:#0b0a1c;color:#f2ecd7;font-family:'Galmuri11','Galmuri14',monospace;font-size:clamp(12px,2.22vh,20px);line-height:1.7;position:relative">
+<div ref="{{ setScroller }}" style="height:100vh;overflow-y:auto;overflow-x:hidden;scroll-snap-type:y mandatory;background:#121028;color:#f2ecd7;font-family:'Galmuri11','Galmuri14',monospace;font-size:clamp(12px,2.22vh,20px);line-height:1.7;position:relative">
 
   <sc-if value="{{ scanOn }}" hint-placeholder-val="{{ true }}">
-    <div style="position:fixed;inset:0;z-index:60;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(0,0,0,.22) 0px,rgba(0,0,0,.22) 1px,transparent 1px,transparent 3px);mix-blend-mode:multiply"></div>
+    <div style="position:fixed;inset:0;z-index:60;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(0,0,0,.10) 0px,rgba(0,0,0,.10) 1px,transparent 1px,transparent 4px);mix-blend-mode:multiply"></div>
   </sc-if>
-  <div style="position:fixed;inset:0;z-index:59;pointer-events:none;box-shadow:inset 0 0 180px rgba(0,0,0,.75)"></div>
+  <div style="position:fixed;inset:0;z-index:59;pointer-events:none;box-shadow:inset 0 0 140px rgba(0,0,0,.42)"></div>
 
   <div style="position:fixed;top:0;left:0;right:0;height:5px;background:#000;z-index:95;pointer-events:none">
     <div ref="{{ setBar }}" style="height:100%;width:0%;background:#f2ecd7"></div>
@@ -65,9 +65,9 @@ button{font-family:inherit;color:inherit}
   <div style="position:fixed;right:13%;top:36%;width:8px;height:8px;background:#ff6ec7;opacity:.3;pointer-events:none;animation:float 8s steps(8) infinite"></div>
   <div style="position:fixed;left:24%;bottom:20%;width:8px;height:8px;background:#6ee7ff;opacity:.3;pointer-events:none;animation:float 7s steps(8) infinite"></div>
 
-  <div style="position:fixed;left:0;top:0;bottom:0;width:16px;z-index:58;pointer-events:none;background:repeating-linear-gradient(180deg,#3a2a1a 0 10px,#2a1e14 10px 20px);border-right:3px solid #0b0a1c;opacity:.85"></div>
-  <div style="position:fixed;right:0;top:0;bottom:0;width:16px;z-index:58;pointer-events:none;background:repeating-linear-gradient(180deg,#3a2a1a 0 10px,#2a1e14 10px 20px);border-left:3px solid #0b0a1c;opacity:.85"></div>
-  <div style="position:fixed;left:0;right:0;bottom:0;height:16px;z-index:58;pointer-events:none;background:#0b0a1c;border-top:3px solid #3a2a1a;display:flex;align-items:center;gap:10px;padding:0 26px;overflow:hidden">
+  <div style="position:fixed;left:0;top:0;bottom:0;width:16px;z-index:58;pointer-events:none;background:repeating-linear-gradient(180deg,#3a2a1a 0 10px,#2a1e14 10px 20px);border-right:3px solid #121028;opacity:.85"></div>
+  <div style="position:fixed;right:0;top:0;bottom:0;width:16px;z-index:58;pointer-events:none;background:repeating-linear-gradient(180deg,#3a2a1a 0 10px,#2a1e14 10px 20px);border-left:3px solid #121028;opacity:.85"></div>
+  <div style="position:fixed;left:0;right:0;bottom:0;height:16px;z-index:58;pointer-events:none;background:#121028;border-top:3px solid #3a2a1a;display:flex;align-items:center;gap:10px;padding:0 26px;overflow:hidden">
     <span style="font-family:'Press Start 2P',monospace;font-size:clamp(11px,0.78vh,7px);color:#5a4a34">DAY 2 · PART 2</span>
     <span style="flex:1;height:3px;background:repeating-linear-gradient(90deg,#3a2a1a 0 6px,transparent 6px 14px);display:block"></span>
     <span style="font-family:'Press Start 2P',monospace;font-size:clamp(11px,0.78vh,7px);color:#5a4a34">FINAL</span>
@@ -75,21 +75,21 @@ button{font-family:inherit;color:inherit}
 
   <sc-if value="{{ hudOn }}" hint-placeholder-val="{{ true }}">
   <div style="position:fixed;top:16px;left:16px;right:16px;z-index:70;display:flex;justify-content:space-between;align-items:flex-start;gap:clamp(6px,1.78vh,16px);pointer-events:none">
-    <div style="background:#171334;border:4px solid #f2ecd7;box-shadow:0 0 0 4px #0b0a1c,6px 6px 0 0 rgba(0,0,0,.6);padding:10px 16px;min-width:350px">
+    <div style="background:#171334;border:4px solid #f2ecd7;box-shadow:0 0 0 4px #121028,6px 6px 0 0 rgba(0,0,0,.6);padding:10px 16px;min-width:350px">
       <div style="display:flex;align-items:baseline;gap:10px">
         <span style="font-family:'Press Start 2P',monospace;font-size:clamp(11px,1.44vh,13px);color:#ffd166">LV.{{ lv }}</span>
         <span style="font-size:clamp(11px,2.11vh,19px);color:#f2ecd7">{{ lvName }}</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
         <span style="font-family:'Press Start 2P',monospace;font-size:clamp(11px,1.11vh,10px);color:#7ee787">EXP</span>
-        <div style="flex:1;height:14px;background:#0b0a1c;border:3px solid #4a4470;position:relative;overflow:hidden">
+        <div style="flex:1;height:14px;background:#121028;border:3px solid #4a4470;position:relative;overflow:hidden">
           <div style="height:100%;transition:width .45s steps(8);background:#7ee787;width:{{ expPct }}%"></div>
         </div>
         <span style="font-family:'Press Start 2P',monospace;font-size:clamp(11px,1.11vh,10px);color:#4a4470">{{ expPct }}</span>
       </div>
       <div style="font-size:clamp(11px,1.67vh,15px);color:#ffd166;margin-top:8px">{{ bagLine }}</div>
     </div>
-    <div style="background:#171334;border:4px solid #f2ecd7;box-shadow:0 0 0 4px #0b0a1c,6px 6px 0 0 rgba(0,0,0,.6);padding:10px 16px;text-align:right">
+    <div style="background:#171334;border:4px solid #f2ecd7;box-shadow:0 0 0 4px #121028,6px 6px 0 0 rgba(0,0,0,.6);padding:10px 16px;text-align:right">
       <div style="font-family:'Press Start 2P',monospace;font-size:clamp(11px,1.11vh,10px);color:#ff6ec7">DAY 2 · PART 2</div>
       <div style="font-size:clamp(11px,1.89vh,17px);color:#9d97c9;margin-top:6px">SCENE {{ sceneNo }} / 60</div>
       <div style="font-size:clamp(11px,1.67vh,15px);color:#6ee7ff;margin-top:2px">{{ chapterName }}</div>
@@ -98,7 +98,7 @@ button{font-family:inherit;color:inherit}
   </div>
   </sc-if>
 
-  <div style="position:fixed;right:14px;top:50%;transform:translateY(-50%);z-index:70;display:flex;flex-direction:column;gap:9px;align-items:flex-end;background:rgba(11,10,28,.78);border:3px solid #3a2a1a;padding:10px 12px">
+  <div style="position:fixed;right:14px;top:50%;transform:translateY(-50%);z-index:70;display:flex;flex-direction:column;gap:9px;align-items:flex-end;background:rgba(18,16,40,.78);border:3px solid #3a2a1a;padding:10px 12px">
     <sc-for list="{{ dots }}" as="d" hint-placeholder-count="8">
       <button onClick="{{ d.go }}" style="display:flex;align-items:center;gap:8px;background:none;border:none;padding:0;cursor:pointer;color:#6b649b;font-size:clamp(11px,1.56vh,14px)">
         <span style="opacity:.85">{{ d.label }}</span>
@@ -108,11 +108,11 @@ button{font-family:inherit;color:inherit}
   </div>
 
   <sc-if value="{{ flash }}" hint-placeholder-val="{{ false }}">
-    <div style="position:fixed;z-index:80;left:50%;top:20%;transform:translateX(-50%);animation:popin .3s steps(3);background:#ffd166;color:#241a3a;border:4px solid #f2ecd7;box-shadow:0 0 0 4px #0b0a1c,8px 8px 0 0 rgba(0,0,0,.6);padding:clamp(6px,1.56vh,14px) 26px;font-family:'Press Start 2P',monospace;font-size:clamp(11px,1.78vh,16px)">{{ flash }}</div>
+    <div style="position:fixed;z-index:80;left:50%;top:20%;transform:translateX(-50%);animation:popin .3s steps(3);background:#ffd166;color:#241a3a;border:4px solid #f2ecd7;box-shadow:0 0 0 4px #121028,8px 8px 0 0 rgba(0,0,0,.6);padding:clamp(6px,1.56vh,14px) 26px;font-family:'Press Start 2P',monospace;font-size:clamp(11px,1.78vh,16px)">{{ flash }}</div>
   </sc-if>
 
   <!-- 01 타이틀 -->
-  <section data-slide data-i="0" data-exp="0" data-chapter="남은 질문" data-screen-label="01 타이틀" style="min-height:100vh;position:relative;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:clamp(66px,10vh,110px) clamp(22px,4vw,60px) clamp(50px,8vh,90px);position:relative;background:radial-gradient(ellipse at 50% 78%,#3a2a1a 0%,#0b0a1c 62%)">
+  <section data-slide data-i="0" data-exp="0" data-chapter="남은 질문" data-screen-label="01 타이틀" style="min-height:100vh;position:relative;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:clamp(66px,10vh,110px) clamp(22px,4vw,60px) clamp(50px,8vh,90px);position:relative;background:radial-gradient(ellipse at 50% 78%,#3a2a1a 0%,#121028 62%)">
     <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden">
       <span style="position:absolute;left:26px;top:22px;width:30px;height:5px;background:rgba(242,236,215,.20)"></span><span style="position:absolute;left:26px;top:22px;width:5px;height:30px;background:rgba(242,236,215,.20)"></span>
       <span style="position:absolute;right:26px;top:22px;width:30px;height:5px;background:rgba(242,236,215,.20)"></span><span style="position:absolute;right:26px;top:22px;width:5px;height:30px;background:rgba(242,236,215,.20)"></span>
@@ -133,8 +133,8 @@ button{font-family:inherit;color:inherit}
       <h1 style="margin:0;white-space:nowrap;font-family:'Galmuri14','Galmuri11',monospace;font-weight:700;font-size:clamp(34px,6.22vh,56px);line-height:1.3;color:#ffd166;text-shadow:6px 6px 0 #8a5a1a,12px 12px 0 rgba(0,0,0,.5)">그릇의 비밀</h1>
       <div style="font-size:clamp(17px,3.11vh,28px);color:#f2ecd7">~ 정보를 담는 거의 모든 것 ~</div>
       <div style="display:flex;gap:12px;align-items:center">
-        <div style="background:#171334;border:4px solid #ff6ec7;box-shadow:0 0 0 4px #0b0a1c,6px 6px 0 0 rgba(0,0,0,.6);padding:10px 24px;font-size:clamp(14px,2.56vh,23px);color:#ff6ec7">2일차 2부 · 최종장</div>
-        <div style="background:#171334;border:4px solid #ffd166;box-shadow:0 0 0 4px #0b0a1c,6px 6px 0 0 rgba(0,0,0,.6);padding:10px 18px;font-size:clamp(11px,2.00vh,18px);color:#ffd166">전 60 장면 · 퀴즈 6</div>
+        <div style="background:#171334;border:4px solid #ff6ec7;box-shadow:0 0 0 4px #121028,6px 6px 0 0 rgba(0,0,0,.6);padding:10px 24px;font-size:clamp(14px,2.56vh,23px);color:#ff6ec7">2일차 2부 · 최종장</div>
+        <div style="background:#171334;border:4px solid #ffd166;box-shadow:0 0 0 4px #121028,6px 6px 0 0 rgba(0,0,0,.6);padding:10px 18px;font-size:clamp(11px,2.00vh,18px);color:#ffd166">전 60 장면 · 퀴즈 6</div>
       </div>
       <div style="font-size:clamp(11px,2.00vh,18px);color:#9d97c9">발표자 · 스마트폰기구개발2그룹 AX TF 정웅호</div>
       <div style="animation:bob 1.6s steps(4) infinite;margin-top:4px">{{ heroBig }}</div>
@@ -155,7 +155,7 @@ button{font-family:inherit;color:inherit}
       <span style="position:absolute;left:0;right:0;bottom:22px;height:3px;background:repeating-linear-gradient(90deg,rgba(255,209,102,.24) 0 6px,transparent 6px 18px);opacity:.5"></span>
     </div>
     <div style="font-family:'Galmuri11',monospace;font-weight:700;letter-spacing:1px;font-size:clamp(15px,1.67vh,20px);color:#ff6ec7;letter-spacing:2px">📜 PART 1 요약</div>
-    <div style="max-width:1120px;width:100%;background:#171334;border:4px solid #f2ecd7;box-shadow:0 0 0 4px #0b0a1c,12px 12px 0 0 rgba(0,0,0,.6);padding:clamp(11px,2.67vh,24px) 30px;display:flex;flex-direction:column;gap:10px">
+    <div style="max-width:1120px;width:100%;background:#171334;border:4px solid #f2ecd7;box-shadow:0 0 0 4px #121028,12px 12px 0 0 rgba(0,0,0,.6);padding:clamp(11px,2.67vh,24px) 30px;display:flex;flex-direction:column;gap:10px">
       <div style="display:flex;align-items:center;gap:clamp(7px,2.00vh,18px);background:#1f1a45;border:3px solid #6ee7ff;padding:clamp(6px,1.56vh,14px) 18px"><span style="font-size:clamp(17px,3.11vh,28px)">🌐</span><span style="width:150px;font-size:clamp(12px,2.22vh,20px);color:#6ee7ff">웹앱</span><span style="flex:1;font-size:clamp(11px,2.00vh,18px);color:#cfc8ef">브라우저 안, 파일은 업로드해야</span></div>
       <div style="display:flex;align-items:center;gap:clamp(7px,2.00vh,18px);background:#1f1a45;border:3px solid #7ee787;padding:clamp(6px,1.56vh,14px) 18px;margin-left:40px"><span style="font-size:clamp(17px,3.11vh,28px)">🧩</span><span style="width:150px;font-size:clamp(12px,2.22vh,20px);color:#7ee787">익스텐션</span><span style="flex:1;font-size:clamp(11px,2.00vh,18px);color:#cfc8ef">브라우저 안, 남의 페이지까지</span></div>
       <div style="display:flex;align-items:center;gap:clamp(7px,2.00vh,18px);background:#1f1a45;border:3px solid #ffd166;padding:clamp(6px,1.56vh,14px) 18px;margin-left:80px"><span style="font-size:clamp(17px,3.11vh,28px)">🐍</span><span style="width:150px;font-size:clamp(12px,2.22vh,20px);color:#ffd166">파이썬</span><span style="flex:1;font-size:clamp(11px,2.00vh,18px);color:#cfc8ef">브라우저 밖, 파일·프로그램·자동실행</span></div>
@@ -178,13 +178,13 @@ button{font-family:inherit;color:inherit}
     </div>
     <div style="display:flex;gap:clamp(10px,2.67vh,24px);align-items:center;max-width:1020px;width:100%">
       <div style="flex:none;animation:float 2.6s steps(6) infinite">{{ codyBig }}</div>
-      <div style="flex:1;background:#122b44;border:4px solid #6ee7ff;box-shadow:0 0 0 4px #0b0a1c,10px 10px 0 0 rgba(0,0,0,.55);padding:clamp(10px,2.44vh,22px) 28px;position:relative">
-        <div style="position:absolute;top:-18px;left:22px;background:#6ee7ff;color:#0b0a1c;font-weight:700;font-size:clamp(11px,1.89vh,17px);padding:5px 12px;letter-spacing:1px">코디</div>
+      <div style="flex:1;background:#122b44;border:4px solid #6ee7ff;box-shadow:0 0 0 4px #121028,10px 10px 0 0 rgba(0,0,0,.55);padding:clamp(10px,2.44vh,22px) 28px;position:relative">
+        <div style="position:absolute;top:-18px;left:22px;background:#6ee7ff;color:#121028;font-weight:700;font-size:clamp(11px,1.89vh,17px);padding:5px 12px;letter-spacing:1px">코디</div>
         <div style="font-size:clamp(13px,2.44vh,22px);margin-top:8px">“아까 웨이터 얘기하다가 끊겼지? 창구에 주문하면 접시가 나온다고 했잖아.”</div>
       </div>
     </div>
     <div style="max-width:1020px;width:100%;background:#2b2350;border:4px solid #ffd166;padding:clamp(6px,1.56vh,14px) 22px;font-size:clamp(13px,2.33vh,21px)">공돌이: “응. 기상청에 ‘서울 날씨?’ 물으면 답이 온다며.”</div>
-    <div style="max-width:1020px;width:100%;background:#0b0a1c;border:4px solid #ffd166;box-shadow:0 0 0 4px #0b0a1c,12px 12px 0 0 rgba(0,0,0,.6);padding:clamp(14px,3.56vh,32px);text-align:center">
+    <div style="max-width:1020px;width:100%;background:#121028;border:4px solid #ffd166;box-shadow:0 0 0 4px #121028,12px 12px 0 0 rgba(0,0,0,.6);padding:clamp(14px,3.56vh,32px);text-align:center">
       <div style="font-size:clamp(20px,3.78vh,34px);color:#ffd166;line-height:1.5">❓ “그 답이 어떻게 생겼을 것 같아?”</div>
     </div>
     <div style="display:flex;gap:clamp(8px,2.22vh,20px);align-items:flex-end">{{ plate }}{{ hero }}</div>
@@ -235,7 +235,7 @@ button{font-family:inherit;color:inherit}
     <div style="font-family:'Galmuri11',monospace;font-weight:700;letter-spacing:1px;font-size:clamp(15px,1.56vh,20px);color:#ff6ec7">SCENE 1 — 접시에는 뭐가 담겨 오는가</div>
     <div style="max-width:1040px;width:100%;background:#2b2350;border:4px solid #ffd166;padding:clamp(6px,1.56vh,14px) 22px;font-size:clamp(13px,2.33vh,21px)">공돌이: “음… ‘맑음 28도’?”</div>
     <div style="max-width:1040px;width:100%;background:#122b44;border:4px solid #6ee7ff;padding:clamp(6px,1.56vh,14px) 22px;font-size:clamp(13px,2.33vh,21px)">코디: “좋아. 그럼 이렇게 왔다고 치자.”</div>
-    <div style="max-width:1040px;width:100%;background:#141428;border:4px solid #4a4470;box-shadow:0 0 0 4px #0b0a1c,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(15px,3.78vh,34px);text-align:center">
+    <div style="max-width:1040px;width:100%;background:#141428;border:4px solid #4a4470;box-shadow:0 0 0 4px #121028,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(15px,3.78vh,34px);text-align:center">
       <div style="font-family:'Press Start 2P',monospace;font-size:clamp(11px,1.22vh,11px);color:#6b649b;margin-bottom:18px">RESPONSE</div>
       <div style="font-size:clamp(25px,4.67vh,42px);color:#f2ecd7;letter-spacing:4px">맑음 28 60</div>
     </div>
@@ -284,7 +284,7 @@ button{font-family:inherit;color:inherit}
     </div>
     <div style="max-width:1060px;width:100%;background:#122b44;border:4px solid #6ee7ff;padding:clamp(6px,1.56vh,14px) 22px;font-size:clamp(12px,2.22vh,20px)">코디: “그래서 세상의 창구들은 <b style="color:#7ee787">약속된 그릇</b>에 담아서 줘. 이름표를 붙여서.”</div>
     <div style="display:flex;gap:clamp(7px,2.00vh,18px);max-width:1060px;width:100%;align-items:stretch">
-      <div style="flex:1;background:#141428;border:4px solid #7ee787;box-shadow:0 0 0 4px #0b0a1c,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(11px,2.67vh,24px) 28px">
+      <div style="flex:1;background:#141428;border:4px solid #7ee787;box-shadow:0 0 0 4px #121028,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(11px,2.67vh,24px) 28px">
         <div style="font-family:'Press Start 2P',monospace;font-size:clamp(11px,1.11vh,10px);color:#7ee787;margin-bottom:14px">JSON</div>
         <div style="font-size:clamp(12px,2.22vh,20px);line-height:2">
           <div><span style="color:#6b649b">{</span></div>
@@ -317,7 +317,7 @@ button{font-family:inherit;color:inherit}
       <span style="position:absolute;left:0;right:0;bottom:22px;height:3px;background:repeating-linear-gradient(90deg,rgba(255,110,199,.22) 0 6px,transparent 6px 18px);opacity:.5"></span>
     </div>
     <div style="font-family:'Galmuri11',monospace;font-weight:700;font-size:clamp(17px,3.11vh,28px);color:#ffd166;animation:pulse 1s steps(2) infinite;letter-spacing:1px">🗝️ JSON을 획득했다!</div>
-    <div style="display:flex;gap:0;max-width:960px;width:100%;background:#171334;border:4px solid #f2ecd7;box-shadow:0 0 0 4px #0b0a1c,12px 12px 0 0 rgba(0,0,0,.6)">
+    <div style="display:flex;gap:0;max-width:960px;width:100%;background:#171334;border:4px solid #f2ecd7;box-shadow:0 0 0 4px #121028,12px 12px 0 0 rgba(0,0,0,.6)">
       <div style="width:220px;flex:none;display:flex;align-items:center;justify-content:center;background:#241c4e;border-right:4px solid #4a4470;padding:clamp(12px,2.89vh,26px)"><div style="animation:bob 2.4s steps(4) infinite">{{ boxBig }}</div></div>
       <div style="flex:1;padding:clamp(11px,2.67vh,24px) 30px;display:flex;flex-direction:column;gap:10px">
         <div style="font-size:clamp(16px,2.89vh,26px);color:#ffd166">JSON <span style="font-size:clamp(11px,1.89vh,17px);color:#9d97c9">/ 층이 있는 그릇</span></div>
@@ -343,7 +343,7 @@ button{font-family:inherit;color:inherit}
       <span style="position:absolute;left:0;right:0;bottom:22px;height:3px;background:repeating-linear-gradient(90deg,rgba(242,236,215,.20) 0 6px,transparent 6px 18px);opacity:.5"></span>
     </div>
     <div style="font-family:'Galmuri11',monospace;font-weight:700;letter-spacing:1px;font-size:clamp(15px,1.56vh,20px);color:#ffd166">🎯 CHECK POINT ① · 빈칸 채우기</div>
-    <div style="max-width:1040px;width:100%;background:#171334;border:4px solid #f2ecd7;box-shadow:0 0 0 4px #0b0a1c,12px 12px 0 0 rgba(0,0,0,.6);padding:clamp(16px,4.00vh,36px) 38px;text-align:center">
+    <div style="max-width:1040px;width:100%;background:#171334;border:4px solid #f2ecd7;box-shadow:0 0 0 4px #121028,12px 12px 0 0 rgba(0,0,0,.6);padding:clamp(16px,4.00vh,36px) 38px;text-align:center">
       <div style="font-size:clamp(16px,2.89vh,26px);color:#cfc8ef">JSON의 핵심 구조는?</div>
       <div style="font-size:clamp(29px,5.33vh,48px);color:#ffd166;margin-top:20px">{{ cp1Blank }} 와 값의 짝!</div>
       <button onClick="{{ revealCp1 }}" style="margin-top:24px;cursor:pointer;border:4px solid #f2ecd7;background:#ffd166;color:#241a3a;padding:12px 30px;font-size:clamp(12px,2.22vh,20px)">정답 공개</button>
@@ -368,7 +368,7 @@ button{font-family:inherit;color:inherit}
     <div style="font-family:'Galmuri11',monospace;font-weight:700;letter-spacing:1px;font-size:clamp(15px,1.56vh,20px);color:#ff6ec7">SCENE 2 — 상자 안에 상자를 넣는다</div>
     <div style="max-width:1080px;width:100%;background:#2b2350;border:4px solid #ffd166;padding:clamp(6px,1.56vh,14px) 22px;font-size:clamp(12px,2.22vh,20px)">공돌이: “근데 이거… 그냥 표 같은 거 아냐? 엑셀로도 되겠는데.”</div>
     <div style="max-width:1080px;width:100%;background:#122b44;border:4px solid #6ee7ff;padding:clamp(6px,1.56vh,14px) 22px;font-size:clamp(12px,2.22vh,20px)">코디: “오, 좋은 반박이야. 그럼 <b style="color:#7ee787">이건 표로 어떻게 만들래?</b>”</div>
-    <div style="max-width:1080px;width:100%;background:#141428;border:4px solid #7ee787;box-shadow:0 0 0 4px #0b0a1c,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(11px,2.67vh,24px) 28px;font-size:clamp(11px,2.11vh,19px);line-height:1.9">
+    <div style="max-width:1080px;width:100%;background:#141428;border:4px solid #7ee787;box-shadow:0 0 0 4px #121028,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(11px,2.67vh,24px) 28px;font-size:clamp(11px,2.11vh,19px);line-height:1.9">
       <div><span style="color:#6b649b">{</span></div>
       <div>&nbsp;&nbsp;<span style="color:#6ee7ff">"이름"</span><span style="color:#6b649b">:</span> <span style="color:#ffd166">"정웅호"</span><span style="color:#6b649b">,</span></div>
       <div>&nbsp;&nbsp;<span style="color:#6ee7ff">"취미"</span><span style="color:#6b649b">:</span> <span style="color:#ff6ec7">[</span><span style="color:#ffd166">"폰트디자인"</span><span style="color:#6b649b">,</span> <span style="color:#ffd166">"3D모델링"</span><span style="color:#6b649b">,</span> <span style="color:#ffd166">"바이브코딩"</span><span style="color:#ff6ec7">]</span><span style="color:#6b649b">,</span></div>
@@ -527,12 +527,12 @@ button{font-family:inherit;color:inherit}
     <div style="max-width:1040px;width:100%;background:#2b2350;border:4px solid #ffd166;padding:clamp(6px,1.56vh,14px) 22px;font-size:clamp(13px,2.33vh,21px)">공돌이: “그럼 진짜 표 데이터는 뭘 써?”</div>
     <div style="display:flex;gap:clamp(10px,2.67vh,24px);align-items:center;max-width:1040px;width:100%">
       <div style="flex:none;animation:bob 2.4s steps(4) infinite">{{ gridBig }}</div>
-      <div style="flex:1;background:#122b44;border:4px solid #6ee7ff;box-shadow:0 0 0 4px #0b0a1c,10px 10px 0 0 rgba(0,0,0,.55);padding:clamp(9px,2.22vh,20px) 26px;position:relative">
-        <div style="position:absolute;top:-18px;left:22px;background:#6ee7ff;color:#0b0a1c;font-weight:700;font-size:clamp(11px,1.89vh,17px);padding:5px 12px;letter-spacing:1px">코디</div>
+      <div style="flex:1;background:#122b44;border:4px solid #6ee7ff;box-shadow:0 0 0 4px #121028,10px 10px 0 0 rgba(0,0,0,.55);padding:clamp(9px,2.22vh,20px) 26px;position:relative">
+        <div style="position:absolute;top:-18px;left:22px;background:#6ee7ff;color:#121028;font-weight:700;font-size:clamp(11px,1.89vh,17px);padding:5px 12px;letter-spacing:1px">코디</div>
         <div style="font-size:clamp(14px,2.67vh,24px);margin-top:8px">“그럴 땐 더 단순한 사촌이 있어. <b style="color:#7ee787">CSV.</b>”</div>
       </div>
     </div>
-    <div style="max-width:1040px;width:100%;background:#141428;border:4px solid #7ee787;box-shadow:0 0 0 4px #0b0a1c,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(11px,2.67vh,24px) 28px;font-size:clamp(13px,2.44vh,22px);line-height:2">
+    <div style="max-width:1040px;width:100%;background:#141428;border:4px solid #7ee787;box-shadow:0 0 0 4px #121028,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(11px,2.67vh,24px) 28px;font-size:clamp(13px,2.44vh,22px);line-height:2">
       <div style="color:#6ee7ff">날짜,항목,금액</div>
       <div style="color:#cfc8ef">2026-08-01,점심,9000</div>
       <div style="color:#cfc8ef">2026-08-02,커피,4500</div>
@@ -810,7 +810,7 @@ button{font-family:inherit;color:inherit}
       <span style="position:absolute;left:0;right:0;bottom:22px;height:3px;background:repeating-linear-gradient(90deg,rgba(126,231,135,.22) 0 6px,transparent 6px 18px);opacity:.5"></span>
     </div>
     <div style="max-width:1020px;width:100%;background:#2b2350;border:4px solid #ffd166;padding:clamp(7px,1.78vh,16px) 22px;font-size:clamp(13px,2.44vh,22px)">공돌이: “그럼 앱 만들 때마다 <b style="color:#ffd166">매번 처음부터 다시 말해야 되는 거야?</b>”</div>
-    <div style="background:#0b0a1c;border:4px solid #ffd166;box-shadow:0 0 0 4px #0b0a1c,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(9px,2.22vh,20px) 36px;font-size:clamp(18px,3.33vh,30px);color:#ffd166;animation:pulse .9s steps(2) infinite">⚡ 핵심을 찔렀다! +50 EXP</div>
+    <div style="background:#121028;border:4px solid #ffd166;box-shadow:0 0 0 4px #121028,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(9px,2.22vh,20px) 36px;font-size:clamp(18px,3.33vh,30px);color:#ffd166;animation:pulse .9s steps(2) infinite">⚡ 핵심을 찔렀다! +50 EXP</div>
     <div style="max-width:1020px;width:100%;background:#122b44;border:4px solid #6ee7ff;padding:clamp(7px,1.78vh,16px) 22px;font-size:clamp(13px,2.33vh,21px)">코디: “드디어 그 질문이 나왔네. 사실 <b style="color:#7ee787">오늘 2부의 진짜 주인공이 그거야.</b>”</div>
     <div style="max-width:1020px;width:100%;background:#122b44;border:4px solid #6ee7ff;padding:clamp(7px,1.78vh,16px) 22px;font-size:clamp(14px,2.56vh,23px)">코디: “<b style="color:#ffd166">한 번 적어두면 돼.</b> 그걸 스킬이라고 해.”</div>
     <div style="font-family:'Galmuri11',monospace;font-weight:700;font-size:clamp(17px,3.11vh,28px);color:#ffd166;animation:pulse 1s steps(2) infinite;letter-spacing:1px">🗝️ 스킬을 획득했다!</div>
@@ -938,8 +938,8 @@ button{font-family:inherit;color:inherit}
     <div style="max-width:1040px;width:100%;background:#2b2350;border:4px solid #ffd166;padding:12px 22px;font-size:clamp(12px,2.22vh,20px)">공돌이: “근데 그 ‘적어둔다’는 게 뭐 특별한 형식이야?”</div>
     <div style="display:flex;gap:clamp(10px,2.67vh,24px);align-items:center;max-width:1040px;width:100%">
       <div style="flex:none;animation:float 2.8s steps(6) infinite">{{ scrollBig }}</div>
-      <div style="flex:1;background:#122b44;border:4px solid #6ee7ff;box-shadow:0 0 0 4px #0b0a1c,10px 10px 0 0 rgba(0,0,0,.55);padding:clamp(9px,2.22vh,20px) 26px;position:relative">
-        <div style="position:absolute;top:-18px;left:22px;background:#6ee7ff;color:#0b0a1c;font-weight:700;font-size:clamp(11px,1.89vh,17px);padding:5px 12px;letter-spacing:1px">코디</div>
+      <div style="flex:1;background:#122b44;border:4px solid #6ee7ff;box-shadow:0 0 0 4px #121028,10px 10px 0 0 rgba(0,0,0,.55);padding:clamp(9px,2.22vh,20px) 26px;position:relative">
+        <div style="position:absolute;top:-18px;left:22px;background:#6ee7ff;color:#121028;font-weight:700;font-size:clamp(11px,1.89vh,17px);padding:5px 12px;letter-spacing:1px">코디</div>
         <div style="font-size:clamp(14px,2.56vh,23px);margin-top:8px">“아니. <b style="color:#7ee787">그냥 텍스트 문서야.</b> 확장자가 .md인.”</div>
       </div>
     </div>
@@ -961,10 +961,10 @@ button{font-family:inherit;color:inherit}
     </div>
     <div style="font-family:'Galmuri11',monospace;font-weight:700;letter-spacing:1px;font-size:clamp(15px,1.44vh,20px);color:#7ee787">TRY IT — 원문과 화면을 번갈아 보기</div>
     <div style="display:flex;gap:12px">
-      <button onClick="{{ showRaw }}" style="cursor:pointer;border:4px solid #f2ecd7;padding:10px 22px;font-size:clamp(11px,2.00vh,18px);color:#0b0a1c;background:{{ rawBtnBg }}">원문 (메모장)</button>
-      <button onClick="{{ showRendered }}" style="cursor:pointer;border:4px solid #f2ecd7;padding:10px 22px;font-size:clamp(11px,2.00vh,18px);color:#0b0a1c;background:{{ renBtnBg }}">꾸며진 화면</button>
+      <button onClick="{{ showRaw }}" style="cursor:pointer;border:4px solid #f2ecd7;padding:10px 22px;font-size:clamp(11px,2.00vh,18px);color:#121028;background:{{ rawBtnBg }}">원문 (메모장)</button>
+      <button onClick="{{ showRendered }}" style="cursor:pointer;border:4px solid #f2ecd7;padding:10px 22px;font-size:clamp(11px,2.00vh,18px);color:#121028;background:{{ renBtnBg }}">꾸며진 화면</button>
     </div>
-    <div style="max-width:1000px;width:100%;background:#141428;border:4px solid #4a4470;box-shadow:0 0 0 4px #0b0a1c,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(12px,2.89vh,26px) 30px;min-height:clamp(145px,32.22vh,290px)">
+    <div style="max-width:1000px;width:100%;background:#141428;border:4px solid #4a4470;box-shadow:0 0 0 4px #121028,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(12px,2.89vh,26px) 30px;min-height:clamp(145px,32.22vh,290px)">
       <sc-if value="{{ isRaw }}" hint-placeholder-val="{{ true }}">
         <div style="font-size:clamp(12px,2.22vh,20px);line-height:2;color:#cfc8ef">
           <div><span style="color:#ff6ec7"># </span>제목은 샵 하나</div>
@@ -1128,7 +1128,7 @@ button{font-family:inherit;color:inherit}
         <button onClick="{{ d.go }}" style="flex:1;cursor:pointer;border:4px solid {{ d.border }};background:{{ d.bg }};color:{{ d.fg }};box-shadow:6px 6px 0 0 rgba(0,0,0,.5);padding:clamp(7px,1.78vh,16px);font-size:clamp(12px,2.22vh,20px)">{{ d.name }}</button>
       </sc-for>
     </div>
-    <div style="max-width:1100px;width:100%;background:#141428;border:4px solid #f2ecd7;box-shadow:0 0 0 4px #0b0a1c,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(11px,2.67vh,24px) 28px;min-height:clamp(125px,27.78vh,250px);display:flex;gap:clamp(10px,2.67vh,24px);align-items:center">
+    <div style="max-width:1100px;width:100%;background:#141428;border:4px solid #f2ecd7;box-shadow:0 0 0 4px #121028,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(11px,2.67vh,24px) 28px;min-height:clamp(125px,27.78vh,250px);display:flex;gap:clamp(10px,2.67vh,24px);align-items:center">
       <div style="flex:none;animation:float 2.8s steps(6) infinite">{{ scrollBig }}</div>
       <div style="flex:1;display:flex;flex-direction:column;gap:12px">
         <div style="font-size:clamp(15px,2.78vh,25px);color:#ffd166">{{ docTitle }}</div>
@@ -1195,7 +1195,7 @@ button{font-family:inherit;color:inherit}
       <span style="position:absolute;left:0;right:0;bottom:22px;height:3px;background:repeating-linear-gradient(90deg,rgba(255,209,102,.24) 0 6px,transparent 6px 18px);opacity:.5"></span>
     </div>
     <div style="display:flex;gap:clamp(10px,2.67vh,24px);align-items:flex-end"><div style="animation:bob 1.4s steps(4) infinite">{{ heroBig }}</div><div style="animation:float 2.8s steps(6) infinite">{{ scrollBig }}</div></div>
-    <div style="background:#241c4e;border:4px solid #ffd166;box-shadow:0 0 0 4px #0b0a1c,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(8px,2.00vh,18px) 34px;font-size:clamp(16px,2.89vh,26px);color:#ffd166;animation:pulse 1.2s steps(2) infinite">🆙 Lv.6 창구를 여는 자 → Lv.7 매뉴얼을 쓰는 자</div>
+    <div style="background:#241c4e;border:4px solid #ffd166;box-shadow:0 0 0 4px #121028,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(8px,2.00vh,18px) 34px;font-size:clamp(16px,2.89vh,26px);color:#ffd166;animation:pulse 1.2s steps(2) infinite">🆙 Lv.6 창구를 여는 자 → Lv.7 매뉴얼을 쓰는 자</div>
     <div style="max-width:1020px;width:100%;background:#122b44;border:4px solid #6ee7ff;padding:clamp(7px,1.78vh,16px) 22px;font-size:clamp(13px,2.33vh,21px)">코디: “<b style="color:#7ee787">네가 몰랐을 뿐, 계속 마주치고 있었어.</b>”</div>
   </section>
 
@@ -1370,7 +1370,7 @@ button{font-family:inherit;color:inherit}
       <div style="flex:1;background:#171334;border:4px solid #7ee787;box-shadow:8px 8px 0 0 rgba(0,0,0,.5);padding:clamp(10px,2.44vh,22px);text-align:center"><div style="display:flex;justify-content:center">{{ grid }}</div><div style="font-size:clamp(13px,2.44vh,22px);color:#7ee787;margin-top:12px">📄 CSV</div><div style="font-size:clamp(11px,1.89vh,17px);color:#9d97c9;margin-top:6px">납작한 데이터 그릇</div></div>
       <div style="flex:1;background:#171334;border:4px solid #6ee7ff;box-shadow:8px 8px 0 0 rgba(0,0,0,.5);padding:clamp(10px,2.44vh,22px);text-align:center"><div style="display:flex;justify-content:center">{{ scroll }}</div><div style="font-size:clamp(13px,2.44vh,22px);color:#6ee7ff;margin-top:12px">📘 md</div><div style="font-size:clamp(11px,1.89vh,17px);color:#9d97c9;margin-top:6px">사람도 읽고 나도 읽는 설명서</div></div>
     </div>
-    <div style="max-width:1100px;width:100%;background:#0b0a1c;border:4px solid #ffd166;box-shadow:0 0 0 4px #0b0a1c,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(12px,2.89vh,26px);text-align:center">
+    <div style="max-width:1100px;width:100%;background:#121028;border:4px solid #ffd166;box-shadow:0 0 0 4px #121028,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(12px,2.89vh,26px);text-align:center">
       <div style="font-size:clamp(19px,3.56vh,32px);color:#ffd166">코디: “눈치챘어? <b>셋 다 그냥 텍스트야.</b>”</div>
     </div>
     <div style="max-width:1100px;width:100%;background:#2b2350;border:4px solid #ffd166;padding:12px 22px;font-size:clamp(12px,2.22vh,20px)">공돌이: “어… 진짜네. 왜 다 텍스트지? 더 좋은 형식도 있을 텐데.”</div>
@@ -1445,7 +1445,7 @@ button{font-family:inherit;color:inherit}
       <span style="position:absolute;left:0;right:0;bottom:22px;height:3px;background:repeating-linear-gradient(90deg,rgba(255,110,199,.22) 0 6px,transparent 6px 18px);opacity:.5"></span>
     </div>
     <div style="max-width:1080px;width:100%;background:#2b2350;border:4px solid #ffd166;padding:clamp(6px,1.56vh,14px) 22px;font-size:clamp(12px,2.22vh,20px)">공돌이: “아…” / 코디: “왜?”</div>
-    <div style="max-width:1080px;width:100%;background:#0b0a1c;border:4px solid #ffd166;box-shadow:0 0 0 4px #0b0a1c,12px 12px 0 0 rgba(0,0,0,.6);padding:clamp(16px,4.00vh,36px);text-align:center">
+    <div style="max-width:1080px;width:100%;background:#121028;border:4px solid #ffd166;box-shadow:0 0 0 4px #121028,12px 12px 0 0 rgba(0,0,0,.6);padding:clamp(16px,4.00vh,36px);text-align:center">
       <div style="font-size:clamp(14px,2.67vh,24px);color:#cfc8ef">공돌이: “그러니까 텍스트는 특별한 포장이 아니라서 강한 거네.</div>
       <div style="font-size:clamp(25px,4.67vh,42px);color:#ffd166;margin-top:18px;line-height:1.4">제일 안 특별해서<br>제일 강한 거잖아.”</div>
       <button onClick="{{ revealCp6b }}" style="margin-top:22px;cursor:pointer;border:4px solid #f2ecd7;background:#ffd166;color:#241a3a;padding:12px 30px;font-size:clamp(12px,2.22vh,20px)">{{ cp6bLabel }}</button>
@@ -1513,7 +1513,7 @@ button{font-family:inherit;color:inherit}
       <span style="position:absolute;left:0;right:0;bottom:22px;height:3px;background:repeating-linear-gradient(90deg,rgba(126,231,135,.22) 0 6px,transparent 6px 18px);opacity:.5"></span>
     </div>
     <div style="font-family:'Galmuri11',monospace;font-weight:700;letter-spacing:1px;font-size:clamp(15px,1.56vh,20px);color:#ff6ec7">🗺️ 1부 — 권한의 3영역</div>
-    <div style="max-width:1160px;width:100%;background:#171334;border:4px solid #f2ecd7;box-shadow:0 0 0 4px #0b0a1c,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(11px,2.67vh,24px) 30px;display:flex;flex-direction:column;gap:10px">
+    <div style="max-width:1160px;width:100%;background:#171334;border:4px solid #f2ecd7;box-shadow:0 0 0 4px #121028,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(11px,2.67vh,24px) 30px;display:flex;flex-direction:column;gap:10px">
       <div style="display:flex;align-items:center;gap:clamp(7px,2.00vh,18px);background:#1f1a45;border:3px solid #6ee7ff;padding:clamp(6px,1.56vh,14px) 18px"><span style="font-size:clamp(17px,3.11vh,28px)">🌐</span><span style="width:160px;font-size:clamp(12px,2.22vh,20px);color:#6ee7ff">웹앱(html)</span><span style="flex:1;font-size:clamp(11px,2.00vh,18px);color:#cfc8ef">브라우저 안 · 파일은 업로드해야</span></div>
       <div style="display:flex;align-items:center;gap:clamp(7px,2.00vh,18px);background:#1f1a45;border:3px solid #7ee787;padding:clamp(6px,1.56vh,14px) 18px;margin-left:40px"><span style="font-size:clamp(17px,3.11vh,28px)">🧩</span><span style="width:160px;font-size:clamp(12px,2.22vh,20px);color:#7ee787">익스텐션</span><span style="flex:1;font-size:clamp(11px,2.00vh,18px);color:#cfc8ef">브라우저 안 · 남의 페이지까지 · 로그인 세션 공유</span></div>
       <div style="display:flex;align-items:center;gap:clamp(7px,2.00vh,18px);background:#1f1a45;border:3px solid #ffd166;padding:clamp(6px,1.56vh,14px) 18px;margin-left:80px"><span style="font-size:clamp(17px,3.11vh,28px)">🐍</span><span style="width:160px;font-size:clamp(12px,2.22vh,20px);color:#ffd166">파이썬</span><span style="flex:1;font-size:clamp(11px,2.00vh,18px);color:#cfc8ef">브라우저 밖 · 파일·프로그램·자동실행</span></div>
@@ -1608,7 +1608,7 @@ button{font-family:inherit;color:inherit}
     </div>
     <div style="max-width:1100px;width:100%;background:#122b44;border:4px solid #6ee7ff;padding:clamp(6px,1.56vh,14px) 22px;font-size:clamp(11px,2.11vh,19px)">코디: “어제 넌 화면에 보여주는 법을 배웠어. 오늘은 울타리 밖에서 일 시키는 법이랑, 그 결과를 안 죽는 그릇에 담는 법을 배웠고. <b style="color:#7ee787">그럼 이제 뭐가 남았게?</b>”</div>
     <div style="max-width:1100px;width:100%;background:#2b2350;border:4px solid #ffd166;padding:12px 22px;font-size:clamp(12px,2.22vh,20px)">공돌이: “음… 더 배울 게 남았어?”</div>
-    <div style="max-width:1100px;width:100%;background:#0b0a1c;border:4px solid #ffd166;box-shadow:0 0 0 4px #0b0a1c,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(12px,2.89vh,26px);text-align:center">
+    <div style="max-width:1100px;width:100%;background:#121028;border:4px solid #ffd166;box-shadow:0 0 0 4px #121028,10px 10px 0 0 rgba(0,0,0,.6);padding:clamp(12px,2.89vh,26px);text-align:center">
       <div style="font-size:clamp(20px,3.78vh,34px);color:#ffd166">코디: “아니. <b>쓰는 것만 남았어.</b>”</div>
     </div>
     <div style="max-width:1100px;width:100%;background:#122b44;border:4px solid #6ee7ff;padding:clamp(6px,1.56vh,14px) 22px;font-size:clamp(11px,2.11vh,19px)">코디: “이틀 동안 배운 걸 다 합쳐도, 네가 내일 아침에 나를 켜지 않으면 아무 일도 안 일어나. 반대로 오늘 배운 것의 절반만 기억해도, <b style="color:#7ee787">내일 뭔가 하나를 만들면 — 그때부터가 진짜 시작이야.</b>”</div>
@@ -1617,7 +1617,7 @@ button{font-family:inherit;color:inherit}
   </section>
 
   <!-- 60 THE END -->
-  <section data-slide data-i="59" data-exp="100" data-chapter="DAY2 CLEAR" data-screen-label="60 THE END" style="min-height:100vh;position:relative;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:clamp(66px,10vh,110px) clamp(22px,4vw,60px) clamp(50px,8vh,90px);gap:clamp(6px,1.78vh,16px);background:radial-gradient(ellipse at 50% 50%,#3a2a1a 0%,#0b0a1c 72%)">
+  <section data-slide data-i="59" data-exp="100" data-chapter="DAY2 CLEAR" data-screen-label="60 THE END" style="min-height:100vh;position:relative;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:clamp(66px,10vh,110px) clamp(22px,4vw,60px) clamp(50px,8vh,90px);gap:clamp(6px,1.78vh,16px);background:radial-gradient(ellipse at 50% 50%,#3a2a1a 0%,#121028 72%)">
     <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden">
       <span style="position:absolute;left:26px;top:22px;width:30px;height:5px;background:rgba(255,110,199,.22)"></span><span style="position:absolute;left:26px;top:22px;width:5px;height:30px;background:rgba(255,110,199,.22)"></span>
       <span style="position:absolute;right:26px;top:22px;width:30px;height:5px;background:rgba(255,110,199,.22)"></span><span style="position:absolute;right:26px;top:22px;width:5px;height:30px;background:rgba(255,110,199,.22)"></span>
@@ -1630,14 +1630,14 @@ button{font-family:inherit;color:inherit}
     </div>
     <div style="font-family:'Press Start 2P',monospace;font-size:clamp(16px,2.89vh,26px);color:#ffd166;text-shadow:5px 5px 0 #8a5a1a">🏁 THE END</div>
     <div style="font-size:clamp(13px,2.44vh,22px);color:#cfc8ef">— 그리고 진짜 시작</div>
-    <div style="max-width:900px;width:100%;background:#171334;border:4px solid #f2ecd7;box-shadow:0 0 0 4px #0b0a1c,12px 12px 0 0 rgba(0,0,0,.6);padding:clamp(13px,3.11vh,28px) 34px;display:flex;flex-direction:column;gap:14px;align-items:center">
+    <div style="max-width:900px;width:100%;background:#171334;border:4px solid #f2ecd7;box-shadow:0 0 0 4px #121028,12px 12px 0 0 rgba(0,0,0,.6);padding:clamp(13px,3.11vh,28px) 34px;display:flex;flex-direction:column;gap:14px;align-items:center">
       <div style="font-size:clamp(14px,2.56vh,23px);color:#cfc8ef">2부 퀴즈 정답</div>
       <div style="font-family:'Press Start 2P',monospace;font-size:clamp(29px,5.33vh,48px);color:#7ee787">{{ score }} / 6</div>
       <div style="font-size:clamp(18px,3.33vh,30px);color:#ffd166">등급 {{ grade }}</div>
       <div style="font-size:clamp(14px,2.67vh,24px);color:#ffd166">🆙 최종 레벨: Lv.8 그릇을 아는 자</div>
       <div style="display:flex;gap:12px;align-items:center;margin-top:4px">
         <span style="font-size:clamp(12px,2.22vh,20px);color:#9d97c9">오늘의 MVP</span>
-        <input value="{{ mvp }}" onChange="{{ setMvp }}" placeholder="이름을 입력" style="border:4px solid #f2ecd7;background:#0b0a1c;color:#ffd166;padding:10px 14px;font-size:clamp(13px,2.33vh,21px);font-family:inherit;width:260px" />
+        <input value="{{ mvp }}" onChange="{{ setMvp }}" placeholder="이름을 입력" style="border:4px solid #f2ecd7;background:#121028;color:#ffd166;padding:10px 14px;font-size:clamp(13px,2.33vh,21px);font-family:inherit;width:260px" />
       </div>
       <div style="font-size:clamp(13px,2.33vh,21px);color:#f2ecd7">{{ mvpLine }}</div>
     </div>
